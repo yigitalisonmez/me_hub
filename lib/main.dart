@@ -20,6 +20,12 @@ import 'features/todo/data/models/daily_todo_model.dart';
 import 'features/quote/presentation/widgets/daily_quote_widget.dart';
 import 'core/presentation/splash_screen.dart';
 import 'features/celebration/presentation/widgets/celebration_overlay.dart';
+import 'features/routines/presentation/pages/routines_page.dart';
+import 'features/routines/presentation/providers/routines_provider.dart';
+import 'features/routines/data/datasources/routine_local_datasource.dart';
+import 'features/routines/data/repositories/routine_repository_impl.dart' as RoutinesRepo;
+import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
+import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,18 +36,30 @@ void main() async {
   // Hive adapter'larını kaydet
   Hive.registerAdapter(DailyTodoAdapter());
   Hive.registerAdapter(DailyTodoModelAdapter());
+  Hive.registerAdapter(RoutineEntities.RoutineItemAdapter());
+  Hive.registerAdapter(RoutineEntities.RoutineAdapter());
 
   // Todo data source'unu başlat
   final todoDataSource = TodoLocalDataSourceImpl();
   await todoDataSource.init();
+  final routinesDataSource = RoutineLocalDataSourceImpl();
+  await routinesDataSource.init();
 
-  runApp(MeHubApp(todoDataSource: todoDataSource));
+  runApp(MeHubApp(
+    todoDataSource: todoDataSource,
+    routinesDataSource: routinesDataSource,
+  ));
 }
 
 class MeHubApp extends StatelessWidget {
   final TodoLocalDataSource todoDataSource;
+  final RoutineLocalDataSource routinesDataSource;
 
-  const MeHubApp({super.key, required this.todoDataSource});
+  const MeHubApp({
+    super.key,
+    required this.todoDataSource,
+    required this.routinesDataSource,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +68,9 @@ class MeHubApp extends StatelessWidget {
         Provider<TodoRepositoryImpl>(
           create: (_) => TodoRepositoryImpl(localDataSource: todoDataSource),
         ),
+        Provider<RoutinesRepo.RoutineRepositoryImpl>(
+          create: (_) => RoutinesRepo.RoutineRepositoryImpl(local: routinesDataSource),
+      ),
         ChangeNotifierProvider<TodoProvider>(
           create: (context) => TodoProvider(
             getTodayTodos: GetTodayTodos(context.read<TodoRepositoryImpl>()),
@@ -59,6 +80,22 @@ class MeHubApp extends StatelessWidget {
             deleteTodo: DeleteTodo(context.read<TodoRepositoryImpl>()),
             toggleTodoCompletion: ToggleTodoCompletion(
               context.read<TodoRepositoryImpl>(),
+            ),
+          ),
+        ),
+        ChangeNotifierProvider<RoutinesProvider>(
+          create: (context) => RoutinesProvider(
+            getRoutines: RoutinesUsecases.GetRoutines(
+              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            ),
+            addRoutine: RoutinesUsecases.AddRoutine(
+              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            ),
+            updateRoutine: RoutinesUsecases.UpdateRoutine(
+              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            ),
+            deleteRoutine: RoutinesUsecases.DeleteRoutine(
+              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
             ),
           ),
         ),
@@ -121,6 +158,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         _buildHomeContent(),
         _buildProgressPage(),
+        const RoutinesPage(),
         _buildSettingsPage(),
       ],
     );
@@ -201,7 +239,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          child: Column(
+        child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -461,14 +499,9 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Today'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up),
-            label: 'Progress',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.trending_up), label: 'Progress'),
+          BottomNavigationBarItem(icon: Icon(Icons.repeat), label: 'Routines'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );
