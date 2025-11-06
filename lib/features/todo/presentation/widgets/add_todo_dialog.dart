@@ -3,7 +3,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../shared/utils/date_utils.dart' as AppDateUtils;
 
 /// Add todo dialog
 class AddTodoDialog extends StatefulWidget {
@@ -19,7 +18,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
   int _selectedPriority = 2;
 
   @override
@@ -46,8 +44,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                 textCapitalization: TextCapitalization.sentences,
               ),
               const SizedBox(height: 16),
-              _buildDateSelector(),
-              const SizedBox(height: 16),
               _buildPrioritySelector(),
             ],
           ),
@@ -60,49 +56,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         CustomButton(text: 'Add', onPressed: _addTodo),
-      ],
-    );
-  }
-
-  Widget _buildDateSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Date',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.darkGrey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: _selectDate,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: AppColors.primaryOrange,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppDateUtils.DateUtils.formatDate(_selectedDate),
-                  style: const TextStyle(color: AppColors.darkGrey),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -174,24 +127,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
     );
   }
 
-  Future<void> _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-
-    if (date != null) {
-      setState(() => _selectedDate = date);
-    }
-  }
-
   void _addTodo() {
     if (_formKey.currentState!.validate()) {
       widget.onAdd(
         title: _titleController.text.trim(),
-        date: _selectedDate,
+        date: DateTime.now(),
         priority: _selectedPriority,
       );
       Navigator.of(context).pop();

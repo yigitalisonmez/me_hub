@@ -97,7 +97,11 @@ class TodoProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
 
-    final result = await _addTodo(title: title, date: date, priority: priority);
+    final result = await _addTodo(
+      title: title,
+      date: date ?? DateTime.now(),
+      priority: priority,
+    );
 
     _setLoading(false);
 
