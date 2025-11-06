@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/daily_todo.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/utils/date_utils.dart' as AppDateUtils;
 
 /// Todo item widget'ı
 class TodoItem extends StatelessWidget {
@@ -113,27 +112,11 @@ class TodoItem extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          AppDateUtils.DateUtils.formatRelativeDate(todo.createdAt),
-          style: const TextStyle(color: AppColors.grey, fontSize: 10),
-        ),
       ],
     );
   }
 
-  Color _getPriorityColor() {
-    switch (todo.priority) {
-      case 1:
-        return const Color(0xFF10B981); // Green
-      case 2:
-        return const Color(0xFFF59E0B); // Yellow
-      case 3:
-        return const Color(0xFFEF4444); // Red
-      default:
-        return const Color(0xFFF59E0B);
-    }
-  }
+  // No extra subtitle colors needed currently
 
   Widget _buildTrailing() {
     return Row(

@@ -84,35 +84,46 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TodoProvider>().loadAllTodos();
+      context.read<TodoProvider>().loadTodayTodos();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      body: Stack(children: [_buildCurrentPage(), _buildCelebrationOverlay()]),
+      body: Stack(children: [_buildPageView(), _buildCelebrationOverlay()]),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  Widget _buildCurrentPage() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildHomeContent();
-      case 1:
-        return _buildProgressPage();
-      case 2:
-        return _buildSettingsPage();
-      default:
-        return _buildHomeContent();
-    }
+  Widget _buildPageView() {
+    return PageView(
+      controller: _pageController,
+      onPageChanged: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      children: [
+        _buildHomeContent(),
+        _buildProgressPage(),
+        _buildSettingsPage(),
+      ],
+    );
   }
 
   Widget _buildHomeContent() {
@@ -437,9 +448,11 @@ class _HomePageState extends State<HomePage> {
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
         backgroundColor: AppColors.white,
         selectedItemColor: AppColors.primaryOrange,
@@ -709,14 +722,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Created ${_formatRelativeDate(todo.createdAt)}',
-                      style: const TextStyle(
-                        color: AppColors.grey,
-                        fontSize: 10,
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -746,20 +751,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _formatRelativeDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'now';
-    }
-  }
+  // Relative date text removed for daily-only UI
 
   void _showAddTodoDialog(BuildContext context) {
     showDialog(

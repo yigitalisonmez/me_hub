@@ -57,20 +57,21 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _loadQuote() async {
     setState(() {
-      _loadingText = 'Loading daily inspiration...';
+      _loadingText = 'Loading...';
     });
 
     try {
+      // API'den quote'u çek
       final quote = await QuoteCacheService.getDailyQuote();
 
       if (mounted) {
         setState(() {
           _quote = quote;
-          _loadingText = 'Almost ready...';
+          _loadingText = 'Ready!';
         });
 
-        // Minimum 2 saniye splash screen göster
-        await Future.delayed(const Duration(milliseconds: 2000));
+        // API yanıtı geldikten sonra hemen geçiş yap
+        await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -81,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
                   (context, animation, secondaryAnimation, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
-              transitionDuration: const Duration(milliseconds: 500),
+              transitionDuration: const Duration(milliseconds: 300),
             ),
           );
         }
@@ -92,7 +93,8 @@ class _SplashScreenState extends State<SplashScreen>
           _loadingText = 'Ready!';
         });
 
-        await Future.delayed(const Duration(milliseconds: 1000));
+        // Hata durumunda da hemen geçiş yap
+        await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -103,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
                   (context, animation, secondaryAnimation, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
-              transitionDuration: const Duration(milliseconds: 500),
+              transitionDuration: const Duration(milliseconds: 300),
             ),
           );
         }
@@ -199,78 +201,19 @@ class _SplashScreenState extends State<SplashScreen>
 
                 const SizedBox(height: 60),
 
-                // Loading Indicator
-                Column(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryOrange,
-                        ),
-                      ),
+                // Simple Loading Indicator
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryOrange,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _loadingText,
-                      style: const TextStyle(
-                        color: AppColors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
 
                 const Spacer(),
-
-                // Quote Preview (if available)
-                if (_quote != null)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryOrange.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.format_quote,
-                          color: AppColors.primaryOrange,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '"${_quote!.text}"',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.darkGrey,
-                            fontSize: 14,
-                            height: 1.4,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '— ${_quote!.author}',
-                          style: const TextStyle(
-                            color: AppColors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
               ],
             ),
           ),

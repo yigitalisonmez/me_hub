@@ -1,0 +1,4 @@
+/// EMULATOR COMMANDS
+flutter emulators
+emulator -avd Pixel_7
+flutter run -d emulator-5554
