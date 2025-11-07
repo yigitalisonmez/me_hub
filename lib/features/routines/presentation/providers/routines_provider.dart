@@ -55,7 +55,25 @@ class RoutinesProvider with ChangeNotifier {
     final index = _routines.indexWhere((r) => r.id == routineId);
     if (index == -1) return;
     final routine = _routines[index];
-    final updated = routine.copyWith(items: [...routine.items, item]);
+    var updated = routine.copyWith(items: [...routine.items, item]);
+    
+    // Streak kontrolü yap
+    updated = _checkAndUpdateStreak(routine, updated);
+    
+    await _updateRoutine(updated);
+    await loadRoutines();
+  }
+
+  Future<void> deleteItem(String routineId, String itemId) async {
+    final index = _routines.indexWhere((r) => r.id == routineId);
+    if (index == -1) return;
+    final routine = _routines[index];
+    final updatedItems = routine.items.where((item) => item.id != itemId).toList();
+    var updated = routine.copyWith(items: updatedItems);
+    
+    // Streak kontrolü yap
+    updated = _checkAndUpdateStreak(routine, updated);
+    
     await _updateRoutine(updated);
     await loadRoutines();
   }
@@ -63,9 +81,6 @@ class RoutinesProvider with ChangeNotifier {
   Future<void> toggleItemCheckedToday(String routineId, String itemId) async {
     final today = DateTime.now();
     final normalizedToday = DateTime(today.year, today.month, today.day);
-    final normalizedYesterday = normalizedToday.subtract(
-      const Duration(days: 1),
-    );
 
     final index = _routines.indexWhere((r) => r.id == routineId);
     if (index == -1) return;
@@ -81,13 +96,29 @@ class RoutinesProvider with ChangeNotifier {
 
     var updatedRoutine = routine.copyWith(items: updatedItems);
 
+    // Streak kontrolü yap
+    updatedRoutine = _checkAndUpdateStreak(routine, updatedRoutine);
+
+    await _updateRoutine(updatedRoutine);
+    await loadRoutines();
+  }
+
+  Future<void> deleteRoutine(String routineId) async {
+    await _deleteRoutine(routineId);
+    await loadRoutines();
+  }
+
+  // Streak kontrol ve güncelleme helper metodu
+  Routine _checkAndUpdateStreak(Routine originalRoutine, Routine updatedRoutine) {
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedYesterday = normalizedToday.subtract(const Duration(days: 1));
+
     // Tüm itemler bugün tamamlandı mı?
-    final allItemsCheckedToday = updatedRoutine.allItemsCheckedToday(
-      normalizedToday,
-    );
+    final allItemsCheckedToday = updatedRoutine.allItemsCheckedToday(normalizedToday);
 
     // Bugün için streak sayılmış mı?
-    final lastStreakDate = routine.lastStreakDate;
+    final lastStreakDate = originalRoutine.lastStreakDate;
     final lastStreakDateNorm = lastStreakDate == null
         ? null
         : DateTime(
@@ -103,38 +134,32 @@ class RoutinesProvider with ChangeNotifier {
       int newStreak;
       if (lastStreakDateNorm == normalizedYesterday) {
         // Dün de tamamlanmış → Streak devam ediyor
-        newStreak = routine.streakCount + 1;
+        newStreak = originalRoutine.streakCount + 1;
       } else {
         // Dün tamamlanmamış → Yeni streak başlıyor
         newStreak = 1;
       }
-      updatedRoutine = updatedRoutine.copyWith(
+      return updatedRoutine.copyWith(
         streakCount: newStreak,
         lastStreakDate: normalizedToday,
       );
     } else if (!allItemsCheckedToday && isStreakIncremented) {
       // Tüm itemler tamamlanmamış AMA bugün için streak sayılmıştı → Geri al
-      final newStreak = routine.streakCount > 0 ? routine.streakCount - 1 : 0;
+      final newStreak = originalRoutine.streakCount > 0 ? originalRoutine.streakCount - 1 : 0;
       // Streak 0'a düşmüşse null, değilse önceki gün (dün)
       if (newStreak > 0) {
-        updatedRoutine = updatedRoutine.copyWith(
+        return updatedRoutine.copyWith(
           streakCount: newStreak,
           lastStreakDate: normalizedYesterday,
         );
       } else {
-        updatedRoutine = updatedRoutine.copyWith(
+        return updatedRoutine.copyWith(
           streakCount: newStreak,
           clearLastStreakDate: true,
         );
       }
     }
 
-    await _updateRoutine(updatedRoutine);
-    await loadRoutines();
-  }
-
-  Future<void> deleteRoutine(String routineId) async {
-    await _deleteRoutine(routineId);
-    await loadRoutines();
+    return updatedRoutine;
   }
 }
