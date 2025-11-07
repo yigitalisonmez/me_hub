@@ -108,6 +108,11 @@ class RoutinesProvider with ChangeNotifier {
     await loadRoutines();
   }
 
+  Future<void> updateRoutine(Routine routine) async {
+    await _updateRoutine(routine);
+    await loadRoutines();
+  }
+
   // Streak kontrol ve güncelleme helper metodu
   Routine _checkAndUpdateStreak(Routine originalRoutine, Routine updatedRoutine) {
     final today = DateTime.now();

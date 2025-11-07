@@ -11,17 +11,30 @@ class RoutineItem {
   @HiveField(2)
   final DateTime? lastCheckedDate; // The last date this item was marked complete
 
+  @HiveField(3)
+  final int? iconCodePoint; // Icon code point for Material Icons
+
   const RoutineItem({
     required this.id,
     required this.title,
     this.lastCheckedDate,
+    this.iconCodePoint,
   });
 
-  RoutineItem copyWith({String? id, String? title, DateTime? lastCheckedDate}) {
+  RoutineItem copyWith({
+    String? id,
+    String? title,
+    DateTime? lastCheckedDate,
+    int? iconCodePoint,
+    bool clearIconCodePoint = false,
+  }) {
     return RoutineItem(
       id: id ?? this.id,
       title: title ?? this.title,
       lastCheckedDate: lastCheckedDate,
+      iconCodePoint: clearIconCodePoint
+          ? null
+          : (iconCodePoint ?? this.iconCodePoint),
     );
   }
 
