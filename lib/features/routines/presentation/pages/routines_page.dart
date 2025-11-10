@@ -91,6 +91,7 @@ class _RoutinesPageState extends State<RoutinesPage>
       completedToday += r.items.where((i) => i.isCheckedToday(today)).length;
     }
     final totalRoutines = provider.routines.length;
+    final completionRate = totalItems == 0 ? 0.0 : completedToday / totalItems;
 
     return Container(
       width: double.infinity,
@@ -110,6 +111,7 @@ class _RoutinesPageState extends State<RoutinesPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Title
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
@@ -137,39 +139,42 @@ class _RoutinesPageState extends State<RoutinesPage>
               borderRadius: BorderRadius.circular(1),
             ),
           ),
-          const SizedBox(height: 8),
-          const Icon(
-            Icons.checklist_rtl,
-            size: 60,
-            color: AppColors.primaryOrange,
-          ),
           const SizedBox(height: 16),
-          const Text(
-            'Build healthy habits with daily routines\nand maintain your streaks',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.darkGrey,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$totalRoutines routines • $completedToday/$totalItems today',
-              style: const TextStyle(
-                color: AppColors.primaryOrange,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+          // Circular Progress with stats
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Circular Progress
+              _buildCircularProgress(completionRate, completedToday, totalItems),
+              // Stats Column
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildStatItem(
+                    Icons.format_list_bulleted_rounded,
+                    '$totalRoutines',
+                    'Routines',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatItem(
+                    Icons.check_circle_outline,
+                    '$completedToday',
+                    'Completed',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatItem(
+                    Icons.pending_outlined,
+                    '${totalItems - completedToday}',
+                    'Remaining',
+                  ),
+                ],
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+          // Date
           Text(
             '${today.day}.${today.month}.${today.year}',
             style: TextStyle(
@@ -180,6 +185,125 @@ class _RoutinesPageState extends State<RoutinesPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCircularProgress(double progress, int completed, int total) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: progress),
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedProgress, child) {
+        return SizedBox(
+          width: 120,
+          height: 120,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background circle
+              SizedBox(
+                width: 120,
+                height: 120,
+                child: CircularProgressIndicator(
+                  value: 1.0,
+                  strokeWidth: 10,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryOrange.withValues(alpha: 0.15),
+                  ),
+                ),
+              ),
+              // Progress circle with gradient effect
+              SizedBox(
+                width: 120,
+                height: 120,
+                child: CircularProgressIndicator(
+                  value: animatedProgress,
+                  strokeWidth: 10,
+                  backgroundColor: Colors.transparent,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryOrange,
+                  ),
+                  strokeCap: StrokeCap.round,
+                ),
+              ),
+              // Center content
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${(animatedProgress * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryOrange,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Today',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkGrey.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.white,
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkGrey,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.darkGrey.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
