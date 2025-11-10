@@ -23,9 +23,16 @@ import 'features/celebration/presentation/widgets/celebration_overlay.dart';
 import 'features/routines/presentation/pages/routines_page.dart';
 import 'features/routines/presentation/providers/routines_provider.dart';
 import 'features/routines/data/datasources/routine_local_datasource.dart';
-import 'features/routines/data/repositories/routine_repository_impl.dart' as RoutinesRepo;
+import 'features/routines/data/repositories/routine_repository_impl.dart'
+    as RoutinesRepo;
 import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
 import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
+import 'features/water/presentation/pages/water_page.dart';
+import 'features/water/presentation/providers/water_provider.dart';
+import 'features/water/data/datasources/water_local_datasource.dart';
+import 'features/water/data/repositories/water_repository_impl.dart';
+import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
+import 'features/water/domain/entities/water_intake.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,27 +45,36 @@ void main() async {
   Hive.registerAdapter(DailyTodoModelAdapter());
   Hive.registerAdapter(RoutineEntities.RoutineItemAdapter());
   Hive.registerAdapter(RoutineEntities.RoutineAdapter());
+  Hive.registerAdapter(WaterIntakeAdapter());
+  Hive.registerAdapter(WaterLogAdapter());
 
-  // Todo data source'unu başlat
+  // Data source'ları başlat
   final todoDataSource = TodoLocalDataSourceImpl();
   await todoDataSource.init();
   final routinesDataSource = RoutineLocalDataSourceImpl();
   await routinesDataSource.init();
+  final waterBox = await Hive.openBox<WaterIntake>('water_intake');
+  final waterDataSource = WaterLocalDataSource(waterBox);
 
-  runApp(MeHubApp(
-    todoDataSource: todoDataSource,
-    routinesDataSource: routinesDataSource,
-  ));
+  runApp(
+    MeHubApp(
+      todoDataSource: todoDataSource,
+      routinesDataSource: routinesDataSource,
+      waterDataSource: waterDataSource,
+    ),
+  );
 }
 
 class MeHubApp extends StatelessWidget {
   final TodoLocalDataSource todoDataSource;
   final RoutineLocalDataSource routinesDataSource;
+  final WaterLocalDataSource waterDataSource;
 
   const MeHubApp({
     super.key,
     required this.todoDataSource,
     required this.routinesDataSource,
+    required this.waterDataSource,
   });
 
   @override
@@ -69,8 +85,12 @@ class MeHubApp extends StatelessWidget {
           create: (_) => TodoRepositoryImpl(localDataSource: todoDataSource),
         ),
         Provider<RoutinesRepo.RoutineRepositoryImpl>(
-          create: (_) => RoutinesRepo.RoutineRepositoryImpl(local: routinesDataSource),
-      ),
+          create: (_) =>
+              RoutinesRepo.RoutineRepositoryImpl(local: routinesDataSource),
+        ),
+        Provider<WaterRepositoryImpl>(
+          create: (_) => WaterRepositoryImpl(waterDataSource),
+        ),
         ChangeNotifierProvider<TodoProvider>(
           create: (context) => TodoProvider(
             getTodayTodos: GetTodayTodos(context.read<TodoRepositoryImpl>()),
@@ -96,6 +116,22 @@ class MeHubApp extends StatelessWidget {
             ),
             deleteRoutine: RoutinesUsecases.DeleteRoutine(
               context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            ),
+          ),
+        ),
+        ChangeNotifierProvider<WaterProvider>(
+          create: (context) => WaterProvider(
+            getTodayWaterIntake: WaterUsecases.GetTodayWaterIntake(
+              context.read<WaterRepositoryImpl>(),
+            ),
+            addWater: WaterUsecases.AddWater(
+              context.read<WaterRepositoryImpl>(),
+            ),
+            removeLastLog: WaterUsecases.RemoveLastLog(
+              context.read<WaterRepositoryImpl>(),
+            ),
+            getWaterHistory: WaterUsecases.GetWaterHistory(
+              context.read<WaterRepositoryImpl>(),
             ),
           ),
         ),
@@ -157,7 +193,7 @@ class _HomePageState extends State<HomePage> {
       },
       children: [
         _buildHomeContent(),
-        _buildProgressPage(),
+        const WaterPage(),
         const RoutinesPage(),
         _buildSettingsPage(),
       ],
@@ -177,24 +213,6 @@ class _HomePageState extends State<HomePage> {
               _buildMainCard(context),
               const SizedBox(height: 20),
               _buildQuickActions(context),
-              const SizedBox(height: 20), // Bottom padding for navigation bar
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressPage() {
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              _buildProgressCard(),
               const SizedBox(height: 20), // Bottom padding for navigation bar
             ],
           ),
@@ -239,7 +257,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-        child: Column(
+          child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -499,93 +517,11 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Today'),
-          BottomNavigationBarItem(icon: Icon(Icons.trending_up), label: 'Progress'),
+          BottomNavigationBarItem(icon: Icon(Icons.water_drop), label: 'Water'),
           BottomNavigationBarItem(icon: Icon(Icons.repeat), label: 'Routines'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.trending_up,
-                color: AppColors.primaryOrange,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'YOUR PROGRESS',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryOrange,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.trending_up,
-                color: AppColors.primaryOrange,
-                size: 24,
-              ),
-            ],
-          ),
-          Container(
-            height: 2,
-            width: 100,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.primaryOrange,
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Icon(Icons.analytics, size: 60, color: AppColors.primaryOrange),
-          const SizedBox(height: 16),
-          const Text(
-            'Track your daily progress and see your growth over time',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.darkGrey,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              'Analytics',
-              style: TextStyle(
-                color: AppColors.primaryOrange,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),
