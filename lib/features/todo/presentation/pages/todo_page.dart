@@ -4,8 +4,8 @@ import '../providers/todo_provider.dart';
 import '../widgets/todo_item.dart';
 import '../widgets/add_todo_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/utils/date_utils.dart' as AppDateUtils;
 
 /// Ana todo sayfası
 class TodoPage extends StatefulWidget {
@@ -303,28 +303,15 @@ class _TodoPageState extends State<TodoPage> {
     BuildContext context,
     TodoProvider provider,
     String todoId,
-  ) {
-    showDialog(
+  ) async {
+    final confirmed = await showConfirmationDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Todo'),
-        content: const Text('Are you sure you want to delete this todo?'),
-        actions: [
-          CustomButton(
-            text: 'Cancel',
-            type: ButtonType.outline,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CustomButton(
-            text: 'Delete',
-            type: ButtonType.secondary,
-            onPressed: () {
-              provider.deleteTodo(todoId);
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
+      title: 'Delete Todo',
+      message: 'Are you sure you want to delete this todo?',
     );
+
+    if (confirmed == true) {
+      provider.deleteTodo(todoId);
+    }
   }
 }

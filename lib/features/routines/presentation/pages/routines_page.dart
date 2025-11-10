@@ -4,7 +4,11 @@ import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
-import '../widgets/add_item_dialog.dart';
+import '../widgets/streak_badge.dart';
+import '../widgets/routine_item_widget.dart';
+import '../widgets/add_item_button.dart';
+import '../widgets/add_routine_button.dart';
+import '../utils/routine_dialogs.dart';
 
 class RoutinesPage extends StatefulWidget {
   const RoutinesPage({super.key});
@@ -64,7 +68,9 @@ class _RoutinesPageState extends State<RoutinesPage>
                     (r) => _buildRoutineCard(r, provider),
                   ),
                   const SizedBox(height: 16),
-                  _buildAddRoutineButton(context),
+                  AddRoutineButton(
+                    onPressed: () => RoutineDialogs.showAddRoutine(context),
+                  ),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -221,7 +227,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                       ),
                     ),
                   ),
-                  _buildStreakBadge(routine.streakCount),
+                  StreakBadge(count: routine.streakCount),
                   const SizedBox(width: 4),
                   PopupMenuButton<String>(
                     icon: Icon(
@@ -231,9 +237,9 @@ class _RoutinesPageState extends State<RoutinesPage>
                     ),
                     onSelected: (v) async {
                       if (v == 'edit') {
-                        _showEditRoutineDialog(context, routine, provider);
+                        RoutineDialogs.showEditRoutine(context, routine);
                       } else if (v == 'delete') {
-                        _showDeleteRoutineDialog(context, routine, provider);
+                        RoutineDialogs.showDeleteRoutine(context, routine);
                       }
                     },
                     itemBuilder: (_) => const [
@@ -286,11 +292,35 @@ class _RoutinesPageState extends State<RoutinesPage>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 12),
-                        ...routine.items.map(
-                          (i) => _buildRoutineItem(routine, i, provider),
-                        ),
+                        ...routine.items.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          final isFirst = index == 0;
+                          final isLast = index == routine.items.length - 1;
+                          
+                          // Check if this item is enabled:
+                          // First item is always enabled
+                          // Subsequent items are enabled only if previous item is checked
+                          bool isEnabled = true;
+                          if (index > 0) {
+                            final previousItem = routine.items[index - 1];
+                            isEnabled = previousItem.isCheckedToday(today);
+                          }
+                          
+                          return RoutineItemWidget(
+                            routine: routine,
+                            item: item,
+                            provider: provider,
+                            isFirst: isFirst,
+                            isLast: isLast,
+                            isEnabled: isEnabled,
+                          );
+                        }),
                         const SizedBox(height: 12),
-                        _buildAddItemButton(routine, provider),
+                        AddItemButton(
+                          onPressed: () =>
+                              RoutineDialogs.showAddItem(context, routine),
+                        ),
                         const SizedBox(height: 8),
                       ],
                     )
@@ -358,295 +388,6 @@ class _RoutinesPageState extends State<RoutinesPage>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStreakBadge(int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primaryOrange.withValues(alpha: 0.15),
-            AppColors.primaryOrange.withValues(alpha: 0.08),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.local_fire_department,
-            color: AppColors.primaryOrange,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$count',
-            style: const TextStyle(
-              color: AppColors.primaryOrange,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddItemButton(Routine routine, RoutinesProvider provider) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showAddItemDialog(context, routine, provider),
-        icon: const Icon(Icons.add, size: 20),
-        label: const Text('Add Item'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primaryOrange,
-          backgroundColor: AppColors.white,
-          side: const BorderSide(color: AppColors.primaryOrange, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoutineItem(
-    Routine routine,
-    RoutineItem item,
-    RoutinesProvider provider,
-  ) {
-    final today = DateTime.now();
-    final isToday = item.isCheckedToday(
-      DateTime(today.year, today.month, today.day),
-    );
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => provider.toggleItemCheckedToday(routine.id, item.id),
-            child: Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: isToday ? AppColors.primaryOrange : Colors.transparent,
-                border: Border.all(
-                  color: isToday
-                      ? AppColors.primaryOrange
-                      : AppColors.primaryOrange.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: isToday
-                  ? const Icon(Icons.check, color: AppColors.white, size: 14)
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 12),
-          if (item.iconCodePoint != null) ...[
-            Icon(
-              IconData(item.iconCodePoint!, fontFamily: 'MaterialIcons'),
-              color: AppColors.primaryOrange,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Text(
-              item.title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isToday ? AppColors.darkGrey : AppColors.darkGrey,
-                decoration: isToday ? TextDecoration.lineThrough : null,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () async {
-              await provider.deleteItem(routine.id, item.id);
-            },
-            child: Icon(
-              Icons.delete_outline,
-              color: AppColors.primaryOrange.withValues(alpha: 0.6),
-              size: 18,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showAddItemDialog(
-    BuildContext context,
-    Routine routine,
-    RoutinesProvider provider,
-  ) async {
-    await showDialog(
-      context: context,
-      builder: (_) => AddItemDialog(
-        onAdd: (title, iconCodePoint) async {
-          final item = RoutineItem(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            title: title,
-            iconCodePoint: iconCodePoint,
-          );
-          await provider.addItem(routine.id, item);
-        },
-      ),
-    );
-  }
-
-  Future<void> _showEditRoutineDialog(
-    BuildContext context,
-    Routine routine,
-    RoutinesProvider provider,
-  ) async {
-    final controller = TextEditingController(text: routine.name);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit Routine'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Routine name',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    if (ok == true && controller.text.trim().isNotEmpty) {
-      final updatedRoutine = routine.copyWith(name: controller.text.trim());
-      await provider.updateRoutine(updatedRoutine);
-    }
-  }
-
-  Future<void> _showDeleteRoutineDialog(
-    BuildContext context,
-    Routine routine,
-    RoutinesProvider provider,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Routine'),
-        content: Text('Are you sure you want to delete "${routine.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await provider.deleteRoutine(routine.id);
-    }
-  }
-
-  Widget _buildAddRoutineButton(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            final controller = TextEditingController();
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text('New Routine'),
-                content: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(hintText: 'Routine name'),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Create'),
-                  ),
-                ],
-              ),
-            );
-            if (ok == true && controller.text.trim().isNotEmpty) {
-              await context.read<RoutinesProvider>().addNewRoutine(
-                DateTime.now().microsecondsSinceEpoch.toString(),
-                controller.text.trim(),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.add, color: AppColors.white),
-                SizedBox(width: 8),
-                Text(
-                  'Add New Routine',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

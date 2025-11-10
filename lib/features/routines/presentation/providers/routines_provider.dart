@@ -87,11 +87,30 @@ class RoutinesProvider with ChangeNotifier {
 
     final routine = _routines[index];
 
+    // Tıklanan item'ın index'ini bul
+    final itemIndex = routine.items.indexWhere((item) => item.id == itemId);
+    if (itemIndex == -1) return;
+
     // Item'ı toggle et
-    final updatedItems = routine.items.map((item) {
-      if (item.id != itemId) return item;
-      final isChecked = item.isCheckedToday(normalizedToday);
-      return item.copyWith(lastCheckedDate: isChecked ? null : normalizedToday);
+    final targetItem = routine.items[itemIndex];
+    final isCurrentlyChecked = targetItem.isCheckedToday(normalizedToday);
+
+    final updatedItems = routine.items.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final item = entry.value;
+
+      if (idx == itemIndex) {
+        // Tıklanan item'ı toggle et
+        return item.copyWith(
+          lastCheckedDate: isCurrentlyChecked ? null : normalizedToday,
+        );
+      } else if (idx > itemIndex && isCurrentlyChecked) {
+        // Eğer bir item undo ediliyorsa (checked -> unchecked),
+        // ondan sonraki tüm tamamlanmış itemları da undo et
+        return item.copyWith(lastCheckedDate: null);
+      } else {
+        return item;
+      }
     }).toList();
 
     var updatedRoutine = routine.copyWith(items: updatedItems);
