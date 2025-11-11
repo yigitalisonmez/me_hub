@@ -169,7 +169,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   foreground: Paint()
-                    ..shader = WaterConstants.waterGradient.createShader(
+                    ..shader = AppColors.primaryGradient.createShader(
                       const Rect.fromLTWH(0, 0, 200, 50),
                     ),
                   letterSpacing: 1.2,
@@ -188,7 +188,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
             width: 120,
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              gradient: WaterConstants.waterGradient,
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(1),
             ),
           ),

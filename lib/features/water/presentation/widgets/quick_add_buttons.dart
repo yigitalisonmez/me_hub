@@ -83,7 +83,7 @@ class _QuickAddButtonState extends State<_QuickAddButton>
           width: 75,
           height: 95,
           decoration: BoxDecoration(
-            gradient: WaterConstants.waterGradient,
+            gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: WaterConstants.waterCream.withValues(alpha: 0.3),

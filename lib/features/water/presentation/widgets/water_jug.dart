@@ -49,15 +49,15 @@ class WaterJug extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Liquid circular progress
+                    // Single liquid with natural gradient from wave animation
                     LiquidCircularProgressIndicator(
                       value: animatedProgress.clamp(0.0, 1.0),
                       backgroundColor: AppColors.secondaryCream,
                       valueColor: AlwaysStoppedAnimation(
-                        WaterConstants.waterOrangeLight,
+                        WaterConstants.waterBlue, // Single color - wave creates gradient
                       ),
                       borderColor: AppColors.primaryOrange,
-                      borderWidth: 8.0,
+                      borderWidth: 3.0,
                       direction: Axis.vertical,
                       center: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -67,14 +67,16 @@ class WaterJug extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 56,
                               fontWeight: FontWeight.bold,
-                              color: animatedProgress > 0.5
+                              color: animatedProgress > 0.4
                                   ? AppColors.white
-                                  : AppColors.primaryOrange,
-                              shadows: animatedProgress > 0.5
+                                  : AppColors.primaryOrangeDark,
+                              shadows: animatedProgress > 0.4
                                   ? [
                                       Shadow(
-                                        color: AppColors.primaryOrangeDark.withValues(alpha: 0.3),
-                                        blurRadius: 4,
+                                        color: WaterConstants.waterBlueDark
+                                            .withValues(alpha: 0.6),
+                                        blurRadius: 8,
+                                        offset: const Offset(2, 2),
                                       ),
                                     ]
                                   : null,
@@ -83,10 +85,20 @@ class WaterJug extends StatelessWidget {
                           const SizedBox(height: 4),
                           Icon(
                             Icons.water_drop,
-                            color: animatedProgress > 0.5
-                                ? AppColors.white.withValues(alpha: 0.9)
-                                : AppColors.primaryOrange.withValues(alpha: 0.8),
+                            color: animatedProgress > 0.4
+                                ? AppColors.white
+                                : WaterConstants.waterBlueDark,
                             size: 32,
+                            shadows: animatedProgress > 0.4
+                                ? [
+                                    Shadow(
+                                      color: WaterConstants.waterBlueDark
+                                          .withValues(alpha: 0.6),
+                                      blurRadius: 8,
+                                      offset: const Offset(2, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
                         ],
                       ),
@@ -101,7 +113,7 @@ class WaterJug extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              gradient: WaterConstants.waterGradient,
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -126,4 +138,3 @@ class WaterJug extends StatelessWidget {
     );
   }
 }
-

@@ -107,18 +107,11 @@ class WaterStats extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                color.withValues(alpha: 0.2),
-                color.withValues(alpha: 0.1),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.primaryGradient,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.2),
+                color: AppColors.primaryOrange.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -126,7 +119,7 @@ class WaterStats extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: color,
+            color: AppColors.white,
             size: 24,
           ),
         ),
