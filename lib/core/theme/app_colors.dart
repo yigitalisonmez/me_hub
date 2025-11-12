@@ -7,7 +7,7 @@ class AppColors {
 
   // Ana renk paleti - Sidequest uygulaması tarzı
   static const Color primaryOrange = Color(
-    0xFFD2691E,
+    0xFFD97D45,
   ); // Sıcak turuncu-kahverengi
   static const Color secondaryCream = Color(0xFFF5E6D3); // Açık bej/krem
   static const Color accentGrey = Color(0xFFE8E8E8); // Açık gri
