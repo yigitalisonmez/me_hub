@@ -4,7 +4,7 @@ import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/add_item_dialog.dart';
-import '../widgets/edit_routine_dialog.dart';
+import '../pages/edit_routine_page.dart';
 
 class RoutineDialogs {
   RoutineDialogs._();
@@ -30,21 +30,12 @@ class RoutineDialogs {
     BuildContext context,
     Routine routine,
   ) async {
-    final provider = context.read<RoutinesProvider>();
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (_) => EditRoutineDialog(routine: routine),
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditRoutinePage(routine: routine),
+      ),
     );
-
-    if (newName != null && newName.trim().isNotEmpty) {
-      // Get the current routine from provider (it might have been updated with deletions)
-      final currentRoutine = provider.routines.firstWhere(
-        (r) => r.id == routine.id,
-        orElse: () => routine,
-      );
-      final updatedRoutine = currentRoutine.copyWith(name: newName.trim());
-      await provider.updateRoutine(updatedRoutine);
-    }
   }
 
   static Future<void> showDeleteRoutine(

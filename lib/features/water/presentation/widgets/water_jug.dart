@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../core/constants/water_constants.dart';
 
@@ -84,7 +85,7 @@ class WaterJug extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Icon(
-                            Icons.water_drop,
+                            LucideIcons.droplet,
                             color: animatedProgress > 0.4
                                 ? AppColors.white
                                 : WaterConstants.waterBlueDark,

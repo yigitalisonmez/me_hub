@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_colors.dart';
 import '../services/quote_cache_service.dart';
 import '../services/quote_service.dart';
@@ -156,7 +157,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ],
                         ),
                         child: const Icon(
-                          Icons.auto_awesome,
+                          LucideIcons.sparkles,
                           color: AppColors.white,
                           size: 60,
                         ),

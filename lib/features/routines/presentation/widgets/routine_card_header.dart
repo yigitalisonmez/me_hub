@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/routines_provider.dart';
 
@@ -77,7 +78,7 @@ class RoutineCardHeader extends StatelessWidget {
                 child: _buildStatItem(
                   'Routines',
                   totalRoutines.toString(),
-                  Icons.repeat,
+                  LucideIcons.repeat,
                 ),
               ),
               Container(
@@ -89,7 +90,7 @@ class RoutineCardHeader extends StatelessWidget {
                 child: _buildStatItem(
                   'Today',
                   '$completedItemsToday/$totalItemsToday',
-                  Icons.task_alt,
+                  LucideIcons.checkSquare,
                 ),
               ),
             ],

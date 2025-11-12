@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class CelebrationOverlay extends StatefulWidget {
@@ -111,7 +112,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
-                                    Icons.celebration,
+                                    LucideIcons.partyPopper,
                                     color: AppColors.white,
                                     size: 120,
                                   ),

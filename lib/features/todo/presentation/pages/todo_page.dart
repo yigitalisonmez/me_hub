@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item.dart';
 import '../widgets/add_todo_dialog.dart';
@@ -39,7 +40,7 @@ class _TodoPageState extends State<TodoPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.arrow_back,
+              LucideIcons.arrowLeft,
               color: AppColors.primaryOrange,
               size: 20,
             ),
@@ -65,7 +66,7 @@ class _TodoPageState extends State<TodoPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Icons.refresh,
+                  LucideIcons.refreshCw,
                   color: AppColors.primaryOrange,
                   size: 20,
                 ),
@@ -104,7 +105,7 @@ class _TodoPageState extends State<TodoPage> {
           onPressed: () => _showAddTodoDialog(context),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          icon: const Icon(Icons.add, color: AppColors.white),
+          icon: const Icon(LucideIcons.plus, color: AppColors.white),
           label: const Text(
             'Add Goal',
             style: TextStyle(
@@ -122,7 +123,7 @@ class _TodoPageState extends State<TodoPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+          const Icon(LucideIcons.circleAlert, size: 64, color: AppColors.error),
           const SizedBox(height: 16),
           Text(
             'An error occurred',
@@ -175,7 +176,7 @@ class _TodoPageState extends State<TodoPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.checklist,
+            LucideIcons.clipboardList,
             size: 80,
             color: AppColors.primaryOrange.withValues(alpha: 0.3),
           ),
@@ -250,7 +251,7 @@ class _TodoPageState extends State<TodoPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.calendar_today,
+              LucideIcons.calendar,
               color: AppColors.primaryOrange,
               size: 20,
             ),

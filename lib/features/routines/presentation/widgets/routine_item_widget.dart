@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
@@ -60,11 +61,11 @@ class RoutineItemWidget extends StatelessWidget {
             ),
             child: Center(
               child: isToday
-                  ? const Icon(Icons.check, color: AppColors.white, size: 16)
+                  ? const Icon(LucideIcons.check, color: AppColors.white, size: 16)
                   : (isEnabled
                       ? null
                       : Icon(
-                          Icons.lock_outline,
+                          LucideIcons.lock,
                           color: AppColors.primaryOrange.withValues(alpha: 0.3),
                           size: 14,
                         )),
@@ -131,7 +132,7 @@ class RoutineItemWidget extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Icon(
-                      Icons.lock,
+                      LucideIcons.lock,
                       color: AppColors.primaryOrange.withValues(alpha: 0.4),
                       size: 16,
                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/routine.dart';
@@ -115,7 +116,7 @@ class _RoutinesPageState extends State<RoutinesPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
-              Icon(Icons.repeat, color: AppColors.primaryOrange, size: 24),
+              Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
               SizedBox(width: 8),
               Text(
                 'ROUTINES',
@@ -127,7 +128,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                 ),
               ),
               SizedBox(width: 8),
-              Icon(Icons.repeat, color: AppColors.primaryOrange, size: 24),
+              Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
             ],
           ),
           Container(
@@ -153,19 +154,19 @@ class _RoutinesPageState extends State<RoutinesPage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildStatItem(
-                    Icons.format_list_bulleted_rounded,
+                    LucideIcons.list,
                     '$totalRoutines',
                     'Routines',
                   ),
                   const SizedBox(height: 12),
                   _buildStatItem(
-                    Icons.check_circle_outline,
+                    LucideIcons.circleCheck,
                     '$completedToday',
                     'Completed',
                   ),
                   const SizedBox(height: 12),
                   _buildStatItem(
-                    Icons.pending_outlined,
+                    LucideIcons.clock,
                     '${totalItems - completedToday}',
                     'Remaining',
                   ),
@@ -355,7 +356,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                   const SizedBox(width: 4),
                   PopupMenuButton<String>(
                     icon: Icon(
-                      Icons.more_vert,
+                      LucideIcons.ellipsisVertical,
                       color: AppColors.primaryOrange.withValues(alpha: 0.7),
                       size: 24,
                     ),
@@ -371,7 +372,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 20),
+                            Icon(LucideIcons.pencil, size: 20),
                             SizedBox(width: 8),
                             Text('Edit'),
                           ],
@@ -381,7 +382,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20),
+                            Icon(LucideIcons.trash2, size: 20),
                             SizedBox(width: 8),
                             Text('Delete'),
                           ],
@@ -393,7 +394,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 300),
                     child: Icon(
-                      Icons.keyboard_arrow_down,
+                      LucideIcons.chevronDown,
                       color: AppColors.primaryOrange.withValues(alpha: 0.7),
                       size: 28,
                     ),

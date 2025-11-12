@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/routine_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -125,7 +126,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   color: Colors.grey.shade400,
                 ),
                 border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.edit),
+                prefixIcon: const Icon(LucideIcons.pencil),
               ),
             ),
             const SizedBox(height: 16),
@@ -138,7 +139,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   color: Colors.grey.shade400,
                 ),
                 border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(LucideIcons.search),
               ),
               onChanged: (_) => setState(() {}),
             ),

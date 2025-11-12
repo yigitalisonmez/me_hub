@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class WaterConstants {
   WaterConstants._();
@@ -19,10 +20,10 @@ class WaterConstants {
 
   // Quick add icons
   static const Map<int, IconData> quickAddIcons = {
-    100: Icons.local_drink,
-    200: Icons.wine_bar,
-    250: Icons.coffee,
-    500: Icons.water_drop,
+    100: LucideIcons.glassWater,
+    200: LucideIcons.wine,
+    250: LucideIcons.coffee,
+    500: LucideIcons.droplet,
   };
 
   // Theme-compatible Colors (Orange/Pastel) - Use AppColors

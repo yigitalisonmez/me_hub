@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class StreakBadge extends StatelessWidget {
@@ -25,7 +26,7 @@ class StreakBadge extends StatelessWidget {
       child: Row(
         children: [
           const Icon(
-            Icons.local_fire_department,
+            LucideIcons.flame,
             color: AppColors.primaryOrange,
             size: 16,
           ),

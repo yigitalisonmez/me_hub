@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../domain/entities/daily_todo.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -89,7 +90,7 @@ class TodoItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: todo.isCompleted
-          ? const Icon(Icons.check, color: AppColors.white, size: 16)
+          ? const Icon(LucideIcons.check, color: AppColors.white, size: 16)
           : null,
     );
   }
@@ -123,7 +124,7 @@ class TodoItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (todo.isCompleted) ...[
-          Icon(Icons.check_circle, color: AppColors.success, size: 20),
+          Icon(LucideIcons.circleCheck, color: AppColors.success, size: 20),
           const SizedBox(width: 8),
         ],
         PopupMenuButton<String>(
@@ -143,7 +144,7 @@ class TodoItem extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    todo.isCompleted ? Icons.undo : Icons.check,
+                    todo.isCompleted ? LucideIcons.undo2 : LucideIcons.check,
                     size: 16,
                     color: AppColors.primaryOrange,
                   ),
@@ -156,7 +157,7 @@ class TodoItem extends StatelessWidget {
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, size: 16, color: AppColors.error),
+                  Icon(LucideIcons.trash2, size: 16, color: AppColors.error),
                   SizedBox(width: 8),
                   Text('Sil'),
                 ],

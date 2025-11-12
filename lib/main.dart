@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
 import 'core/theme/app_colors.dart';
@@ -263,7 +264,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                    Icons.auto_awesome,
+                    LucideIcons.sparkles,
                     color: AppColors.primaryOrange,
                     size: 24,
                   ),
@@ -279,7 +280,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(width: 8),
                   const Icon(
-                    Icons.auto_awesome,
+                    LucideIcons.sparkles,
                     color: AppColors.primaryOrange,
                     size: 24,
                   ),
@@ -299,7 +300,7 @@ class _HomePageState extends State<HomePage> {
               // Todo list inside the card
               if (provider.todos.isEmpty) ...[
                 const Icon(
-                  Icons.checklist_rtl,
+                  LucideIcons.clipboardList,
                   size: 60,
                   color: AppColors.primaryOrange,
                 ),
@@ -336,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                 _buildActionButton(
                   context: context,
                   text: 'Add New Goal',
-                  icon: Icons.add,
+                  icon: LucideIcons.plus,
                   isPrimary: true,
                   onPressed: () => _showAddTodoDialog(context),
                 ),
@@ -344,7 +345,7 @@ class _HomePageState extends State<HomePage> {
                 _buildActionButton(
                   context: context,
                   text: 'View Progress',
-                  icon: Icons.trending_up,
+                  icon: LucideIcons.trendingUp,
                   isPrimary: false,
                   onPressed: () {
                     // TODO: Navigate to progress page
@@ -362,7 +363,7 @@ class _HomePageState extends State<HomePage> {
                 _buildActionButton(
                   context: context,
                   text: 'Add New Goal',
-                  icon: Icons.add,
+                  icon: LucideIcons.plus,
                   isPrimary: true,
                   onPressed: () => _showAddTodoDialog(context),
                 ),
@@ -434,7 +435,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(width: 16),
         Expanded(
           child: _buildQuickActionCard(
-            icon: Icons.timeline,
+            icon: LucideIcons.activity,
             title: 'Progress',
             subtitle: 'Track growth',
             onTap: () {
@@ -516,11 +517,11 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Today'),
-          BottomNavigationBarItem(icon: Icon(Icons.water_drop), label: 'Water'),
-          BottomNavigationBarItem(icon: Icon(Icons.repeat), label: 'Routines'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.calendar), label: 'Today'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.droplet), label: 'Water'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.repeat), label: 'Routines'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: Icon(LucideIcons.settings),
             label: 'Settings',
           ),
         ],
@@ -549,7 +550,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
-                Icons.settings,
+                LucideIcons.settings,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
@@ -565,7 +566,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(width: 8),
               const Icon(
-                Icons.settings,
+                LucideIcons.settings,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
@@ -581,7 +582,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 20),
-          const Icon(Icons.tune, size: 60, color: AppColors.primaryOrange),
+          const Icon(LucideIcons.slidersHorizontal, size: 60, color: AppColors.primaryOrange),
           const SizedBox(height: 16),
           const Text(
             'Customize your experience and manage your preferences',
@@ -648,7 +649,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: todo.isCompleted
-                  ? const Icon(Icons.check, color: AppColors.white, size: 16)
+                  ? const Icon(LucideIcons.check, color: AppColors.white, size: 16)
                   : null,
             ),
           ),
@@ -707,7 +708,7 @@ class _HomePageState extends State<HomePage> {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: AppColors.error, size: 20),
+                    Icon(LucideIcons.trash2, color: AppColors.error, size: 20),
                     SizedBox(width: 8),
                     Text('Delete'),
                   ],

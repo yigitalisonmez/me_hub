@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class AddRoutineButton extends StatelessWidget {
@@ -34,7 +35,7 @@ class AddRoutineButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.add, color: AppColors.white),
+                Icon(LucideIcons.plus, color: AppColors.white),
                 SizedBox(width: 8),
                 Text(
                   'Add New Routine',

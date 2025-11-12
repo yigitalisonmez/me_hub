@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../core/constants/water_constants.dart';
 import '../providers/water_provider.dart';
@@ -56,7 +57,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
       SnackBar(
         content: Row(
           children: const [
-            Icon(Icons.celebration, color: Colors.white),
+            Icon(LucideIcons.partyPopper, color: Colors.white),
             SizedBox(width: 12),
             Text(
               '🎉 Daily goal reached!',
@@ -158,7 +159,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.water_drop,
+                LucideIcons.droplet,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
@@ -177,7 +178,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
               ),
               const SizedBox(width: 8),
               Icon(
-                Icons.water_drop,
+                LucideIcons.droplet,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
@@ -193,7 +194,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
             ),
           ),
           Icon(
-            Icons.local_drink_rounded,
+            LucideIcons.glassWater,
             size: 48,
             color: AppColors.primaryOrange,
           ),
@@ -231,7 +232,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
   Widget _buildUndoButton(WaterProvider provider) {
     return OutlinedButton.icon(
       onPressed: () => provider.undoLastLog(),
-      icon: const Icon(Icons.undo, size: 18),
+      icon: const Icon(LucideIcons.undo2, size: 18),
       label: const Text(
         'Undo Last',
         style: TextStyle(fontWeight: FontWeight.w600),
@@ -270,7 +271,7 @@ class _WaterPageState extends State<WaterPage> with SingleTickerProviderStateMix
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
-            Icons.check_circle,
+            LucideIcons.circleCheck,
             color: Colors.green,
             size: 28,
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class AddItemButton extends StatelessWidget {
@@ -15,7 +16,7 @@ class AddItemButton extends StatelessWidget {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: const Icon(Icons.add, size: 20),
+        icon: const Icon(LucideIcons.plus, size: 20),
         label: const Text('Add Item'),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primaryOrange,

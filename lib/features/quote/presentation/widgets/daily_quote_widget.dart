@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/quote_cache_service.dart';
 import '../../../../core/services/quote_service.dart';
@@ -118,7 +119,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                Icons.format_quote,
+                LucideIcons.quote,
                 color: AppColors.primaryOrange,
                 size: 20,
               ),
@@ -173,7 +174,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                Icons.error_outline,
+                LucideIcons.circleAlert,
                 color: AppColors.error,
                 size: 20,
               ),

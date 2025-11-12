@@ -56,10 +56,10 @@ class RoutinesProvider with ChangeNotifier {
     if (index == -1) return;
     final routine = _routines[index];
     var updated = routine.copyWith(items: [...routine.items, item]);
-    
+
     // Streak kontrolü yap
     updated = _checkAndUpdateStreak(routine, updated);
-    
+
     await _updateRoutine(updated);
     await loadRoutines();
   }
@@ -68,12 +68,39 @@ class RoutinesProvider with ChangeNotifier {
     final index = _routines.indexWhere((r) => r.id == routineId);
     if (index == -1) return;
     final routine = _routines[index];
-    final updatedItems = routine.items.where((item) => item.id != itemId).toList();
+    final updatedItems = routine.items
+        .where((item) => item.id != itemId)
+        .toList();
     var updated = routine.copyWith(items: updatedItems);
-    
+
     // Streak kontrolü yap
     updated = _checkAndUpdateStreak(routine, updated);
-    
+
+    await _updateRoutine(updated);
+    await loadRoutines();
+  }
+
+  Future<void> editItem(
+    String routineId,
+    String itemId, {
+    String? title,
+    int? iconCodePoint,
+  }) async {
+    final index = _routines.indexWhere((r) => r.id == routineId);
+    if (index == -1) return;
+
+    final routine = _routines[index];
+    final updatedItems = routine.items.map((item) {
+      if (item.id == itemId) {
+        return item.copyWith(
+          title: title ?? item.title,
+          iconCodePoint: iconCodePoint,
+        );
+      }
+      return item;
+    }).toList();
+
+    final updated = routine.copyWith(items: updatedItems);
     await _updateRoutine(updated);
     await loadRoutines();
   }
@@ -132,17 +159,21 @@ class RoutinesProvider with ChangeNotifier {
     await loadRoutines();
   }
 
-  Future<void> reorderItems(String routineId, int oldIndex, int newIndex) async {
+  Future<void> reorderItems(
+    String routineId,
+    int oldIndex,
+    int newIndex,
+  ) async {
     final index = _routines.indexWhere((r) => r.id == routineId);
     if (index == -1) return;
-    
+
     final routine = _routines[index];
     final items = List<RoutineItem>.from(routine.items);
-    
+
     // Reorder the items
     final item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
-    
+
     // Update the routine with new order
     final updated = routine.copyWith(items: items);
     await _updateRoutine(updated);
@@ -150,13 +181,20 @@ class RoutinesProvider with ChangeNotifier {
   }
 
   // Streak kontrol ve güncelleme helper metodu
-  Routine _checkAndUpdateStreak(Routine originalRoutine, Routine updatedRoutine) {
+  Routine _checkAndUpdateStreak(
+    Routine originalRoutine,
+    Routine updatedRoutine,
+  ) {
     final today = DateTime.now();
     final normalizedToday = DateTime(today.year, today.month, today.day);
-    final normalizedYesterday = normalizedToday.subtract(const Duration(days: 1));
+    final normalizedYesterday = normalizedToday.subtract(
+      const Duration(days: 1),
+    );
 
     // Tüm itemler bugün tamamlandı mı?
-    final allItemsCheckedToday = updatedRoutine.allItemsCheckedToday(normalizedToday);
+    final allItemsCheckedToday = updatedRoutine.allItemsCheckedToday(
+      normalizedToday,
+    );
 
     // Bugün için streak sayılmış mı?
     final lastStreakDate = originalRoutine.lastStreakDate;
@@ -186,7 +224,9 @@ class RoutinesProvider with ChangeNotifier {
       );
     } else if (!allItemsCheckedToday && isStreakIncremented) {
       // Tüm itemler tamamlanmamış AMA bugün için streak sayılmıştı → Geri al
-      final newStreak = originalRoutine.streakCount > 0 ? originalRoutine.streakCount - 1 : 0;
+      final newStreak = originalRoutine.streakCount > 0
+          ? originalRoutine.streakCount - 1
+          : 0;
       // Streak 0'a düşmüşse null, değilse önceki gün (dün)
       if (newStreak > 0) {
         return updatedRoutine.copyWith(

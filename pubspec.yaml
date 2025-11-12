@@ -60,6 +60,9 @@ dependencies:
   
   # Timeline UI
   timeline_tile: ^2.0.0
+  
+  # Lucide Icons
+  lucide_icons_flutter: ^3.1.6
 
 dev_dependencies:
   flutter_test:

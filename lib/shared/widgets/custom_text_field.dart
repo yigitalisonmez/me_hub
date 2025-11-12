@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 
 /// Özel text field widget'ı
@@ -210,7 +211,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     if (widget.obscureText) {
       return IconButton(
         icon: Icon(
-          _isObscured ? Icons.visibility_off : Icons.visibility,
+          _isObscured ? LucideIcons.eyeOff : LucideIcons.eye,
           color: AppColors.grey,
         ),
         onPressed: _toggleObscureText,

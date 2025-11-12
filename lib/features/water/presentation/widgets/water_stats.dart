@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../core/constants/water_constants.dart';
 
@@ -38,7 +39,7 @@ class WaterStats extends StatelessWidget {
         children: [
           Expanded(
             child: _buildStatItem(
-              Icons.local_drink,
+              LucideIcons.glassWater,
               '$glassCount',
               'Glasses',
               WaterConstants.waterOrange,
@@ -61,7 +62,7 @@ class WaterStats extends StatelessWidget {
           ),
           Expanded(
             child: _buildStatItem(
-              Icons.trending_up,
+              LucideIcons.trendingUp,
               '$percentage%',
               'Progress',
               WaterConstants.waterPeach,
@@ -84,7 +85,7 @@ class WaterStats extends StatelessWidget {
           ),
           Expanded(
             child: _buildStatItem(
-              Icons.flag_outlined,
+              LucideIcons.flag,
               '${remaining > 0 ? remaining : 0}ml',
               'Remaining',
               remaining > 0 ? AppColors.primaryOrangeDark : Colors.green,
