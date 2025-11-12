@@ -231,15 +231,32 @@ class _EditRoutineDialogState extends State<EditRoutineDialog> {
                             ),
                           )
                         else
-                          ...updatedRoutine.items.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final item = entry.value;
-                            return _HabitListItem(
-                              item: item,
-                              index: index,
-                              onDelete: () => _confirmDeleteItem(context, item),
-                            );
-                          }),
+                          ReorderableListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: updatedRoutine.items.length,
+                            onReorder: (oldIndex, newIndex) {
+                              // Handle reordering
+                              if (oldIndex < newIndex) {
+                                newIndex -= 1;
+                              }
+                              final provider = context.read<RoutinesProvider>();
+                              provider.reorderItems(
+                                widget.routine.id,
+                                oldIndex,
+                                newIndex,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              final item = updatedRoutine.items[index];
+                              return _HabitListItem(
+                                key: ValueKey(item.id),
+                                item: item,
+                                index: index,
+                                onDelete: () => _confirmDeleteItem(context, item),
+                              );
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -336,6 +353,7 @@ class _HabitListItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _HabitListItem({
+    super.key,
     required this.item,
     required this.index,
     required this.onDelete,
@@ -363,6 +381,19 @@ class _HabitListItem extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Drag handle
+          ReorderableDragStartListener(
+            index: index,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.drag_handle_rounded,
+                color: AppColors.darkGrey.withValues(alpha: 0.5),
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           // Index number with gradient
           Container(
             width: 28,

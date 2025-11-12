@@ -132,6 +132,23 @@ class RoutinesProvider with ChangeNotifier {
     await loadRoutines();
   }
 
+  Future<void> reorderItems(String routineId, int oldIndex, int newIndex) async {
+    final index = _routines.indexWhere((r) => r.id == routineId);
+    if (index == -1) return;
+    
+    final routine = _routines[index];
+    final items = List<RoutineItem>.from(routine.items);
+    
+    // Reorder the items
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    
+    // Update the routine with new order
+    final updated = routine.copyWith(items: items);
+    await _updateRoutine(updated);
+    await loadRoutines();
+  }
+
   // Streak kontrol ve güncelleme helper metodu
   Routine _checkAndUpdateStreak(Routine originalRoutine, Routine updatedRoutine) {
     final today = DateTime.now();
