@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
 
 class HabitListItem extends StatelessWidget {
@@ -22,19 +23,20 @@ class HabitListItem extends StatelessWidget {
     return Material(
       key: key,
       color: AppColors.white,
-      elevation: 2,
+      elevation: 0.5,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppColors.primaryOrange.withValues(alpha: 0.2),
-            width: 1,
+            color: AppColors.primaryOrange.withValues(alpha: 0.25),
+            width: 0.75,
           ),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.05),
+              color: AppColors.primaryOrange.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -54,12 +56,14 @@ class HabitListItem extends StatelessWidget {
               GestureDetector(
                 onTap: onEdit,
                 child: Container(
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.secondaryCream,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    IconData(item.iconCodePoint!, fontFamily: 'MaterialIcons'),
+                    RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
+                        LucideIcons.circle,
                     color: AppColors.primaryOrange,
                     size: 24,
                   ),
@@ -102,7 +106,7 @@ class HabitListItem extends StatelessWidget {
               onTap: onDelete,
               child: Icon(
                 LucideIcons.trash2,
-                color: const Color(0xFFF44336).withValues(alpha: 0.7),
+                color: const Color(0xFFF44336).withValues(alpha: 0.8),
                 size: 24,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// Me Hub uygulaması için tema konfigürasyonu
@@ -10,6 +11,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: GoogleFonts.inter().fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primaryOrange,
         brightness: Brightness.light,
@@ -112,7 +114,8 @@ class AppTheme {
       ),
 
       // Text teması
-      textTheme: const TextTheme(
+      textTheme: GoogleFonts.interTextTheme(
+        const TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
@@ -172,6 +175,7 @@ class AppTheme {
           fontSize: 12,
           fontWeight: FontWeight.normal,
           color: AppColors.grey,
+        ),
         ),
       ),
     );

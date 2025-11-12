@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 
@@ -106,8 +107,8 @@ class RoutineItemWidget extends StatelessWidget {
               children: [
                 if (item.iconCodePoint != null) ...[
                   Icon(
-                    IconData(item.iconCodePoint!,
-                        fontFamily: 'MaterialIcons'),
+                    RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
+                        LucideIcons.circle,
                     color: isEnabled
                         ? AppColors.primaryOrange
                         : AppColors.primaryOrange.withValues(alpha: 0.3),

@@ -61,23 +61,57 @@ class RoutinesProvider with ChangeNotifier {
     updated = _checkAndUpdateStreak(routine, updated);
 
     await _updateRoutine(updated);
+    
+    // Update local state immediately for UI responsiveness
+    _routines[index] = updated;
+    notifyListeners();
+    
+    // Then reload from storage to ensure consistency
     await loadRoutines();
   }
 
   Future<void> deleteItem(String routineId, String itemId) async {
-    final index = _routines.indexWhere((r) => r.id == routineId);
-    if (index == -1) return;
-    final routine = _routines[index];
-    final updatedItems = routine.items
-        .where((item) => item.id != itemId)
-        .toList();
-    var updated = routine.copyWith(items: updatedItems);
+    try {
+      final index = _routines.indexWhere((r) => r.id == routineId);
+      if (index == -1) {
+        debugPrint('deleteItem: Routine not found: $routineId');
+        return;
+      }
+      
+      final routine = _routines[index];
+      final itemCountBefore = routine.items.length;
+      final updatedItems = routine.items
+          .where((item) => item.id != itemId)
+          .toList();
+      
+      if (updatedItems.length == itemCountBefore) {
+        // Item bulunamadı, silinecek bir şey yok
+        debugPrint('deleteItem: Item not found: $itemId in routine: $routineId');
+        return;
+      }
+      
+      var updated = routine.copyWith(items: updatedItems);
 
-    // Streak kontrolü yap
-    updated = _checkAndUpdateStreak(routine, updated);
+      // Streak kontrolü yap
+      updated = _checkAndUpdateStreak(routine, updated);
 
-    await _updateRoutine(updated);
-    await loadRoutines();
+      debugPrint('deleteItem: Before _updateRoutine - routine has ${updated.items.length} items');
+      
+      // Update storage first
+      final result = await _updateRoutine(updated);
+      debugPrint('deleteItem: After _updateRoutine - result has ${result.items.length} items');
+      
+      // Then update local state
+      _routines[index] = updated;
+      notifyListeners();
+      
+      debugPrint('deleteItem: Successfully deleted item $itemId from routine $routineId');
+      debugPrint('deleteItem: Local state updated - _routines[$index] has ${_routines[index].items.length} items');
+    } catch (e, stackTrace) {
+      debugPrint('deleteItem error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<void> editItem(
@@ -102,6 +136,12 @@ class RoutinesProvider with ChangeNotifier {
 
     final updated = routine.copyWith(items: updatedItems);
     await _updateRoutine(updated);
+    
+    // Update local state immediately for UI responsiveness
+    _routines[index] = updated;
+    notifyListeners();
+    
+    // Then reload from storage to ensure consistency
     await loadRoutines();
   }
 
@@ -156,6 +196,15 @@ class RoutinesProvider with ChangeNotifier {
 
   Future<void> updateRoutine(Routine routine) async {
     await _updateRoutine(routine);
+    
+    // Update local state immediately for UI responsiveness
+    final index = _routines.indexWhere((r) => r.id == routine.id);
+    if (index != -1) {
+      _routines[index] = routine;
+      notifyListeners();
+    }
+    
+    // Then reload from storage to ensure consistency
     await loadRoutines();
   }
 
@@ -177,6 +226,12 @@ class RoutinesProvider with ChangeNotifier {
     // Update the routine with new order
     final updated = routine.copyWith(items: items);
     await _updateRoutine(updated);
+    
+    // Update local state immediately for UI responsiveness
+    _routines[index] = updated;
+    notifyListeners();
+    
+    // Then reload from storage to ensure consistency
     await loadRoutines();
   }
 

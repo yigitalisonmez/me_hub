@@ -63,6 +63,9 @@ dependencies:
   
   # Lucide Icons
   lucide_icons_flutter: ^3.1.6
+  
+  # Google Fonts
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

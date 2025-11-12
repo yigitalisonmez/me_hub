@@ -1,8 +1,24 @@
+import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Collection of Lucide Icons for routine items
 class RoutineIcons {
   RoutineIcons._();
+
+  /// Get icon from codePoint
+  static IconData? getIconFromCodePoint(int codePoint) {
+    try {
+      for (var iconData in allIcons) {
+        final icon = iconData['icon'] as IconData;
+        if (icon.codePoint == codePoint) {
+          return icon;
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  }
 
   static final List<Map<String, dynamic>> allIcons = [
     // Health & Fitness

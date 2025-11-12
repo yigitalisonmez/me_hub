@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
+import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/icon_picker_dialog.dart';
 import '../widgets/habit_list_item.dart';
+import '../widgets/add_item_dialog.dart';
 
 class EditRoutinePage extends StatefulWidget {
   final Routine routine;
@@ -44,7 +46,21 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
     if (confirmed == true && context.mounted) {
       final provider = context.read<RoutinesProvider>();
-      await provider.deleteItem(widget.routine.id, item.id);
+      debugPrint(
+        '_confirmDeleteItem: Deleting item ${item.id} from routine ${widget.routine.id}',
+      );
+      try {
+        await provider.deleteItem(widget.routine.id, item.id);
+        debugPrint('_confirmDeleteItem: Delete completed');
+      } catch (e, stackTrace) {
+        debugPrint('_confirmDeleteItem error: $e');
+        debugPrint('Stack trace: $stackTrace');
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete habit: $e')));
+        }
+      }
     }
   }
 
@@ -67,6 +83,28 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     }
   }
 
+  Future<void> _addItem(BuildContext context) async {
+    final provider = context.read<RoutinesProvider>();
+    final currentRoutine = provider.routines.firstWhere(
+      (r) => r.id == widget.routine.id,
+      orElse: () => widget.routine,
+    );
+
+    await showDialog(
+      context: context,
+      builder: (context) => AddItemDialog(
+        onAdd: (title, iconCodePoint) async {
+          final item = RoutineItem(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            title: title,
+            iconCodePoint: iconCodePoint,
+          );
+          await provider.addItem(currentRoutine.id, item);
+        },
+      ),
+    );
+  }
+
   Future<void> _saveRoutine() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,8 +114,19 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     }
 
     final provider = context.read<RoutinesProvider>();
-    final updatedRoutine = widget.routine.copyWith(
+
+    // Get the current routine from provider (not widget.routine which is stale)
+    final currentRoutine = provider.routines.firstWhere(
+      (r) => r.id == widget.routine.id,
+      orElse: () => widget.routine,
+    );
+
+    final updatedRoutine = currentRoutine.copyWith(
       name: _nameController.text.trim(),
+    );
+
+    debugPrint(
+      '_saveRoutine: Saving routine with ${updatedRoutine.items.length} items',
     );
     await provider.updateRoutine(updatedRoutine);
 
@@ -95,7 +144,15 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           builder: (context, provider, _) {
             final updatedRoutine = provider.routines.firstWhere(
               (r) => r.id == widget.routine.id,
-              orElse: () => widget.routine,
+              orElse: () {
+                debugPrint(
+                  'EditRoutinePage: Routine not found in provider, using widget.routine',
+                );
+                return widget.routine;
+              },
+            );
+            debugPrint(
+              'EditRoutinePage: Consumer rebuild - routine has ${updatedRoutine.items.length} items',
             );
 
             return Column(
@@ -117,9 +174,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          stops: const [0.0, 0.7],
           colors: [
-            Color(0xFFFFE8D6), // Açık turuncu/krem
-            AppColors.backgroundCream, // Sayfa arka plan rengi
+            Color(0xFFFFE8D6), // Açık turuncu/krem - header'ın başı
+            AppColors.backgroundCream, // Header'ın ortası - sayfa rengi
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -207,10 +265,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       ),
       child: Icon(
         routine.items.isNotEmpty && routine.items.first.iconCodePoint != null
-            ? IconData(
-                routine.items.first.iconCodePoint!,
-                fontFamily: 'MaterialIcons',
-              )
+            ? (RoutineIcons.getIconFromCodePoint(
+                    routine.items.first.iconCodePoint!,
+                  ) ??
+                  LucideIcons.sun)
             : LucideIcons.sun,
         color: AppColors.primaryOrange,
         size: 28,
@@ -222,43 +280,45 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     return const Text(
       'Edit Routine',
       style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
         color: AppColors.primaryOrange,
       ),
     );
   }
 
   Widget _buildRoutineNameBadge(Routine routine) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(100),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryOrange,
-              shape: BoxShape.circle,
+    return Material(
+      elevation: 0.5,
+      borderRadius: BorderRadius.circular(100),
+      color: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: AppColors.primaryOrange,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            routine.name,
-            style: TextStyle(
-              color: AppColors.darkGrey.withValues(alpha: 0.7),
-              fontSize: 14,
+            const SizedBox(width: 8),
+            Text(
+              routine.name,
+              style: TextStyle(
+                color: AppColors.darkGrey.withValues(alpha: 0.7),
+                fontSize: 14,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -268,8 +328,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     RoutinesProvider provider,
     Routine routine,
   ) {
+    debugPrint(
+      '_buildHabitsList: Building list with ${routine.items.length} items',
+    );
     return Expanded(
       child: ReorderableListView.builder(
+        key: ValueKey('habits_list_${routine.id}_${routine.items.length}'),
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: routine.items.length,
         onReorder: (oldIndex, newIndex) {
@@ -318,7 +382,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         child: SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => _addItem(context),
             icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
             label: const Text(
               'Add New Item',
@@ -529,10 +593,10 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          IconData(
-                            _selectedIconCodePoint!,
-                            fontFamily: 'MaterialIcons',
-                          ),
+                          RoutineIcons.getIconFromCodePoint(
+                                _selectedIconCodePoint!,
+                              ) ??
+                              LucideIcons.circle,
                           color: AppColors.primaryOrange,
                           size: 24,
                         ),
