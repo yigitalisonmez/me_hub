@@ -32,6 +32,26 @@ class RoutinesProvider with ChangeNotifier {
     notifyListeners();
     try {
       _routines = await _getRoutines();
+      
+      // Her routine için streak reset kontrolü yap
+      final today = DateTime.now();
+      final normalizedToday = DateTime(today.year, today.month, today.day);
+      
+      bool needsUpdate = false;
+      for (int i = 0; i < _routines.length; i++) {
+        final routine = _routines[i];
+        final updatedRoutine = _checkStreakReset(routine, normalizedToday);
+        if (updatedRoutine != routine) {
+          _routines[i] = updatedRoutine;
+          await _updateRoutine(updatedRoutine);
+          needsUpdate = true;
+        }
+      }
+      
+      if (needsUpdate) {
+        // Eğer bir güncelleme yapıldıysa, tekrar yükle
+        _routines = await _getRoutines();
+      }
     } catch (e) {
       _error = 'Routines failed to load';
     } finally {
@@ -233,6 +253,40 @@ class RoutinesProvider with ChangeNotifier {
     
     // Then reload from storage to ensure consistency
     await loadRoutines();
+  }
+
+  // Streak reset kontrolü - bir gün routine yapılmazsa streak sıfırlanır
+  Routine _checkStreakReset(Routine routine, DateTime normalizedToday) {
+    // Eğer streak yoksa veya bugün tamamlanmışsa, bir şey yapma
+    if (routine.streakCount == 0 || routine.lastStreakDate == null) {
+      return routine;
+    }
+
+    final lastStreakDate = routine.lastStreakDate!;
+    final lastStreakDateNorm = DateTime(
+      lastStreakDate.year,
+      lastStreakDate.month,
+      lastStreakDate.day,
+    );
+
+    // Eğer lastStreakDate bugünse, streak devam ediyor
+    if (lastStreakDateNorm == normalizedToday) {
+      return routine;
+    }
+
+    // Eğer lastStreakDate bugünden önceki bir günse ve bugün tamamlanmamışsa
+    // streak sıfırlanmalı
+    final allItemsCheckedToday = routine.allItemsCheckedToday(normalizedToday);
+    
+    if (!allItemsCheckedToday) {
+      // Bugün tamamlanmamış → streak sıfırla
+      return routine.copyWith(
+        streakCount: 0,
+        clearLastStreakDate: true,
+      );
+    }
+
+    return routine;
   }
 
   // Streak kontrol ve güncelleme helper metodu

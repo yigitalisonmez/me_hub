@@ -295,12 +295,12 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
-              const SizedBox(height: 20),
+              
 
               // Todo list inside the card
               if (provider.todos.isEmpty) ...[
                 const Icon(
-                  LucideIcons.clipboardList,
+                  LucideIcons.clipboardList200,
                   size: 60,
                   color: AppColors.primaryOrange,
                 ),
