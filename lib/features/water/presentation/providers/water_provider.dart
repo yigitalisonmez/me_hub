@@ -7,16 +7,19 @@ class WaterProvider with ChangeNotifier {
   final AddWater _addWater;
   final RemoveLastLog _removeLastLog;
   final GetWaterHistory _getWaterHistory;
+  final UpdateWaterIntake _updateWaterIntake;
 
   WaterProvider({
     required GetTodayWaterIntake getTodayWaterIntake,
     required AddWater addWater,
     required RemoveLastLog removeLastLog,
     required GetWaterHistory getWaterHistory,
+    required UpdateWaterIntake updateWaterIntake,
   })  : _getTodayWaterIntake = getTodayWaterIntake,
         _addWater = addWater,
         _removeLastLog = removeLastLog,
-        _getWaterHistory = getWaterHistory;
+        _getWaterHistory = getWaterHistory,
+        _updateWaterIntake = updateWaterIntake;
 
   WaterIntake? _todayIntake;
   List<WaterIntake> _history = [];
@@ -84,6 +87,17 @@ class WaterProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load history';
+      notifyListeners();
+    }
+  }
+
+  /// Update water intake (for deleting specific logs)
+  Future<void> updateWaterIntake(WaterIntake waterIntake) async {
+    try {
+      await _updateWaterIntake(waterIntake);
+      await loadTodayWaterIntake();
+    } catch (e) {
+      _error = 'Failed to update water intake';
       notifyListeners();
     }
   }

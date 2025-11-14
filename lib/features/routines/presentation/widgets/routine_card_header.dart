@@ -90,7 +90,7 @@ class RoutineCardHeader extends StatelessWidget {
                 child: _buildStatItem(
                   'Today',
                   '$completedItemsToday/$totalItemsToday',
-                  LucideIcons.checkSquare,
+                  LucideIcons.squareCheck,
                 ),
               ),
             ],

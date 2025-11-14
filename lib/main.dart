@@ -134,6 +134,9 @@ class MeHubApp extends StatelessWidget {
             getWaterHistory: WaterUsecases.GetWaterHistory(
               context.read<WaterRepositoryImpl>(),
             ),
+            updateWaterIntake: WaterUsecases.UpdateWaterIntake(
+              context.read<WaterRepositoryImpl>(),
+            ),
           ),
         ),
       ],
@@ -295,7 +298,6 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
-              
 
               // Todo list inside the card
               if (provider.todos.isEmpty) ...[
@@ -517,9 +519,18 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         items: const [
-          BottomNavigationBarItem(icon: Icon(LucideIcons.calendar), label: 'Today'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.droplet), label: 'Water'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.repeat), label: 'Routines'),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.calendar),
+            label: 'Today',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.droplet),
+            label: 'Water',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.repeat),
+            label: 'Routines',
+          ),
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.settings),
             label: 'Settings',
@@ -582,7 +593,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 20),
-          const Icon(LucideIcons.slidersHorizontal, size: 60, color: AppColors.primaryOrange),
+          const Icon(
+            LucideIcons.slidersHorizontal,
+            size: 60,
+            color: AppColors.primaryOrange,
+          ),
           const SizedBox(height: 16),
           const Text(
             'Customize your experience and manage your preferences',
@@ -649,7 +664,11 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: todo.isCompleted
-                  ? const Icon(LucideIcons.check, color: AppColors.white, size: 16)
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.white,
+                      size: 16,
+                    )
                   : null,
             ),
           ),

@@ -34,3 +34,12 @@ class GetWaterHistory {
   Future<List<WaterIntake>> call(int days) => repository.getWaterHistory(days);
 }
 
+class UpdateWaterIntake {
+  final WaterRepository repository;
+
+  UpdateWaterIntake(this.repository);
+
+  Future<void> call(WaterIntake waterIntake) =>
+      repository.updateWaterIntake(waterIntake);
+}
+
