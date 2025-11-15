@@ -9,9 +9,10 @@ class AppColors {
   static const Color primaryOrange = Color(
     0xFFD97D45,
   ); // Sıcak turuncu-kahverengi
-  static const Color secondaryCream = Color(0xFFF5E6D3); // Açık bej/krem
+  static const Color backgroundCream = Color(0xFFFFF5ED);
+  static const Color secondaryCream = Color(0xFFFFF9F5); // Açık bej/krem
   static const Color accentGrey = Color(0xFFE8E8E8); // Açık gri
-  static const Color backgroundCream = Color(0xFFFDF5E6); // Arka plan krem
+   // Arka plan krem
 
   // Renk varyasyonları
   static const Color primaryOrangeLight = Color(0xFFE8A87C);

@@ -66,7 +66,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                   _buildHeroHeader(context, provider),
                   const SizedBox(height: 16),
                   ...provider.routines.map(
-                    (r) => _buildRoutineCard(r, provider),
+                    (r) => _buildRoutineCard(context, r, provider),
                   ),
                   const SizedBox(height: 16),
                   AddRoutineButton(
@@ -115,20 +115,18 @@ class _RoutinesPageState extends State<RoutinesPage>
           // Title
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
-              SizedBox(width: 8),
+            children: [
+              const Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
+              const SizedBox(width: 8),
               Text(
                 'ROUTINES',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.primaryOrange,
                   letterSpacing: 1.2,
                 ),
               ),
-              SizedBox(width: 8),
-              Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
+              const SizedBox(width: 8),
+              const Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
             ],
           ),
           Container(
@@ -147,25 +145,28 @@ class _RoutinesPageState extends State<RoutinesPage>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Circular Progress
-              _buildCircularProgress(completionRate, completedToday, totalItems),
+              _buildCircularProgress(context, completionRate, completedToday, totalItems),
               // Stats Column
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildStatItem(
+                    context,
                     LucideIcons.list,
                     '$totalRoutines',
                     'Routines',
                   ),
                   const SizedBox(height: 12),
                   _buildStatItem(
+                    context,
                     LucideIcons.circleCheck,
                     '$completedToday',
                     'Completed',
                   ),
                   const SizedBox(height: 12),
                   _buildStatItem(
+                    context,
                     LucideIcons.clock,
                     '${totalItems - completedToday}',
                     'Remaining',
@@ -178,10 +179,8 @@ class _RoutinesPageState extends State<RoutinesPage>
           // Date
           Text(
             '${today.day}.${today.month}.${today.year}',
-            style: TextStyle(
-              fontSize: 12,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -189,7 +188,8 @@ class _RoutinesPageState extends State<RoutinesPage>
     );
   }
 
-  Widget _buildCircularProgress(double progress, int completed, int total) {
+  Widget _buildCircularProgress(BuildContext context, double progress, int completed, int total) {
+    final theme = Theme.of(context);
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: progress),
       duration: const Duration(milliseconds: 1200),
@@ -234,19 +234,15 @@ class _RoutinesPageState extends State<RoutinesPage>
                 children: [
                   Text(
                     '${(animatedProgress * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.displayMedium?.copyWith(
                       color: AppColors.primaryOrange,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Today',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.darkGrey.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -258,7 +254,8 @@ class _RoutinesPageState extends State<RoutinesPage>
     );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label) {
+  Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -288,18 +285,14 @@ class _RoutinesPageState extends State<RoutinesPage>
           children: [
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.headlineSmall?.copyWith(
                 color: AppColors.darkGrey,
               ),
             ),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.darkGrey.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -308,7 +301,8 @@ class _RoutinesPageState extends State<RoutinesPage>
     );
   }
 
-  Widget _buildRoutineCard(Routine routine, RoutinesProvider provider) {
+  Widget _buildRoutineCard(BuildContext context, Routine routine, RoutinesProvider provider) {
+    final theme = Theme.of(context);
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
@@ -345,9 +339,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                   Expanded(
                     child: Text(
                       routine.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         color: AppColors.darkGrey,
                       ),
                     ),
@@ -405,7 +397,7 @@ class _RoutinesPageState extends State<RoutinesPage>
           ),
           const SizedBox(height: 10),
           // Progress bar always visible
-          _buildLiquidProgress(pct, done, total),
+          _buildLiquidProgress(context, pct, done, total),
           // Expandable content
           ClipRect(
             child: AnimatedSize(
@@ -458,7 +450,8 @@ class _RoutinesPageState extends State<RoutinesPage>
   }
 
   // Simple progress bar with gentle wave at right edge
-  Widget _buildLiquidProgress(double pct, int done, int total) {
+  Widget _buildLiquidProgress(BuildContext context, double pct, int done, int total) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -491,10 +484,8 @@ class _RoutinesPageState extends State<RoutinesPage>
                   Center(
                     child: Text(
                       '${(animatedProgress * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.darkGrey.withValues(alpha: 0.8),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -506,10 +497,8 @@ class _RoutinesPageState extends State<RoutinesPage>
         const SizedBox(height: 8),
         Text(
           '$done / $total today',
-          style: TextStyle(
-            fontSize: 12,
+          style: theme.textTheme.bodySmall?.copyWith(
             color: AppColors.darkGrey.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w600,
           ),
         ),
       ],

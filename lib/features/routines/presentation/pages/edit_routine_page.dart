@@ -192,9 +192,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           const SizedBox(height: 16),
           _buildHeaderIcon(routine),
           const SizedBox(height: 12),
-          _buildHeaderTitle(),
+          _buildHeaderTitle(context),
           const SizedBox(height: 8),
-          _buildRoutineNameBadge(routine),
+          _buildRoutineNameBadge(context, routine),
         ],
       ),
     );
@@ -276,18 +276,17 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Widget _buildHeaderTitle() {
-    return const Text(
+  Widget _buildHeaderTitle(BuildContext context) {
+    return Text(
       'Edit Routine',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
         color: AppColors.primaryOrange,
       ),
     );
   }
 
-  Widget _buildRoutineNameBadge(Routine routine) {
+  Widget _buildRoutineNameBadge(BuildContext context, Routine routine) {
+    final theme = Theme.of(context);
     return Material(
       elevation: 0.5,
       borderRadius: BorderRadius.circular(100),
@@ -312,9 +311,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             const SizedBox(width: 8),
             Text(
               routine.name,
-              style: TextStyle(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkGrey.withValues(alpha: 0.7),
-                fontSize: 14,
               ),
             ),
           ],
@@ -384,11 +382,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           child: OutlinedButton.icon(
             onPressed: () => _addItem(context),
             icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
-            label: const Text(
+            label: Text(
               'Add New Item',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: AppColors.primaryOrange,
               ),
             ),
@@ -489,11 +485,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                   size: 22,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Edit Habit',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.primaryOrange,
                   ),
                 ),
@@ -518,11 +512,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             ),
             const SizedBox(height: 24),
             // Title field
-            const Text(
+            Text(
               'Habit Name',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppColors.darkGrey,
               ),
             ),
@@ -531,7 +523,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               controller: _titleController,
               decoration: InputDecoration(
                 hintText: 'Enter habit name',
-                hintStyle: TextStyle(
+                hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.darkGrey.withValues(alpha: 0.4),
                 ),
                 filled: true,
@@ -563,11 +555,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             ),
             const SizedBox(height: 20),
             // Icon picker
-            const Text(
+            Text(
               'Icon',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppColors.darkGrey,
               ),
             ),
@@ -607,9 +597,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                       _selectedIconCodePoint != null
                           ? 'Change Icon'
                           : 'Select Icon',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.darkGrey.withValues(alpha: 0.7),
                       ),
                     ),
@@ -640,12 +628,10 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.darkGrey,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
                       ),
                     ),
                   ),
@@ -674,12 +660,11 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Save',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
                         ),
                       ),
                     ),

@@ -47,11 +47,10 @@ class _TodoPageState extends State<TodoPage> {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Daily Goals',
-          style: TextStyle(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: AppColors.darkGrey,
-            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
@@ -106,11 +105,10 @@ class _TodoPageState extends State<TodoPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           icon: const Icon(LucideIcons.plus, color: AppColors.white),
-          label: const Text(
+          label: Text(
             'Add Goal',
-            style: TextStyle(
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.white,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -133,7 +131,9 @@ class _TodoPageState extends State<TodoPage> {
           Text(
             provider.error!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.grey),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.grey,
+            ),
           ),
           const SizedBox(height: 16),
           CustomButton(
@@ -152,7 +152,7 @@ class _TodoPageState extends State<TodoPage> {
 
     return Column(
       children: [
-        _buildDateHeader(),
+        _buildDateHeader(context),
         Expanded(
           child: ListView.builder(
             itemCount: provider.todos.length,
@@ -188,9 +188,11 @@ class _TodoPageState extends State<TodoPage> {
             ).textTheme.headlineSmall?.copyWith(color: AppColors.grey),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Start by adding your first daily goal',
-            style: TextStyle(color: AppColors.grey),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.grey,
+            ),
           ),
           const SizedBox(height: 24),
           CustomButton(
@@ -202,7 +204,8 @@ class _TodoPageState extends State<TodoPage> {
     );
   }
 
-  Widget _buildDateHeader() {
+  Widget _buildDateHeader(BuildContext context) {
+    final theme = Theme.of(context);
     final now = DateTime.now();
     final weekdays = [
       'Monday',
@@ -263,18 +266,14 @@ class _TodoPageState extends State<TodoPage> {
               children: [
                 Text(
                   '${now.day} ${months[now.month - 1]}',
-                  style: const TextStyle(
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     color: AppColors.darkGrey,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   weekdays[now.weekday - 1],
-                  style: const TextStyle(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

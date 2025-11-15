@@ -55,12 +55,14 @@ class _WaterPageState extends State<WaterPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: const [
-            Icon(LucideIcons.partyPopper, color: Colors.white),
-            SizedBox(width: 12),
+          children: [
+            const Icon(LucideIcons.partyPopper, color: Colors.white),
+            const SizedBox(width: 12),
             Text(
               '🎉 Daily goal reached!',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -75,7 +77,7 @@ class _WaterPageState extends State<WaterPage>
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: AppColors.backgroundCreamLight),
+      decoration: const BoxDecoration(color: AppColors.secondaryCream),
       child: SafeArea(
         child: Consumer<WaterProvider>(
           builder: (context, provider, child) {
@@ -86,16 +88,16 @@ class _WaterPageState extends State<WaterPage>
                 children: [
                   const SizedBox(height: 16),
                   // Header
-                  _buildHeader(),
+                  _buildHeader(context),
                   const SizedBox(height: 24),
                   // Today's Progress Section
-                  _buildTodaysProgressCard(provider),
+                  _buildTodaysProgressCard(context, provider),
                   const SizedBox(height: 24),
                   // Quick Add Section
-                  _buildQuickAddSection(provider),
+                  _buildQuickAddSection(context, provider),
                   const SizedBox(height: 24),
                   // Today's Log Section
-                  _buildTodaysLogSection(provider),
+                  _buildTodaysLogSection(context, provider),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -106,7 +108,8 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,19 +117,16 @@ class _WaterPageState extends State<WaterPage>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Water Tracker',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.displaySmall?.copyWith(
                 color: AppColors.primaryOrange,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Stay hydrated & healthy',
-              style: TextStyle(
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkGrey.withValues(alpha: 0.7),
               ),
             ),
@@ -149,7 +149,11 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildTodaysProgressCard(WaterProvider provider) {
+  Widget _buildTodaysProgressCard(
+    BuildContext context,
+    WaterProvider provider,
+  ) {
+    final theme = Theme.of(context);
     final percentage = (provider.todayProgress * 100).toInt();
     final glassCount = provider.todayIntake?.logs.length ?? 0;
     final remaining = WaterConstants.dailyGoalMl - provider.todayAmount;
@@ -175,9 +179,7 @@ class _WaterPageState extends State<WaterPage>
               const SizedBox(width: 8),
               Text(
                 'TODAY\'S PROGRESS',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                style: theme.textTheme.titleMedium?.copyWith(
                   color: AppColors.primaryOrange,
                   letterSpacing: 0.5,
                 ),
@@ -186,20 +188,35 @@ class _WaterPageState extends State<WaterPage>
           ),
           const SizedBox(height: 20),
           // Current Amount
-          Text(
-            '${provider.todayAmount} ml',
-            style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryOrange,
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '${provider.todayAmount}',
+                  style: theme.textTheme.displayLarge?.copyWith(
+                    fontSize: 36,
+                    color: AppColors.primaryOrange,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'ml',
+                  style: theme.textTheme.displayLarge?.copyWith(
+                    fontSize: 36,
+                    color: AppColors.darkGrey.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 4),
           // Goal
           Text(
             'of ${WaterConstants.dailyGoalMl}ml daily goal',
-            style: TextStyle(
-              fontSize: 14,
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.7),
             ),
           ),
@@ -234,23 +251,20 @@ class _WaterPageState extends State<WaterPage>
                 children: [
                   Text(
                     '0ml',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.darkGrey.withValues(alpha: 0.7),
                     ),
                   ),
                   Text(
                     '$percentage%',
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.darkGrey,
                     ),
                   ),
                   Text(
                     '${WaterConstants.dailyGoalMl}ml',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.darkGrey.withValues(alpha: 0.7),
                     ),
                   ),
@@ -262,16 +276,17 @@ class _WaterPageState extends State<WaterPage>
           // Three Stat Cards
           Row(
             children: [
-              Expanded(child: _buildStatCard('$glassCount', 'Cups')),
+              Expanded(child: _buildStatCard(context, '$glassCount', 'Cups')),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   '${remaining > 0 ? remaining : 0}',
                   'Remaining',
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCardWithIcon('Status')),
+              Expanded(child: _buildStatCardWithIcon(context, 'Status')),
             ],
           ),
         ],
@@ -279,7 +294,8 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildStatCard(String value, String label) {
+  Widget _buildStatCard(BuildContext context, String value, String label) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
@@ -291,17 +307,14 @@ class _WaterPageState extends State<WaterPage>
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            style: theme.textTheme.headlineMedium?.copyWith(
               color: AppColors.primaryOrange,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.7),
             ),
           ),
@@ -310,7 +323,8 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildStatCardWithIcon(String label) {
+  Widget _buildStatCardWithIcon(BuildContext context, String label) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
@@ -328,8 +342,7 @@ class _WaterPageState extends State<WaterPage>
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.7),
             ),
           ),
@@ -338,7 +351,8 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildQuickAddSection(WaterProvider provider) {
+  Widget _buildQuickAddSection(BuildContext context, WaterProvider provider) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -360,9 +374,7 @@ class _WaterPageState extends State<WaterPage>
               const SizedBox(width: 8),
               Text(
                 'QUICK ADD',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                style: theme.textTheme.titleMedium?.copyWith(
                   color: AppColors.primaryOrange,
                   letterSpacing: 0.5,
                 ),
@@ -372,8 +384,7 @@ class _WaterPageState extends State<WaterPage>
           const SizedBox(height: 8),
           Text(
             'Add water to your daily intake',
-            style: TextStyle(
-              fontSize: 14,
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.7),
             ),
           ),
@@ -381,11 +392,17 @@ class _WaterPageState extends State<WaterPage>
           // Three Buttons
           Row(
             children: [
-              Expanded(child: _buildQuickAddButton(250, '1 Glass', provider)),
+              Expanded(
+                child: _buildQuickAddButton(context, 250, '1 Glass', provider),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildQuickAddButton(500, '1 Bottle', provider)),
+              Expanded(
+                child: _buildQuickAddButton(context, 500, '1 Bottle', provider),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildQuickAddButton(1000, '1 Liter', provider)),
+              Expanded(
+                child: _buildQuickAddButton(context, 1000, '1 Liter', provider),
+              ),
             ],
           ),
         ],
@@ -394,10 +411,12 @@ class _WaterPageState extends State<WaterPage>
   }
 
   Widget _buildQuickAddButton(
+    BuildContext context,
     int amount,
     String label,
     WaterProvider provider,
   ) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => _handleWaterAdded(amount),
       child: Container(
@@ -413,16 +432,12 @@ class _WaterPageState extends State<WaterPage>
             const SizedBox(height: 12),
             Text(
               '${amount}ml',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, color: Colors.white),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
             ),
           ],
         ),
@@ -430,7 +445,8 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildTodaysLogSection(WaterProvider provider) {
+  Widget _buildTodaysLogSection(BuildContext context, WaterProvider provider) {
+    final theme = Theme.of(context);
     final logs = provider.todayIntake?.logs ?? [];
 
     return Container(
@@ -457,9 +473,7 @@ class _WaterPageState extends State<WaterPage>
                   const SizedBox(width: 8),
                   Text(
                     'TODAY\'S LOG',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.primaryOrange,
                       letterSpacing: 0.5,
                     ),
@@ -477,9 +491,8 @@ class _WaterPageState extends State<WaterPage>
                   child: Center(
                     child: Text(
                       '${logs.length}',
-                      style: const TextStyle(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.primaryOrange,
-                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -495,8 +508,7 @@ class _WaterPageState extends State<WaterPage>
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   'No entries yet',
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.darkGrey.withValues(alpha: 0.5),
                   ),
                 ),
@@ -504,7 +516,7 @@ class _WaterPageState extends State<WaterPage>
             )
           else
             ...logs
-                .map((log) => _buildLogItem(log, provider))
+                .map((log) => _buildLogItem(context, log, provider))
                 .toList()
                 .reversed, // Show newest first
         ],
@@ -512,7 +524,12 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Widget _buildLogItem(WaterLog log, WaterProvider provider) {
+  Widget _buildLogItem(
+    BuildContext context,
+    WaterLog log,
+    WaterProvider provider,
+  ) {
+    final theme = Theme.of(context);
     final timeFormat = DateFormat('HH:mm');
     final timeString = timeFormat.format(log.timestamp);
 
@@ -520,7 +537,7 @@ class _WaterPageState extends State<WaterPage>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCream,
+        color: AppColors.secondaryCream,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -530,12 +547,8 @@ class _WaterPageState extends State<WaterPage>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.primaryOrange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                width: 1,
-              ),
             ),
             child: const Icon(
               LucideIcons.droplet,
@@ -551,24 +564,21 @@ class _WaterPageState extends State<WaterPage>
               children: [
                 Text(
                   '${log.amountMl}ml',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.titleLarge?.copyWith(
                     color: AppColors.darkGrey,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   timeString,
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.darkGrey.withValues(alpha: 0.7),
                   ),
                 ),
               ],
             ),
           ),
-          // Ribbon/Bookmark icon
+          // Delete button
           GestureDetector(
             onTap: () => _deleteLog(log, provider),
             child: Container(
@@ -579,7 +589,7 @@ class _WaterPageState extends State<WaterPage>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                LucideIcons.bookmark,
+                LucideIcons.trash2,
                 color: AppColors.primaryOrange,
                 size: 16,
               ),
