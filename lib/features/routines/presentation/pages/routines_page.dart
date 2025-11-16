@@ -27,7 +27,6 @@ class _RoutinesPageState extends State<RoutinesPage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -35,27 +34,114 @@ class _RoutinesPageState extends State<RoutinesPage> {
       child: SafeArea(
         child: Consumer<RoutinesProvider>(
           builder: (context, provider, child) {
+            // Check if all routines are completed today
+            final date = DateTime.now();
+            final today = DateTime(date.year, date.month, date.day);
+            bool allRoutinesCompleted =
+                provider.routines.isNotEmpty &&
+                provider.routines.every(
+                  (r) => r.items.isNotEmpty && r.allItemsCheckedToday(today),
+                );
+
+            // Show celebration message if all routines completed
+            if (allRoutinesCompleted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.partyPopper,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '🎉 All routines completed today!',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              });
+            }
+
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  _buildHeroHeader(context, provider),
                   const SizedBox(height: 16),
+                  // Header
+                  _buildHeader(context),
+                  const SizedBox(height: 24),
+                  // Hero Header
+                  _buildHeroHeader(context, provider),
+                  const SizedBox(height: 24),
+                  // Routine Cards
                   ...provider.routines.map(
                     (r) => _buildRoutineCard(context, r, provider),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  // Add Routine Button
                   AddRoutineButton(
                     onPressed: () => RoutineDialogs.showAddRoutine(context),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                 ],
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Routines',
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: AppColors.primaryOrange,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Build habits & stay consistent',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.darkGrey.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            LucideIcons.repeat,
+            color: AppColors.primaryOrange,
+            size: 20,
+          ),
+        ),
+      ],
     );
   }
 
@@ -93,7 +179,11 @@ class _RoutinesPageState extends State<RoutinesPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
+              const Icon(
+                LucideIcons.repeat,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               Text(
                 'ROUTINES',
@@ -103,7 +193,11 @@ class _RoutinesPageState extends State<RoutinesPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(LucideIcons.repeat, color: AppColors.primaryOrange, size: 24),
+              const Icon(
+                LucideIcons.repeat,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
             ],
           ),
           Container(
@@ -122,7 +216,13 @@ class _RoutinesPageState extends State<RoutinesPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Circular Progress
-              _buildCircularProgress(context, completionRate, completedToday, totalItems),
+              _buildCircularProgress(
+                context,
+                completionRate,
+                completedToday,
+                totalItems,
+              ),
+              SizedBox(width: 12),
               // Stats Column
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +265,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
     );
   }
 
-  Widget _buildCircularProgress(BuildContext context, double progress, int completed, int total) {
+  Widget _buildCircularProgress(
+    BuildContext context,
+    double progress,
+    int completed,
+    int total,
+  ) {
     final theme = Theme.of(context);
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: progress),
@@ -231,7 +336,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {
+  Widget _buildStatItem(
+    BuildContext context,
+    IconData icon,
+    String value,
+    String label,
+  ) {
     final theme = Theme.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -239,21 +349,10 @@ class _RoutinesPageState extends State<RoutinesPage> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            border: Border.all(color: AppColors.primaryOrange, width: 1.5),
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
-          child: Icon(
-            icon,
-            color: AppColors.white,
-            size: 18,
-          ),
+          child: Icon(icon, color: AppColors.primaryOrange, size: 18),
         ),
         const SizedBox(width: 10),
         Column(
@@ -278,7 +377,11 @@ class _RoutinesPageState extends State<RoutinesPage> {
     );
   }
 
-  Widget _buildRoutineCard(BuildContext context, Routine routine, RoutinesProvider provider) {
+  Widget _buildRoutineCard(
+    BuildContext context,
+    Routine routine,
+    RoutinesProvider provider,
+  ) {
     final theme = Theme.of(context);
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
@@ -395,7 +498,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                           final item = entry.value;
                           final isFirst = index == 0;
                           final isLast = index == routine.items.length - 1;
-                          
+
                           // Check if this item is enabled:
                           // First item is always enabled
                           // Subsequent items are enabled only if previous item is checked
@@ -404,7 +507,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                             final previousItem = routine.items[index - 1];
                             isEnabled = previousItem.isCheckedToday(today);
                           }
-                          
+
                           return RoutineItemWidget(
                             routine: routine,
                             item: item,
@@ -429,6 +532,4 @@ class _RoutinesPageState extends State<RoutinesPage> {
       ),
     );
   }
-
 }
-
