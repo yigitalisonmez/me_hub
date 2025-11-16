@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/streak_badge.dart';
@@ -18,38 +18,15 @@ class RoutinesPage extends StatefulWidget {
   State<RoutinesPage> createState() => _RoutinesPageState();
 }
 
-class _RoutinesPageState extends State<RoutinesPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _waveController;
-  final Set<String> _expandedRoutines = {};
-
+class _RoutinesPageState extends State<RoutinesPage> {
   @override
   void initState() {
     super.initState();
-    _waveController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<RoutinesProvider>().loadRoutines();
     });
   }
 
-  void _toggleRoutineExpansion(String routineId) {
-    setState(() {
-      if (_expandedRoutines.contains(routineId)) {
-        _expandedRoutines.remove(routineId);
-      } else {
-        _expandedRoutines.add(routineId);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _waveController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,7 +285,7 @@ class _RoutinesPageState extends State<RoutinesPage>
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
     final total = routine.items.length;
     final pct = total == 0 ? 0.0 : done / total;
-    final isExpanded = _expandedRoutines.contains(routine.id);
+    final isExpanded = provider.isRoutineExpanded(routine.id);
 
     return Container(
       width: double.infinity,
@@ -330,7 +307,7 @@ class _RoutinesPageState extends State<RoutinesPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => _toggleRoutineExpansion(routine.id),
+            onTap: () => provider.toggleRoutineExpansion(routine.id),
             borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -397,7 +374,11 @@ class _RoutinesPageState extends State<RoutinesPage>
           ),
           const SizedBox(height: 10),
           // Progress bar always visible
-          _buildLiquidProgress(context, pct, done, total),
+          WaveProgressBar(
+            progress: pct,
+            centerText: '${(pct * 100).toStringAsFixed(0)}%',
+            bottomText: '$done / $total today',
+          ),
           // Expandable content
           ClipRect(
             child: AnimatedSize(
@@ -449,135 +430,5 @@ class _RoutinesPageState extends State<RoutinesPage>
     );
   }
 
-  // Simple progress bar with gentle wave at right edge
-  Widget _buildLiquidProgress(BuildContext context, double pct, int done, int total) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: pct.clamp(0.0, 1.0)),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOutCubic,
-          builder: (context, animatedProgress, child) {
-            return SizedBox(
-              height: 20,
-              child: Stack(
-                children: [
-                  AnimatedBuilder(
-                    animation: _waveController,
-                    builder: (context, child) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CustomPaint(
-                          painter: _WaveProgressPainter(
-                            progress: animatedProgress,
-                            wavePhase: _waveController.value,
-                            gradient: AppColors.primaryGradient,
-                          ),
-                          size: const Size(double.infinity, 20),
-                        ),
-                      );
-                    },
-                  ),
-                  // Percentage text always centered and visible
-                  Center(
-                    child: Text(
-                      '${(animatedProgress * 100).toStringAsFixed(0)}%',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.darkGrey.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '$done / $total today',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.darkGrey.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
-// Custom painter for progress bar with gentle wave at right edge
-class _WaveProgressPainter extends CustomPainter {
-  final double progress;
-  final double wavePhase;
-  final Gradient gradient;
-
-  _WaveProgressPainter({
-    required this.progress,
-    required this.wavePhase,
-    required this.gradient,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Background
-    final bgPaint = Paint()
-      ..color = AppColors.primaryOrange.withValues(alpha: 0.12);
-    final bgRect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(10),
-    );
-    canvas.drawRRect(bgRect, bgPaint);
-
-    if (progress <= 0) return;
-
-    // Fill width
-    final fillW = size.width * progress.clamp(0.0, 1.0);
-    final useWave = progress > 0.01 && progress < 0.999;
-
-    // Draw fill with gentle wave only at the right edge
-    final path = Path();
-    path.moveTo(0, 0);
-
-    if (useWave) {
-      path.lineTo(math.max(0, fillW - 12), 0); // flat until near end
-
-      // Gentle wave at the right edge (vertical wave on the right side)
-      if (fillW > 12) {
-        for (double y = 0; y <= size.height; y += 0.5) {
-          final waveX =
-              fillW +
-              2.5 *
-                  math.sin((y / 3.5) + (wavePhase * math.pi * 2)) *
-                  (1.0 - (y / size.height) * 0.3); // gentle fade
-          path.lineTo(waveX, y);
-        }
-      } else {
-        path.lineTo(fillW, 0);
-        path.lineTo(fillW, size.height);
-      }
-    } else {
-      // No wave at 0% or 100%
-      path.lineTo(fillW, 0);
-      path.lineTo(fillW, size.height);
-    }
-
-    path.lineTo(0, size.height);
-    path.close();
-
-    final paint = Paint()
-      ..shader = gradient.createShader(Offset.zero & size)
-      ..style = PaintingStyle.fill;
-
-    canvas.save();
-    canvas.clipRRect(bgRect);
-    canvas.drawPath(path, paint);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _WaveProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.wavePhase != wavePhase;
-  }
-}

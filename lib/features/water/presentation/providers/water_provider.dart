@@ -15,16 +15,17 @@ class WaterProvider with ChangeNotifier {
     required RemoveLastLog removeLastLog,
     required GetWaterHistory getWaterHistory,
     required UpdateWaterIntake updateWaterIntake,
-  })  : _getTodayWaterIntake = getTodayWaterIntake,
-        _addWater = addWater,
-        _removeLastLog = removeLastLog,
-        _getWaterHistory = getWaterHistory,
-        _updateWaterIntake = updateWaterIntake;
+  }) : _getTodayWaterIntake = getTodayWaterIntake,
+       _addWater = addWater,
+       _removeLastLog = removeLastLog,
+       _getWaterHistory = getWaterHistory,
+       _updateWaterIntake = updateWaterIntake;
 
   WaterIntake? _todayIntake;
   List<WaterIntake> _history = [];
   bool _isLoading = false;
   String? _error;
+  bool _justReachedGoal = false;
 
   WaterIntake? get todayIntake => _todayIntake;
   List<WaterIntake> get history => _history;
@@ -39,6 +40,13 @@ class WaterProvider with ChangeNotifier {
 
   /// Check if today's goal is reached
   bool get isGoalReached => _todayIntake?.isGoalReached() ?? false;
+
+  /// Check if goal was just reached (for celebration)
+  bool get justReachedGoal {
+    final result = _justReachedGoal;
+    _justReachedGoal = false; // Reset after reading
+    return result;
+  }
 
   /// Load today's water intake
   Future<void> loadTodayWaterIntake() async {
@@ -59,8 +67,15 @@ class WaterProvider with ChangeNotifier {
   /// Add water amount
   Future<void> addWaterAmount(int amountMl) async {
     try {
+      final wasGoalReached = isGoalReached;
       await _addWater(DateTime.now(), amountMl);
       await loadTodayWaterIntake();
+
+      // Check if goal was just reached
+      if (!wasGoalReached && isGoalReached) {
+        _justReachedGoal = true;
+        notifyListeners(); // Notify to trigger celebration in UI
+      }
     } catch (e) {
       _error = 'Failed to add water';
       notifyListeners();
@@ -101,5 +116,27 @@ class WaterProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-}
 
+  /// Delete a specific water log
+  Future<void> deleteLog(String logId) async {
+    final todayIntake = _todayIntake;
+    if (todayIntake == null) return;
+
+    // If it's the last log, use undoLastLog for consistency
+    if (todayIntake.logs.isNotEmpty && todayIntake.logs.last.id == logId) {
+      await undoLastLog();
+      return;
+    }
+
+    // Remove the log and recalculate total
+    final updatedLogs = todayIntake.logs.where((l) => l.id != logId).toList();
+    final newTotal = updatedLogs.fold<int>(0, (sum, l) => sum + l.amountMl);
+
+    final updatedIntake = todayIntake.copyWith(
+      amountMl: newTotal,
+      logs: updatedLogs,
+    );
+
+    await updateWaterIntake(updatedIntake);
+  }
+}

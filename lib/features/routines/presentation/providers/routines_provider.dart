@@ -21,10 +21,24 @@ class RoutinesProvider with ChangeNotifier {
   List<Routine> _routines = [];
   bool _isLoading = false;
   String? _error;
+  final Set<String> _expandedRoutines = {};
 
   List<Routine> get routines => _routines;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Check if a routine is expanded
+  bool isRoutineExpanded(String routineId) => _expandedRoutines.contains(routineId);
+
+  /// Toggle routine expansion
+  void toggleRoutineExpansion(String routineId) {
+    if (_expandedRoutines.contains(routineId)) {
+      _expandedRoutines.remove(routineId);
+    } else {
+      _expandedRoutines.add(routineId);
+    }
+    notifyListeners();
+  }
 
   Future<void> loadRoutines() async {
     _isLoading = true;
@@ -32,11 +46,11 @@ class RoutinesProvider with ChangeNotifier {
     notifyListeners();
     try {
       _routines = await _getRoutines();
-      
+
       // Her routine için streak reset kontrolü yap
       final today = DateTime.now();
       final normalizedToday = DateTime(today.year, today.month, today.day);
-      
+
       bool needsUpdate = false;
       for (int i = 0; i < _routines.length; i++) {
         final routine = _routines[i];
@@ -47,7 +61,7 @@ class RoutinesProvider with ChangeNotifier {
           needsUpdate = true;
         }
       }
-      
+
       if (needsUpdate) {
         // Eğer bir güncelleme yapıldıysa, tekrar yükle
         _routines = await _getRoutines();
@@ -71,6 +85,15 @@ class RoutinesProvider with ChangeNotifier {
     await loadRoutines();
   }
 
+  /// Get routine by ID, returns null if not found
+  Routine? getRoutineById(String routineId) {
+    try {
+      return _routines.firstWhere((r) => r.id == routineId);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> addItem(String routineId, RoutineItem item) async {
     final index = _routines.indexWhere((r) => r.id == routineId);
     if (index == -1) return;
@@ -81,11 +104,11 @@ class RoutinesProvider with ChangeNotifier {
     updated = _checkAndUpdateStreak(routine, updated);
 
     await _updateRoutine(updated);
-    
+
     // Update local state immediately for UI responsiveness
     _routines[index] = updated;
     notifyListeners();
-    
+
     // Then reload from storage to ensure consistency
     await loadRoutines();
   }
@@ -97,36 +120,46 @@ class RoutinesProvider with ChangeNotifier {
         debugPrint('deleteItem: Routine not found: $routineId');
         return;
       }
-      
+
       final routine = _routines[index];
       final itemCountBefore = routine.items.length;
       final updatedItems = routine.items
           .where((item) => item.id != itemId)
           .toList();
-      
+
       if (updatedItems.length == itemCountBefore) {
         // Item bulunamadı, silinecek bir şey yok
-        debugPrint('deleteItem: Item not found: $itemId in routine: $routineId');
+        debugPrint(
+          'deleteItem: Item not found: $itemId in routine: $routineId',
+        );
         return;
       }
-      
+
       var updated = routine.copyWith(items: updatedItems);
 
       // Streak kontrolü yap
       updated = _checkAndUpdateStreak(routine, updated);
 
-      debugPrint('deleteItem: Before _updateRoutine - routine has ${updated.items.length} items');
-      
+      debugPrint(
+        'deleteItem: Before _updateRoutine - routine has ${updated.items.length} items',
+      );
+
       // Update storage first
       final result = await _updateRoutine(updated);
-      debugPrint('deleteItem: After _updateRoutine - result has ${result.items.length} items');
-      
+      debugPrint(
+        'deleteItem: After _updateRoutine - result has ${result.items.length} items',
+      );
+
       // Then update local state
       _routines[index] = updated;
       notifyListeners();
-      
-      debugPrint('deleteItem: Successfully deleted item $itemId from routine $routineId');
-      debugPrint('deleteItem: Local state updated - _routines[$index] has ${_routines[index].items.length} items');
+
+      debugPrint(
+        'deleteItem: Successfully deleted item $itemId from routine $routineId',
+      );
+      debugPrint(
+        'deleteItem: Local state updated - _routines[$index] has ${_routines[index].items.length} items',
+      );
     } catch (e, stackTrace) {
       debugPrint('deleteItem error: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -156,11 +189,11 @@ class RoutinesProvider with ChangeNotifier {
 
     final updated = routine.copyWith(items: updatedItems);
     await _updateRoutine(updated);
-    
+
     // Update local state immediately for UI responsiveness
     _routines[index] = updated;
     notifyListeners();
-    
+
     // Then reload from storage to ensure consistency
     await loadRoutines();
   }
@@ -216,16 +249,48 @@ class RoutinesProvider with ChangeNotifier {
 
   Future<void> updateRoutine(Routine routine) async {
     await _updateRoutine(routine);
-    
+
     // Update local state immediately for UI responsiveness
     final index = _routines.indexWhere((r) => r.id == routine.id);
     if (index != -1) {
       _routines[index] = routine;
       notifyListeners();
     }
-    
+
     // Then reload from storage to ensure consistency
     await loadRoutines();
+  }
+
+  /// Update routine name with validation
+  /// Returns error message if validation fails, null if successful
+  Future<String?> updateRoutineName(String routineId, String name) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      return 'Routine name cannot be empty';
+    }
+
+    final index = _routines.indexWhere((r) => r.id == routineId);
+    if (index == -1) {
+      return 'Routine not found';
+    }
+
+    final currentRoutine = _routines[index];
+    final updatedRoutine = currentRoutine.copyWith(name: trimmedName);
+
+    await updateRoutine(updatedRoutine);
+    return null; // Success
+  }
+
+  /// Create a new RoutineItem with generated ID
+  RoutineItem createRoutineItem({
+    required String title,
+    int? iconCodePoint,
+  }) {
+    return RoutineItem(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      title: title,
+      iconCodePoint: iconCodePoint,
+    );
   }
 
   Future<void> reorderItems(
@@ -246,11 +311,11 @@ class RoutinesProvider with ChangeNotifier {
     // Update the routine with new order
     final updated = routine.copyWith(items: items);
     await _updateRoutine(updated);
-    
+
     // Update local state immediately for UI responsiveness
     _routines[index] = updated;
     notifyListeners();
-    
+
     // Then reload from storage to ensure consistency
     await loadRoutines();
   }
@@ -277,13 +342,10 @@ class RoutinesProvider with ChangeNotifier {
     // Eğer lastStreakDate bugünden önceki bir günse ve bugün tamamlanmamışsa
     // streak sıfırlanmalı
     final allItemsCheckedToday = routine.allItemsCheckedToday(normalizedToday);
-    
+
     if (!allItemsCheckedToday) {
       // Bugün tamamlanmamış → streak sıfırla
-      return routine.copyWith(
-        streakCount: 0,
-        clearLastStreakDate: true,
-      );
+      return routine.copyWith(streakCount: 0, clearLastStreakDate: true);
     }
 
     return routine;

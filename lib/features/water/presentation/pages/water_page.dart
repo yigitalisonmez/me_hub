@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../core/constants/water_constants.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
+import '../../data/services/custom_amount_service.dart';
 
 class WaterPage extends StatefulWidget {
   const WaterPage({super.key});
@@ -14,9 +16,9 @@ class WaterPage extends StatefulWidget {
   State<WaterPage> createState() => _WaterPageState();
 }
 
-class _WaterPageState extends State<WaterPage>
-    with SingleTickerProviderStateMixin {
+class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   late AnimationController _celebrationController;
+  List<int> _customAmounts = [];
 
   @override
   void initState() {
@@ -28,50 +30,23 @@ class _WaterPageState extends State<WaterPage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WaterProvider>().loadTodayWaterIntake();
+      _loadCustomAmounts();
     });
+  }
+
+  Future<void> _loadCustomAmounts() async {
+    final amounts = await CustomAmountService.getCustomAmounts();
+    if (mounted) {
+      setState(() {
+        _customAmounts = amounts;
+      });
+    }
   }
 
   @override
   void dispose() {
     _celebrationController.dispose();
     super.dispose();
-  }
-
-  void _handleWaterAdded(int amount) async {
-    final provider = context.read<WaterProvider>();
-    final wasGoalReached = provider.isGoalReached;
-
-    await provider.addWaterAmount(amount);
-
-    if (!wasGoalReached && provider.isGoalReached) {
-      _celebrationController.forward().then((_) {
-        _celebrationController.reverse();
-      });
-      _showGoalReachedSnackBar();
-    }
-  }
-
-  void _showGoalReachedSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(LucideIcons.partyPopper, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(
-              '🎉 Daily goal reached!',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
@@ -81,6 +56,39 @@ class _WaterPageState extends State<WaterPage>
       child: SafeArea(
         child: Consumer<WaterProvider>(
           builder: (context, provider, child) {
+            // Check if goal was just reached and trigger celebration
+            if (provider.justReachedGoal) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _celebrationController.forward().then((_) {
+                  _celebrationController.reverse();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.partyPopper,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '🎉 Daily goal reached!',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              });
+            }
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -98,6 +106,9 @@ class _WaterPageState extends State<WaterPage>
                   const SizedBox(height: 24),
                   // Today's Log Section
                   _buildTodaysLogSection(context, provider),
+                  const SizedBox(height: 24),
+                  // Add Custom Amount Button
+                  _buildAddCustomAmountButton(context),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -205,7 +216,7 @@ class _WaterPageState extends State<WaterPage>
                 Text(
                   'ml',
                   style: theme.textTheme.displayLarge?.copyWith(
-                    fontSize: 36,
+                    fontSize: 24,
                     color: AppColors.darkGrey.withValues(alpha: 0.6),
                   ),
                 ),
@@ -221,56 +232,12 @@ class _WaterPageState extends State<WaterPage>
             ),
           ),
           const SizedBox(height: 20),
-          // Horizontal Progress Bar
-          Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundCream,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: provider.todayProgress.clamp(0.0, 1.0),
-                    child: Container(
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: AppColors.darkGrey,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '0ml',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.darkGrey.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  Text(
-                    '$percentage%',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkGrey,
-                    ),
-                  ),
-                  Text(
-                    '${WaterConstants.dailyGoalMl}ml',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.darkGrey.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          // Horizontal Progress Bar with Wave Effect
+          WaveProgressBar(
+            progress: provider.todayProgress,
+            centerText: '$percentage%',
+            bottomText:
+                '${provider.todayAmount} / ${WaterConstants.dailyGoalMl} ml',
           ),
           const SizedBox(height: 20),
           // Three Stat Cards
@@ -389,19 +356,30 @@ class _WaterPageState extends State<WaterPage>
             ),
           ),
           const SizedBox(height: 20),
-          // Three Buttons
-          Row(
+          // Default Buttons + Custom Buttons
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              Expanded(
+              // Default buttons
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
                 child: _buildQuickAddButton(context, 250, '1 Glass', provider),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
                 child: _buildQuickAddButton(context, 500, '1 Bottle', provider),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
                 child: _buildQuickAddButton(context, 1000, '1 Liter', provider),
+              ),
+              // Custom amount buttons
+              ..._customAmounts.map(
+                (amount) => SizedBox(
+                  width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
+                  child: _buildCustomAmountButton(context, amount, provider),
+                ),
               ),
             ],
           ),
@@ -418,7 +396,7 @@ class _WaterPageState extends State<WaterPage>
   ) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: () => _handleWaterAdded(amount),
+      onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
@@ -482,10 +460,10 @@ class _WaterPageState extends State<WaterPage>
               ),
               if (logs.isNotEmpty)
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrangeLight,
+                    color: AppColors.primaryOrange.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -580,18 +558,14 @@ class _WaterPageState extends State<WaterPage>
           ),
           // Delete button
           GestureDetector(
-            onTap: () => _deleteLog(log, provider),
-            child: Container(
+            onTap: () => provider.deleteLog(log.id),
+            child: SizedBox(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrangeLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
               child: const Icon(
                 LucideIcons.trash2,
-                color: AppColors.primaryOrange,
-                size: 16,
+                color: Colors.red,
+                size: 20,
               ),
             ),
           ),
@@ -600,23 +574,260 @@ class _WaterPageState extends State<WaterPage>
     );
   }
 
-  Future<void> _deleteLog(WaterLog log, WaterProvider provider) async {
-    final todayIntake = provider.todayIntake;
-    if (todayIntake == null) return;
+  Widget _buildAddCustomAmountButton(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0),
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showAddCustomAmountDialog(context),
+            icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
+            label: Text(
+              'Add Custom Amount',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: AppColors.primaryOrange, width: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-    if (todayIntake.logs.isNotEmpty && todayIntake.logs.last.id == log.id) {
-      await provider.undoLastLog();
-      return;
-    }
+  Widget _buildCustomAmountButton(
+    BuildContext context,
+    int amount,
+    WaterProvider provider,
+  ) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
+      onLongPress: () => _showDeleteCustomAmountDialog(context, amount),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryOrange,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
+            const SizedBox(height: 12),
+            Text(
+              '${amount}ml',
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Custom',
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    final updatedLogs = todayIntake.logs.where((l) => l.id != log.id).toList();
-    final newTotal = updatedLogs.fold<int>(0, (sum, l) => sum + l.amountMl);
+  Future<void> _showAddCustomAmountDialog(BuildContext context) async {
+    final amountController = TextEditingController();
+    final theme = Theme.of(context);
 
-    final updatedIntake = todayIntake.copyWith(
-      amountMl: newTotal,
-      logs: updatedLogs,
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.backgroundCream,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Add Custom Amount',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: AppColors.primaryOrange,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Text(
+              'Amount (ml)',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.darkGrey,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            /// AMOUNT TEXTFIELD
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Enter amount in ml',
+                hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.darkGrey.withValues(alpha: 0.4),
+                ),
+                filled: true,
+                fillColor: AppColors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primaryOrange,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          /// Cancel Button
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+              side: BorderSide(width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Cancel',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.darkGrey,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                final amountText = amountController.text.trim();
+                if (amountText.isNotEmpty) {
+                  final amount = int.tryParse(amountText);
+                  if (amount != null && amount > 0) {
+                    Navigator.pop(context, amount);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid amount'),
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 24,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Add',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
 
-    await provider.updateWaterIntake(updatedIntake);
+    if (result != null && mounted) {
+      await CustomAmountService.addCustomAmount(result);
+      await _loadCustomAmounts();
+    }
+
+    amountController.dispose();
+  }
+
+  Future<void> _showDeleteCustomAmountDialog(
+    BuildContext context,
+    int amount,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Delete Custom Amount',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        content: Text(
+          'Are you sure you want to remove ${amount}ml from quick add?',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              'Delete',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await CustomAmountService.removeCustomAmount(amount);
+      await _loadCustomAmounts();
+    }
   }
 }

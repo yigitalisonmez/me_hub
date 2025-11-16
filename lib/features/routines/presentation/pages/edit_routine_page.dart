@@ -46,15 +46,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
     if (confirmed == true && context.mounted) {
       final provider = context.read<RoutinesProvider>();
-      debugPrint(
-        '_confirmDeleteItem: Deleting item ${item.id} from routine ${widget.routine.id}',
-      );
       try {
         await provider.deleteItem(widget.routine.id, item.id);
-        debugPrint('_confirmDeleteItem: Delete completed');
-      } catch (e, stackTrace) {
-        debugPrint('_confirmDeleteItem error: $e');
-        debugPrint('Stack trace: $stackTrace');
+      } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,
@@ -85,17 +79,14 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Future<void> _addItem(BuildContext context) async {
     final provider = context.read<RoutinesProvider>();
-    final currentRoutine = provider.routines.firstWhere(
-      (r) => r.id == widget.routine.id,
-      orElse: () => widget.routine,
-    );
+    final currentRoutine =
+        provider.getRoutineById(widget.routine.id) ?? widget.routine;
 
     await showDialog(
       context: context,
       builder: (context) => AddItemDialog(
         onAdd: (title, iconCodePoint) async {
-          final item = RoutineItem(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
+          final item = provider.createRoutineItem(
             title: title,
             iconCodePoint: iconCodePoint,
           );
@@ -106,29 +97,18 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Future<void> _saveRoutine() async {
-    if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Routine name cannot be empty')),
-      );
+    final provider = context.read<RoutinesProvider>();
+    final error = await provider.updateRoutineName(
+      widget.routine.id,
+      _nameController.text,
+    );
+
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
-
-    final provider = context.read<RoutinesProvider>();
-
-    // Get the current routine from provider (not widget.routine which is stale)
-    final currentRoutine = provider.routines.firstWhere(
-      (r) => r.id == widget.routine.id,
-      orElse: () => widget.routine,
-    );
-
-    final updatedRoutine = currentRoutine.copyWith(
-      name: _nameController.text.trim(),
-    );
-
-    debugPrint(
-      '_saveRoutine: Saving routine with ${updatedRoutine.items.length} items',
-    );
-    await provider.updateRoutine(updatedRoutine);
 
     if (mounted) {
       Navigator.pop(context);
@@ -142,18 +122,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       body: SafeArea(
         child: Consumer<RoutinesProvider>(
           builder: (context, provider, _) {
-            final updatedRoutine = provider.routines.firstWhere(
-              (r) => r.id == widget.routine.id,
-              orElse: () {
-                debugPrint(
-                  'EditRoutinePage: Routine not found in provider, using widget.routine',
-                );
-                return widget.routine;
-              },
-            );
-            debugPrint(
-              'EditRoutinePage: Consumer rebuild - routine has ${updatedRoutine.items.length} items',
-            );
+            final updatedRoutine =
+                provider.getRoutineById(widget.routine.id) ?? widget.routine;
 
             return Column(
               children: [
@@ -279,9 +249,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   Widget _buildHeaderTitle(BuildContext context) {
     return Text(
       'Edit Routine',
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        color: AppColors.primaryOrange,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
     );
   }
 
@@ -326,9 +296,6 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     RoutinesProvider provider,
     Routine routine,
   ) {
-    debugPrint(
-      '_buildHabitsList: Building list with ${routine.items.length} items',
-    );
     return Expanded(
       child: ReorderableListView.builder(
         key: ValueKey('habits_list_${routine.id}_${routine.items.length}'),
@@ -384,9 +351,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
             label: Text(
               'Add New Item',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primaryOrange,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -514,9 +481,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             // Title field
             Text(
               'Habit Name',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.darkGrey,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppColors.darkGrey),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -557,9 +524,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             // Icon picker
             Text(
               'Icon',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.darkGrey,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppColors.darkGrey),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -662,10 +629,11 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                       ),
                       child: Text(
                         'Save',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ),
