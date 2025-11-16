@@ -19,6 +19,8 @@ class WaterPage extends StatefulWidget {
 class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   late AnimationController _celebrationController;
   List<int> _customAmounts = [];
+  final GlobalKey _statCardKey = GlobalKey();
+  double? _statCardWidth;
 
   @override
   void initState() {
@@ -100,9 +102,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   const SizedBox(height: 24),
                   // Today's Progress Section
                   _buildTodaysProgressCard(context, provider),
-                  const SizedBox(height: 24),
-                  // Quick Add Section
-                  _buildQuickAddSection(context, provider),
                   const SizedBox(height: 24),
                   // Today's Log Section
                   _buildTodaysLogSection(context, provider),
@@ -241,20 +240,59 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 20),
           // Three Stat Cards
-          Row(
-            children: [
-              Expanded(child: _buildStatCard(context, '$glassCount', 'Cups')),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  '${remaining > 0 ? remaining : 0}',
-                  'Remaining',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: _buildStatCardWithIcon(context, 'Status')),
-            ],
+          Builder(
+            builder: (context) {
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        key: _statCardKey,
+                        child: _buildStatCard(context, '$glassCount', 'Cups'),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          '${remaining > 0 ? remaining : 0}',
+                          'Remaining',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCardWithIcon(context, 'Status'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Quick Add Section with same card width
+                  Builder(
+                    builder: (context) {
+                      // Measure stat card width after first frame
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        final RenderBox? renderBox =
+                            _statCardKey.currentContext?.findRenderObject()
+                                as RenderBox?;
+                        if (renderBox != null && _statCardWidth == null) {
+                          setState(() {
+                            _statCardWidth = renderBox.size.width;
+                          });
+                        }
+                      });
+
+                      if (_statCardWidth != null) {
+                        return _buildQuickAddSection(
+                          context,
+                          provider,
+                          _statCardWidth!,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -318,85 +356,91 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildQuickAddSection(BuildContext context, WaterProvider provider) {
+  Widget _buildQuickAddSection(
+    BuildContext context,
+    WaterProvider provider,
+    double cardWidth,
+  ) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            children: [
-              const Icon(
-                LucideIcons.droplet,
-                color: AppColors.primaryOrange,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'QUICK ADD',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaryOrange,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add water to your daily intake',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.darkGrey.withValues(alpha: 0.7),
+
+    // Default amounts
+    final defaultAmounts = [
+      {'amount': 250, 'label': '1 Glass'},
+      {'amount': 500, 'label': '1 Bottle'},
+      {'amount': 1000, 'label': '1 Liter'},
+    ];
+
+    // Combine all amounts (default + custom)
+    final allAmounts = <Map<String, dynamic>>[];
+    allAmounts.addAll(defaultAmounts);
+    for (var amount in _customAmounts) {
+      allAmounts.add({'amount': amount, 'label': 'Custom'});
+    }
+
+    // Sort all amounts from smallest to largest
+    allAmounts.sort(
+      (a, b) => (a['amount'] as int).compareTo(b['amount'] as int),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header
+        Row(
+          children: [
+            const Icon(
+              LucideIcons.droplet,
+              color: AppColors.primaryOrange,
+              size: 20,
             ),
+            const SizedBox(width: 8),
+            Text(
+              'QUICK ADD',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.primaryOrange,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Horizontal Scrollable Buttons
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: allAmounts.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final item = allAmounts[index];
+              final amount = item['amount'] as int;
+              final label = item['label'] as String;
+
+              return SizedBox(
+                width: cardWidth,
+                child: _buildAmountButton(context, amount, label, provider),
+              );
+            },
           ),
-          const SizedBox(height: 20),
-          // Default Buttons + Custom Buttons
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              // Default buttons
-              SizedBox(
-                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
-                child: _buildQuickAddButton(context, 250, '1 Glass', provider),
-              ),
-              SizedBox(
-                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
-                child: _buildQuickAddButton(context, 500, '1 Bottle', provider),
-              ),
-              SizedBox(
-                width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
-                child: _buildQuickAddButton(context, 1000, '1 Liter', provider),
-              ),
-              // Custom amount buttons
-              ..._customAmounts.map(
-                (amount) => SizedBox(
-                  width: (MediaQuery.of(context).size.width - 64) / 3 - 8,
-                  child: _buildCustomAmountButton(context, amount, provider),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildQuickAddButton(
+  Widget _buildAmountButton(
     BuildContext context,
     int amount,
     String label,
     WaterProvider provider,
   ) {
     final theme = Theme.of(context);
+    final isCustom = label == 'Custom';
+
     return GestureDetector(
       onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
+      onLongPress: isCustom
+          ? () => _showDeleteCustomAmountDialog(context, amount)
+          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
@@ -603,41 +647,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCustomAmountButton(
-    BuildContext context,
-    int amount,
-    WaterProvider provider,
-  ) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
-      onLongPress: () => _showDeleteCustomAmountDialog(context, amount),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppColors.primaryOrange,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
-            const SizedBox(height: 12),
-            Text(
-              '${amount}ml',
-              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Custom',
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _showAddCustomAmountDialog(BuildContext context) async {
     final amountController = TextEditingController();
     final theme = Theme.of(context);
@@ -709,14 +718,14 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             ),
           ],
         ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
           /// Cancel Button
-          OutlinedButton(
+          TextButton(
             onPressed: () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppColors.white,
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.darkGrey.withValues(alpha: 0.08),
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-              side: BorderSide(width: 1.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -724,23 +733,13 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             child: Text(
               'Cancel',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.darkGrey,
+                color: AppColors.darkGrey.withValues(alpha: 0.7),
               ),
             ),
           ),
           const SizedBox(width: 12),
           Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
             child: ElevatedButton(
               onPressed: () {
                 final amountText = amountController.text.trim();
@@ -759,7 +758,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
+
                 padding: const EdgeInsets.symmetric(
                   vertical: 12,
                   horizontal: 24,
