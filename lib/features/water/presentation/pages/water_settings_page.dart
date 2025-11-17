@@ -108,23 +108,21 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    _buildDailyGoalCard(),
-                    const SizedBox(height: 20),
-                    _buildQuickAddButtonsCard(),
-                    const SizedBox(height: 100), // Space for save button
-                  ],
-                ),
-              ),
-            ),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              // Header
+              _buildHeader(context),
+              const SizedBox(height: 24),
+              _buildDailyGoalCard(),
+              const SizedBox(height: 20),
+              _buildQuickAddButtonsCard(),
+              const SizedBox(height: 100), // Space for save button
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildSaveButton(),
@@ -132,51 +130,46 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.secondaryCream,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                LucideIcons.chevronLeft,
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Settings',
+              style: theme.textTheme.displaySmall?.copyWith(
                 color: AppColors.primaryOrange,
-                size: 24,
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Settings',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.primaryOrange,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Customize your tracker',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-                ),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              'Customize your tracker',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.darkGrey.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              LucideIcons.chevronLeft,
+              color: AppColors.primaryOrange,
+              size: 20,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
