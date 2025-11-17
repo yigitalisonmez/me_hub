@@ -21,7 +21,15 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   // Form controllers for adding new amount
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _labelController = TextEditingController();
-  final GlobalKey<State<StatefulWidget>> _sliderKey = GlobalKey();
+  
+  // Slider track measurement for gradient alignment
+  final GlobalKey _sliderKey = GlobalKey();
+  double? _trackLeft;
+  double? _trackWidth;
+
+  // Slider constants
+  static const double _thumbRadius = 10.0;
+  static const double _trackHeight = 6.0;
 
   @override
   void initState() {
@@ -29,11 +37,29 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
     // Load settings after first frame to avoid blocking UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSettings();
+      _measureSliderTrack();
     });
     // Add listeners to text fields to update button state
-    // Only rebuild when text actually changes (debounced)
     _amountController.addListener(_onTextChanged);
     _labelController.addListener(_onTextChanged);
+  }
+
+  /// Measures the slider's track position and width for gradient alignment
+  void _measureSliderTrack() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      
+      final RenderBox? renderBox =
+          _sliderKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final size = renderBox.size;
+        // Slider track starts at thumbRadius and ends at width - thumbRadius
+        setState(() {
+          _trackLeft = _thumbRadius;
+          _trackWidth = size.width - (_thumbRadius * 2);
+        });
+      }
+    });
   }
 
   void _onTextChanged() {
@@ -261,24 +287,83 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // Slider
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: AppColors.primaryOrange,
-              inactiveTrackColor: AppColors.secondaryCream,
-              thumbColor: AppColors.primaryOrange,
-              overlayColor: AppColors.primaryOrange.withValues(alpha: 0.1),
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
-            ),
-            child: Slider(
-              key: _sliderKey,
-              value: _dailyGoal.toDouble(),
-              min: 500,
-              max: 5000,
-              divisions: 18, // (5000 - 500) / 250 = 18
-              onChanged: _onSliderChanged,
-            ),
+          // Slider with gradient on active track
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate slider dimensions
+              final sliderHeight = _thumbRadius * 2 + _trackHeight + 4;
+              final trackTop = (sliderHeight - _trackHeight) / 2;
+
+              // Use measured track position if available, otherwise calculate fallback
+              final trackLeft = _trackLeft ?? _thumbRadius;
+              final trackWidth =
+                  _trackWidth ?? (constraints.maxWidth - (_thumbRadius * 2));
+
+              // Calculate progress and track widths
+              final progress = (_dailyGoal - 500) / (5000 - 500);
+              final activeWidth = trackWidth * progress;
+              final inactiveWidth = trackWidth * (1 - progress);
+
+              return SizedBox(
+                height: sliderHeight,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Active track with gradient (left side)
+                    Positioned(
+                      left: trackLeft,
+                      top: trackTop,
+                      child: Container(
+                        height: _trackHeight,
+                        width: activeWidth,
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    // Inactive track with solid color (right side)
+                    Positioned(
+                      left: trackLeft + activeWidth,
+                      top: trackTop,
+                      child: Container(
+                        height: _trackHeight,
+                        width: inactiveWidth,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryCream,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    // Slider widget on top with transparent tracks
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: Colors.transparent,
+                        inactiveTrackColor: Colors.transparent,
+                        thumbColor: AppColors.primaryOrange,
+                        overlayColor: AppColors.primaryOrange.withValues(
+                          alpha: 0.1,
+                        ),
+                        trackHeight: _trackHeight,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: _thumbRadius,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: _thumbRadius * 2,
+                        ),
+                      ),
+                      child: Slider(
+                        key: _sliderKey,
+                        value: _dailyGoal.toDouble(),
+                        min: 500,
+                        max: 5000,
+                        onChanged: _onSliderChanged,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           const SizedBox(height: 8),
           Row(

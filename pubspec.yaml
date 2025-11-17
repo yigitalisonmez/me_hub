@@ -54,6 +54,9 @@ dependencies:
   
   # Lottie animations
   lottie: ^3.1.2
+  
+  # Gradient slider
+  gradient_slider: ^1.0.3
 
   # Custom progress indicator
   liquid_progress_indicator_v2: ^0.5.0
