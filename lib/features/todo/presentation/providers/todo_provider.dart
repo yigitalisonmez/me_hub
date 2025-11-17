@@ -36,13 +36,27 @@ class TodoProvider with ChangeNotifier {
   List<DailyTodo> _todos = [];
   bool _isLoading = false;
   String? _error;
-  bool _shouldShowCelebration = false;
+  bool _justCompletedAllTodos = false;
 
   // Getters
   List<DailyTodo> get todos => _todos;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get shouldShowCelebration => _shouldShowCelebration;
+  
+  /// Check if all todos are completed
+  bool get allTodosCompleted {
+    if (_todos.isEmpty) return false;
+    return _todos.every((todo) => todo.isCompleted);
+  }
+
+  /// Check if all todos just became completed (only true after toggle/delete)
+  bool get justCompletedAllTodos => _justCompletedAllTodos;
+
+  /// Reset the justCompletedAllTodos flag (call after showing celebration)
+  void resetJustCompletedAllTodos() {
+    _justCompletedAllTodos = false;
+    notifyListeners();
+  }
 
   List<DailyTodo> get completedTodos =>
       _todos.where((todo) => todo.isCompleted).toList();
@@ -143,11 +157,22 @@ class TodoProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
 
+    // Check if all todos were completed before deletion
+    final wasAllCompleted = allTodosCompleted;
+
     final result = await _deleteTodo(id);
     _setLoading(false);
 
     if (result is Success) {
       _todos.removeWhere((todo) => todo.id == id);
+      
+      // Check if all todos are now completed (only if wasn't before and now is)
+      if (!wasAllCompleted && allTodosCompleted && _todos.isNotEmpty) {
+        _justCompletedAllTodos = true;
+      } else {
+        _justCompletedAllTodos = false;
+      }
+      
       notifyListeners();
       return true;
     } else {
@@ -161,6 +186,9 @@ class TodoProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
 
+    // Check if all todos were completed before toggle
+    final wasAllCompleted = allTodosCompleted;
+
     final result = await _toggleTodoCompletion(id);
     _setLoading(false);
 
@@ -168,6 +196,14 @@ class TodoProvider with ChangeNotifier {
       final index = _todos.indexWhere((todo) => todo.id == id);
       if (index != -1 && result.data != null) {
         _todos[index] = result.data!;
+        
+        // Check if all todos just became completed (wasn't before, but is now)
+        if (!wasAllCompleted && allTodosCompleted && _todos.isNotEmpty) {
+          _justCompletedAllTodos = true;
+        } else {
+          _justCompletedAllTodos = false;
+        }
+        
         notifyListeners();
 
         // Completion tracking
@@ -232,16 +268,12 @@ class TodoProvider with ChangeNotifier {
       );
 
       // Celebration gösterilmeli mi kontrol et
-      final shouldShow = await CompletionTrackerService.shouldShowCelebration(
+      // Completion tracking is done, but celebration is handled in UI
+      await CompletionTrackerService.shouldShowCelebration(
         today,
         totalTodos,
         completedTodos,
       );
-
-      if (shouldShow) {
-        _shouldShowCelebration = true;
-        notifyListeners();
-      }
     } catch (e) {
       print('Completion check error: $e');
     }
@@ -252,16 +284,8 @@ class TodoProvider with ChangeNotifier {
     try {
       final today = DateTime.now();
       await CompletionTrackerService.markCelebrationShownToday(today);
-      _shouldShowCelebration = false;
-      notifyListeners();
     } catch (e) {
       print('Celebration mark error: $e');
     }
-  }
-
-  /// Debug: Celebration'ı manuel olarak tetikle
-  void triggerCelebration() {
-    _shouldShowCelebration = true;
-    notifyListeners();
   }
 }

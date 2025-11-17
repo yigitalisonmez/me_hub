@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:lottie/lottie.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item.dart';
 import '../widgets/add_todo_dialog.dart';
@@ -17,16 +18,67 @@ class TodoPage extends StatefulWidget {
 }
 
 class _TodoPageState extends State<TodoPage> {
+  bool _previousAllCompleted = false;
+
   @override
   void initState() {
     super.initState();
+    print('🔵 TodoPage: initState() called');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TodoProvider>().loadTodayTodos();
+      print('🔵 TodoPage: PostFrameCallback called');
+      final provider = context.read<TodoProvider>();
+      provider.loadTodayTodos().then((_) {
+        // Initialize flag based on current state after loading
+        if (mounted) {
+          setState(() {
+            _previousAllCompleted = provider.allTodosCompleted;
+            print('🔵 TodoPage: initState - Initial _previousAllCompleted set to: $_previousAllCompleted');
+          });
+        }
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    print('🔵 TodoPage: build() called');
+    final provider = context.watch<TodoProvider>();
+    print('🔵 TodoPage: context.watch called - provider obtained');
+    
+    // Check if all todos are completed
+    final isAllCompleted = provider.allTodosCompleted;
+    final todosCount = provider.todos.length;
+    
+    print('🔵 TodoPage: Rebuild - isAllCompleted: $isAllCompleted, todosCount: $todosCount, _previousAllCompleted: $_previousAllCompleted');
+    print('🔵 TodoPage: Completed count: ${provider.completedCount}, Total count: ${provider.totalTodos}');
+    
+    // Debug: Print condition check
+    print('🔵 TodoPage: Condition check - !_previousAllCompleted: ${!_previousAllCompleted}, isAllCompleted: $isAllCompleted, todosCount > 0: ${todosCount > 0}');
+    
+    // If all todos just became completed (wasn't before, but is now)
+    if (!_previousAllCompleted && isAllCompleted && todosCount > 0) {
+      print('🟢 TodoPage: Condition met! All todos just completed!');
+      // Update previous state BEFORE showing animation to prevent multiple triggers
+      _previousAllCompleted = true;
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          print('🟢 TodoPage: All todos completed! Showing celebration dialog');
+          print('🟢 TodoPage: Total todos: $todosCount');
+          print('🟢 TodoPage: Completed todos: ${provider.completedCount}');
+          _showCelebrationDialog(context);
+        }
+      });
+    } else if (!isAllCompleted) {
+      // Reset flag when todos become incomplete again
+      if (_previousAllCompleted) {
+        print('🟡 TodoPage: Todos became incomplete, resetting flag');
+      }
+      _previousAllCompleted = false;
+    } else {
+      print('🔴 TodoPage: Condition NOT met - _previousAllCompleted: $_previousAllCompleted, isAllCompleted: $isAllCompleted');
+    }
+    
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
@@ -75,19 +127,11 @@ class _TodoPageState extends State<TodoPage> {
           ),
         ],
       ),
-      body: Consumer<TodoProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.todos.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.error != null) {
-            return _buildErrorWidget(provider);
-          }
-
-          return _buildTodoList(provider);
-        },
-      ),
+      body: provider.isLoading && provider.todos.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : provider.error != null
+              ? _buildErrorWidget(provider)
+              : _buildTodoList(provider),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: AppColors.primaryGradient,
@@ -160,7 +204,10 @@ class _TodoPageState extends State<TodoPage> {
               final todo = provider.todos[index];
               return TodoItem(
                 todo: todo,
-                onToggle: () => provider.toggleTodoCompletion(todo.id),
+                onToggle: () {
+                  print('🟡 TodoPage: onToggle called for todo: ${todo.title}');
+                  provider.toggleTodoCompletion(todo.id);
+                },
                 onDelete: () => _showDeleteDialog(context, provider, todo.id),
               );
             },
@@ -313,5 +360,49 @@ class _TodoPageState extends State<TodoPage> {
     if (confirmed == true) {
       provider.deleteTodo(todoId);
     }
+  }
+
+  void _showCelebrationDialog(BuildContext context) {
+    print('🟢 TodoPage: _showCelebrationDialog called');
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      barrierDismissible: true,
+      builder: (context) {
+        print('🟢 TodoPage: Dialog builder called');
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Lottie.asset(
+                'assets/animations/done.lottie',
+                width: 300,
+                height: 300,
+                fit: BoxFit.contain,
+                repeat: false,
+                errorBuilder: (context, error, stackTrace) {
+                  print('🔴 TodoPage: Lottie error: $error');
+                  return const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 100,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'All tasks completed! 🎉',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

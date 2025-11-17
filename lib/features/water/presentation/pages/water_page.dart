@@ -150,7 +150,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
-            LucideIcons.droplet,
+            LucideIcons.settings,
             color: AppColors.primaryOrange,
             size: 20,
           ),

@@ -93,13 +93,13 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Fireworks Animation - Full Screen
+                          // Done Animation - Full Screen
                           SizedBox(
                             width: MediaQuery.of(context).size.width,
                             height: MediaQuery.of(context).size.height * 0.8,
                             child: Lottie.asset(
-                              'assets/animations/fireworks.json',
-                              fit: BoxFit.cover,
+                              'assets/animations/done.lottie',
+                              fit: BoxFit.contain,
                               repeat: false,
                               errorBuilder: (context, error, stackTrace) {
                                 // Fallback icon if Lottie fails

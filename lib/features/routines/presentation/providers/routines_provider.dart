@@ -22,10 +22,18 @@ class RoutinesProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   final Set<String> _expandedRoutines = {};
+  String? _justCompletedRoutineName;
 
   List<Routine> get routines => _routines;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Get the name of the routine that was just completed (for celebration)
+  String? get justCompletedRoutineName {
+    final result = _justCompletedRoutineName;
+    _justCompletedRoutineName = null; // Reset after reading
+    return result;
+  }
 
   /// Check if a routine is expanded
   bool isRoutineExpanded(String routineId) => _expandedRoutines.contains(routineId);
@@ -234,6 +242,14 @@ class RoutinesProvider with ChangeNotifier {
     }).toList();
 
     var updatedRoutine = routine.copyWith(items: updatedItems);
+
+    // Check if routine was just completed
+    final wasCompletedBefore = routine.allItemsCheckedToday(normalizedToday);
+    final isCompletedNow = updatedRoutine.allItemsCheckedToday(normalizedToday);
+    
+    if (!wasCompletedBefore && isCompletedNow && updatedRoutine.items.isNotEmpty) {
+      _justCompletedRoutineName = updatedRoutine.name;
+    }
 
     // Streak kontrolü yap
     updatedRoutine = _checkAndUpdateStreak(routine, updatedRoutine);

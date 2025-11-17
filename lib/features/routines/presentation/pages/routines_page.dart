@@ -34,17 +34,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
       child: SafeArea(
         child: Consumer<RoutinesProvider>(
           builder: (context, provider, child) {
-            // Check if all routines are completed today
-            final date = DateTime.now();
-            final today = DateTime(date.year, date.month, date.day);
-            bool allRoutinesCompleted =
-                provider.routines.isNotEmpty &&
-                provider.routines.every(
-                  (r) => r.items.isNotEmpty && r.allItemsCheckedToday(today),
-                );
-
-            // Show celebration message if all routines completed
-            if (allRoutinesCompleted) {
+            // Check if a routine was just completed
+            final completedRoutineName = provider.justCompletedRoutineName;
+            if (completedRoutineName != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -56,7 +48,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          '🎉 All routines completed today!',
+                          'You have completed \'$completedRoutineName\'',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -136,7 +128,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
-            LucideIcons.repeat,
+            LucideIcons.settings,
             color: AppColors.primaryOrange,
             size: 20,
           ),

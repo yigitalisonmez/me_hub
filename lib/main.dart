@@ -20,7 +20,6 @@ import 'features/todo/domain/entities/daily_todo.dart';
 import 'features/todo/data/models/daily_todo_model.dart';
 import 'features/quote/presentation/widgets/daily_quote_widget.dart';
 import 'core/presentation/splash_screen.dart';
-import 'features/celebration/presentation/widgets/celebration_overlay.dart';
 import 'features/routines/presentation/pages/routines_page.dart';
 import 'features/routines/presentation/providers/routines_provider.dart';
 import 'features/routines/data/datasources/routine_local_datasource.dart';
@@ -33,6 +32,7 @@ import 'features/water/presentation/providers/water_provider.dart';
 import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
+import 'package:lottie/lottie.dart';
 import 'features/water/domain/entities/water_intake.dart';
 
 void main() async {
@@ -246,6 +246,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMainCard(BuildContext context) {
     return Consumer<TodoProvider>(
       builder: (context, provider, child) {
+        // Show celebration if all todos just became completed (only after toggle/delete)
+        if (provider.justCompletedAllTodos) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showCelebrationDialog(context);
+            provider.resetJustCompletedAllTodos();
+          });
+        }
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
@@ -757,19 +765,43 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCelebrationOverlay() {
-    return Consumer<TodoProvider>(
-      builder: (context, provider, child) {
-        if (!provider.shouldShowCelebration) {
-          return const SizedBox.shrink();
-        }
+  void _showCelebrationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      barrierDismissible: false,
+      builder: (context) {
+        // Auto-close after 1.5 seconds
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        });
 
-        return CelebrationOverlay(
-          onAnimationComplete: () {
-            provider.markCelebrationShown();
-          },
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Lottie.asset(
+            'assets/animations/done.json',
+            width: 300,
+            height: 300,
+            fit: BoxFit.contain,
+            repeat: false,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 100,
+              );
+            },
+          ),
         );
       },
     );
+  }
+
+  Widget _buildCelebrationOverlay() {
+    // Celebration is now handled in TodoPage, so this overlay is no longer needed
+    return const SizedBox.shrink();
   }
 }
