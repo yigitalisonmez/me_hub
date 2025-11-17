@@ -21,7 +21,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   // Form controllers for adding new amount
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _labelController = TextEditingController();
-  
+
   // Slider track measurement for gradient alignment
   final GlobalKey _sliderKey = GlobalKey();
   double? _trackLeft;
@@ -48,7 +48,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   void _measureSliderTrack() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       final RenderBox? renderBox =
           _sliderKey.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox != null) {
