@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -594,69 +595,193 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WaterLog log,
     WaterProvider provider,
   ) {
-    final theme = Theme.of(context);
-    final timeFormat = DateFormat('HH:mm');
-    final timeString = timeFormat.format(log.timestamp);
+    return _AnimatedLogItem(
+      key: ValueKey(log.id),
+      log: log,
+      provider: provider,
+    );
+  }
+}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryCream,
-        borderRadius: BorderRadius.circular(12),
+/// Animated log item with fade out animation on delete
+class _AnimatedLogItem extends StatefulWidget {
+  final WaterLog log;
+  final WaterProvider provider;
+
+  const _AnimatedLogItem({
+    super.key,
+    required this.log,
+    required this.provider,
+  });
+
+  @override
+  State<_AnimatedLogItem> createState() => _AnimatedLogItemState();
+}
+
+class _AnimatedLogItemState extends State<_AnimatedLogItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
       ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              LucideIcons.droplet,
-              color: AppColors.primaryOrange,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Amount and time
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${log.amountMl}ml',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: AppColors.darkGrey,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  timeString,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.darkGrey.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Delete button
-          GestureDetector(
-            onTap: () => provider.deleteLog(log.id),
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: const Icon(
-                LucideIcons.trash2,
-                color: Colors.red,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-0.5, 0),
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleDelete() async {
+    if (_isDeleting) return;
+    
+    setState(() {
+      _isDeleting = true;
+    });
+
+    // Haptic feedback
+    HapticFeedback.mediumImpact();
+
+    // Start animation
+    await _animationController.forward();
+
+    // Delete after animation completes
+    widget.provider.deleteLog(widget.log.id);
+
+    // Show confirmation snackbar
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                LucideIcons.check,
+                color: AppColors.primaryOrange,
                 size: 20,
               ),
-            ),
+              const SizedBox(width: 12),
+              Text(
+                '${widget.log.amountMl}ml deleted',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.darkGrey,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ],
           ),
-        ],
+          backgroundColor: AppColors.backgroundCream,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final timeFormat = DateFormat('HH:mm');
+    final timeString = timeFormat.format(widget.log.timestamp);
+
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryCream,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  LucideIcons.droplet,
+                  color: AppColors.primaryOrange,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Amount and time
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${widget.log.amountMl}ml',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      timeString,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.darkGrey.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Delete button with visual feedback
+              GestureDetector(
+                onTap: _handleDelete,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _isDeleting
+                        ? Colors.red.withValues(alpha: 0.2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    LucideIcons.trash2,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
