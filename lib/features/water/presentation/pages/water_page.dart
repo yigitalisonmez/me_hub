@@ -4,11 +4,11 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
-import '../../core/constants/water_constants.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
-import '../../data/services/custom_amount_service.dart';
 import '../../data/services/daily_goal_service.dart';
+import '../../data/services/quick_add_amounts_service.dart';
+import '../../data/models/quick_add_amount.dart';
 import 'water_settings_page.dart';
 
 class WaterPage extends StatefulWidget {
@@ -20,7 +20,7 @@ class WaterPage extends StatefulWidget {
 
 class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   late AnimationController _celebrationController;
-  List<int> _customAmounts = [];
+  List<QuickAddAmount> _quickAddAmounts = [];
   final GlobalKey _statCardKey = GlobalKey();
   double? _statCardWidth;
   int _dailyGoal = 2000;
@@ -35,16 +35,16 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WaterProvider>().loadTodayWaterIntake();
-      _loadCustomAmounts();
+      _loadQuickAddAmounts();
       _loadDailyGoal();
     });
   }
 
-  Future<void> _loadCustomAmounts() async {
-    final amounts = await CustomAmountService.getCustomAmounts();
+  Future<void> _loadQuickAddAmounts() async {
+    final amounts = await QuickAddAmountsService.getQuickAddAmounts();
     if (mounted) {
       setState(() {
-        _customAmounts = amounts;
+        _quickAddAmounts = amounts;
       });
     }
   }
@@ -119,9 +119,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   // Today's Log Section
                   _buildTodaysLogSection(context, provider),
                   const SizedBox(height: 24),
-                  // Add Custom Amount Button
-                  _buildAddCustomAmountButton(context),
-                  const SizedBox(height: 24),
                 ],
               ),
             );
@@ -164,7 +161,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             );
             // Reload settings if saved
             if (result == true) {
-              _loadCustomAmounts();
+              _loadQuickAddAmounts();
               _loadDailyGoal();
               // Reload water intake to update progress with new goal
               context.read<WaterProvider>().loadTodayWaterIntake();
@@ -393,24 +390,8 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   ) {
     final theme = Theme.of(context);
 
-    // Default amounts
-    final defaultAmounts = [
-      {'amount': 250, 'label': '1 Glass'},
-      {'amount': 500, 'label': '1 Bottle'},
-      {'amount': 1000, 'label': '1 Liter'},
-    ];
-
-    // Combine all amounts (default + custom)
-    final allAmounts = <Map<String, dynamic>>[];
-    allAmounts.addAll(defaultAmounts);
-    for (var amount in _customAmounts) {
-      allAmounts.add({'amount': amount, 'label': 'Custom'});
-    }
-
-    // Sort all amounts from smallest to largest
-    allAmounts.sort(
-      (a, b) => (a['amount'] as int).compareTo(b['amount'] as int),
-    );
+    // Use amounts from settings (already sorted)
+    final allAmounts = _quickAddAmounts;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,13 +423,16 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             itemCount: allAmounts.length,
             separatorBuilder: (context, index) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
-              final item = allAmounts[index];
-              final amount = item['amount'] as int;
-              final label = item['label'] as String;
+              final quickAddAmount = allAmounts[index];
 
               return SizedBox(
                 width: cardWidth,
-                child: _buildAmountButton(context, amount, label, provider),
+                child: _buildAmountButton(
+                  context,
+                  quickAddAmount.amountMl,
+                  quickAddAmount.label,
+                  provider,
+                ),
               );
             },
           ),
@@ -464,13 +448,9 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WaterProvider provider,
   ) {
     final theme = Theme.of(context);
-    final isCustom = label == 'Custom';
 
     return GestureDetector(
       onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
-      onLongPress: isCustom
-          ? () => _showDeleteCustomAmountDialog(context, amount)
-          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
@@ -648,215 +628,4 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAddCustomAmountButton(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        child: SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showAddCustomAmountDialog(context),
-            icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
-            label: Text(
-              'Add Custom Amount',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
-            ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: const BorderSide(color: AppColors.primaryOrange, width: 2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showAddCustomAmountDialog(BuildContext context) async {
-    final amountController = TextEditingController();
-    final theme = Theme.of(context);
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCream,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Add Custom Amount',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: AppColors.primaryOrange,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            Text(
-              'Amount (ml)',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.darkGrey,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            /// AMOUNT TEXTFIELD
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Enter amount in ml',
-                hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.darkGrey.withValues(alpha: 0.4),
-                ),
-                filled: true,
-                fillColor: AppColors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryOrange,
-                    width: 2,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          /// Cancel Button
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              backgroundColor: AppColors.darkGrey.withValues(alpha: 0.08),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Cancel',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.7),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-            child: ElevatedButton(
-              onPressed: () {
-                final amountText = amountController.text.trim();
-                if (amountText.isNotEmpty) {
-                  final amount = int.tryParse(amountText);
-                  if (amount != null && amount > 0) {
-                    Navigator.pop(context, amount);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter a valid amount'),
-                      ),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Add',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (result != null && mounted) {
-      await CustomAmountService.addCustomAmount(result);
-      await _loadCustomAmounts();
-    }
-
-    amountController.dispose();
-  }
-
-  Future<void> _showDeleteCustomAmountDialog(
-    BuildContext context,
-    int amount,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Delete Custom Amount',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        content: Text(
-          'Are you sure you want to remove ${amount}ml from quick add?',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Delete',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      await CustomAmountService.removeCustomAmount(amount);
-      await _loadCustomAmounts();
-    }
-  }
 }
