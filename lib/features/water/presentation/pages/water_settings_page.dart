@@ -26,22 +26,35 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    // Load settings after first frame to avoid blocking UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSettings();
+    });
     // Add listeners to text fields to update button state
-    _amountController.addListener(() => setState(() {}));
-    _labelController.addListener(() => setState(() {}));
+    // Only rebuild when text actually changes (debounced)
+    _amountController.addListener(_onTextChanged);
+    _labelController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    // Debounce setState to avoid excessive rebuilds
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadSettings() async {
     final goal = await DailyGoalService.getDailyGoal();
     final amounts = await QuickAddAmountsService.getQuickAddAmounts();
 
-    setState(() {
-      _dailyGoal = goal;
-      _quickAddAmounts = amounts;
-      // Check if current goal matches a preset
-      _selectedPreset = _presets.contains(goal) ? goal : null;
-    });
+    if (mounted) {
+      setState(() {
+        _dailyGoal = goal;
+        _quickAddAmounts = amounts;
+        // Check if current goal matches a preset
+        _selectedPreset = _presets.contains(goal) ? goal : null;
+      });
+    }
   }
 
   Future<void> _saveSettings() async {

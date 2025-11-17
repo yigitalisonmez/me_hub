@@ -74,33 +74,37 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             // Check if goal was just reached and trigger celebration
             if (provider.justReachedGoal) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                _celebrationController.forward().then((_) {
-                  _celebrationController.reverse();
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.partyPopper,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '🎉 Daily goal reached!',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                if (mounted) {
+                  _celebrationController.forward().then((_) {
+                    if (mounted) {
+                      _celebrationController.reverse();
+                    }
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.partyPopper,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '🎉 Daily goal reached!',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      duration: const Duration(seconds: 2),
                     ),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                  );
+                }
               });
             }
 
@@ -320,17 +324,21 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   // Quick Add Section with same card width
                   Builder(
                     builder: (context) {
-                      // Measure stat card width after first frame
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        final RenderBox? renderBox =
-                            _statCardKey.currentContext?.findRenderObject()
-                                as RenderBox?;
-                        if (renderBox != null && _statCardWidth == null) {
-                          setState(() {
-                            _statCardWidth = renderBox.size.width;
-                          });
-                        }
-                      });
+                      // Measure stat card width after first frame (only once)
+                      if (_statCardWidth == null) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted && _statCardWidth == null) {
+                            final RenderBox? renderBox =
+                                _statCardKey.currentContext?.findRenderObject()
+                                    as RenderBox?;
+                            if (renderBox != null) {
+                              setState(() {
+                                _statCardWidth = renderBox.size.width;
+                              });
+                            }
+                          }
+                        });
+                      }
 
                       if (_statCardWidth != null) {
                         return _buildQuickAddSection(

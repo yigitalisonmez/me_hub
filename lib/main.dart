@@ -190,6 +190,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPageView() {
     return PageView(
       controller: _pageController,
+      physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
       onPageChanged: (index) {
         setState(() {
           _currentIndex = index;
