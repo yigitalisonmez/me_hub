@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
@@ -26,6 +27,7 @@ class RoutineItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     final today = DateTime.now();
     final isToday = item.isCheckedToday(
       DateTime(today.year, today.month, today.day),
@@ -46,28 +48,28 @@ class RoutineItemWidget extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: isToday
-                  ? AppColors.primaryOrange
+                  ? themeProvider.primaryColor
                   : (isEnabled
-                      ? AppColors.white
-                      : AppColors.primaryOrange.withValues(alpha: 0.1)),
+                      ? themeProvider.cardColor
+                      : themeProvider.primaryColor.withValues(alpha: 0.1)),
               border: Border.all(
                 color: isToday
-                    ? AppColors.primaryOrange
+                    ? themeProvider.primaryColor
                     : (isEnabled
-                        ? AppColors.primaryOrange.withValues(alpha: 0.4)
-                        : AppColors.primaryOrange.withValues(alpha: 0.2)),
+                        ? themeProvider.borderColor.withValues(alpha: 0.4)
+                        : themeProvider.borderColor.withValues(alpha: 0.2)),
                 width: 2,
               ),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: isToday
-                  ? const Icon(LucideIcons.check, color: AppColors.white, size: 16)
+                  ? Icon(LucideIcons.check, color: themeProvider.textPrimary, size: 16)
                   : (isEnabled
                       ? null
                       : Icon(
                           LucideIcons.lock,
-                          color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                          color: themeProvider.primaryColor.withValues(alpha: 0.3),
                           size: 14,
                         )),
             ),
@@ -76,14 +78,14 @@ class RoutineItemWidget extends StatelessWidget {
       ),
       beforeLineStyle: LineStyle(
         color: isToday
-            ? AppColors.primaryOrange
-            : AppColors.primaryOrange.withValues(alpha: 0.2),
+            ? themeProvider.primaryColor
+            : themeProvider.primaryColor.withValues(alpha: 0.2),
         thickness: 2,
       ),
       afterLineStyle: LineStyle(
         color: isToday
-            ? AppColors.primaryOrange
-            : AppColors.primaryOrange.withValues(alpha: 0.2),
+            ? themeProvider.primaryColor
+            : themeProvider.primaryColor.withValues(alpha: 0.2),
         thickness: 2,
       ),
       endChild: Container(
@@ -93,11 +95,11 @@ class RoutineItemWidget extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: themeProvider.cardColor,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.06),
+                  color: themeProvider.primaryColor.withValues(alpha: 0.06),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -110,8 +112,8 @@ class RoutineItemWidget extends StatelessWidget {
                     RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
                         LucideIcons.circle,
                     color: isEnabled
-                        ? AppColors.primaryOrange
-                        : AppColors.primaryOrange.withValues(alpha: 0.3),
+                        ? themeProvider.primaryColor
+                        : themeProvider.primaryColor.withValues(alpha: 0.3),
                     size: 20,
                   ),
                   const SizedBox(width: 12),
@@ -123,8 +125,8 @@ class RoutineItemWidget extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: isEnabled
-                          ? AppColors.darkGrey
-                          : AppColors.darkGrey.withValues(alpha: 0.4),
+                          ? themeProvider.textPrimary
+                          : themeProvider.textPrimary.withValues(alpha: 0.4),
                       decoration: isToday ? TextDecoration.lineThrough : null,
                     ),
                   ),
@@ -134,7 +136,7 @@ class RoutineItemWidget extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 8),
                     child: Icon(
                       LucideIcons.lock,
-                      color: AppColors.primaryOrange.withValues(alpha: 0.4),
+                      color: themeProvider.primaryColor.withValues(alpha: 0.4),
                       size: 16,
                     ),
                   ),

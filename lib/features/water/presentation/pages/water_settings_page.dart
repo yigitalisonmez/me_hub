@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
@@ -144,8 +146,10 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
+      backgroundColor: themeProvider.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -170,6 +174,8 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,14 +186,14 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             Text(
               'Settings',
               style: theme.textTheme.displaySmall?.copyWith(
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Customize your tracker',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.7),
+                color: themeProvider.textSecondary,
               ),
             ),
           ],
@@ -198,12 +204,12 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.chevronLeft,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
           ),
@@ -213,12 +219,14 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildDailyGoalCard() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,16 +234,16 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           // Header
           Row(
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.target,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 'DAILY GOAL',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
                 ),
@@ -247,7 +255,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.secondaryCream,
+              color: themeProvider.surfaceColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -261,7 +269,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                       '$_dailyGoal',
                       style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         fontSize: 48,
-                        color: AppColors.primaryOrange,
+                        color: themeProvider.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -269,7 +277,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                     Text(
                       'ml',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.grey,
+                        color: themeProvider.textSecondary,
                         fontSize: 18,
                       ),
                     ),
@@ -279,7 +287,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                 Text(
                   'Daily water intake goal',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey,
+                    color: themeProvider.textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -330,7 +338,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                         height: _trackHeight,
                         width: inactiveWidth,
                         decoration: BoxDecoration(
-                          color: AppColors.secondaryCream,
+                          color: themeProvider.surfaceColor,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -340,8 +348,8 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                       data: SliderTheme.of(context).copyWith(
                         activeTrackColor: Colors.transparent,
                         inactiveTrackColor: Colors.transparent,
-                        thumbColor: AppColors.primaryOrange,
-                        overlayColor: AppColors.primaryOrange.withValues(
+                        thumbColor: themeProvider.primaryColor,
+                        overlayColor: themeProvider.primaryColor.withValues(
                           alpha: 0.1,
                         ),
                         trackHeight: _trackHeight,
@@ -372,14 +380,14 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
               Text(
                 '500ml',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.grey,
+                  color: themeProvider.textSecondary,
                   fontSize: 14,
                 ),
               ),
               Text(
                 '5000ml',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.grey,
+                  color: themeProvider.textSecondary,
                   fontSize: 14,
                 ),
               ),
@@ -390,7 +398,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           Text(
             'Quick Presets',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.grey,
+              color: themeProvider.textSecondary,
               fontSize: 14,
             ),
           ),
@@ -410,11 +418,11 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primaryOrange
-                            : AppColors.secondaryCream,
+                            ? themeProvider.primaryColor
+                            : themeProvider.surfaceColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.primaryOrange,
+                          color: themeProvider.borderColor,
                           width: 2,
                         ),
                       ),
@@ -423,8 +431,8 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isSelected
-                              ? AppColors.white
-                              : AppColors.primaryOrange,
+                              ? themeProvider.textPrimary
+                              : themeProvider.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -440,12 +448,14 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildQuickAddButtonsCard() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,16 +463,16 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           // Header
           Row(
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.droplet,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 'QUICK ADD BUTTONS',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
                 ),
@@ -473,7 +483,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           Text(
             'Customize your quick add water amounts',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.grey,
+              color: themeProvider.textSecondary,
               fontSize: 14,
             ),
           ),
@@ -485,7 +495,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.secondaryCream,
+              color: themeProvider.surfaceColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -494,7 +504,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                 Text(
                   'Add New Amount',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -502,29 +512,34 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                 TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(color: themeProvider.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Amount (ml)',
+                    labelStyle: TextStyle(color: themeProvider.textSecondary),
                     hintText: 'e.g. 350',
+                    hintStyle: TextStyle(
+                      color: themeProvider.textSecondary.withValues(alpha: 0.5),
+                    ),
                     filled: true,
-                    fillColor: AppColors.white,
+                    fillColor: themeProvider.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
@@ -533,29 +548,34 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _labelController,
+                  style: TextStyle(color: themeProvider.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Label',
+                    labelStyle: TextStyle(color: themeProvider.textSecondary),
                     hintText: 'e.g. Small Glass',
+                    hintStyle: TextStyle(
+                      color: themeProvider.textSecondary.withValues(alpha: 0.5),
+                    ),
                     filled: true,
-                    fillColor: AppColors.white,
+                    fillColor: themeProvider.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryOrange,
+                      borderSide: BorderSide(
+                        color: themeProvider.borderColor,
                         width: 2,
                       ),
                     ),
@@ -572,13 +592,13 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                         ? _addQuickAddAmount
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryOrange,
-                      foregroundColor: AppColors.white,
+                      backgroundColor: themeProvider.primaryColor,
+                      foregroundColor: themeProvider.textPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      disabledBackgroundColor: AppColors.primaryOrange
+                      disabledBackgroundColor: themeProvider.primaryColor
                           .withValues(alpha: 0.5),
                     ),
                     child: Row(
@@ -600,13 +620,14 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildQuickAddItem(QuickAddAmount amount) {
+    final themeProvider = context.watch<ThemeProvider>();
     final canDelete = _quickAddAmounts.length > 1;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.secondaryCreamLight,
+        color: themeProvider.surfaceColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -615,12 +636,12 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.secondaryCream,
+              color: themeProvider.cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.droplet,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 24,
             ),
           ),
@@ -632,16 +653,16 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                 Text(
                   '${amount.amountMl}ml',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.darkGrey,
+                    color: themeProvider.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   amount.label,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: AppColors.grey),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: themeProvider.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -668,13 +689,15 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildSaveButton() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: themeProvider.cardColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.1),
+            color: themeProvider.primaryColor.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -687,8 +710,8 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
           child: ElevatedButton(
             onPressed: _saveSettings,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              foregroundColor: AppColors.white,
+              backgroundColor: themeProvider.primaryColor,
+              foregroundColor: themeProvider.textPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -696,12 +719,16 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(LucideIcons.save, size: 20),
+                Icon(
+                  LucideIcons.save,
+                  size: 20,
+                  color: themeProvider.textPrimary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Save Changes',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.white,
+                    color: themeProvider.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

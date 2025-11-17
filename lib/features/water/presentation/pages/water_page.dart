@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
@@ -67,8 +67,10 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
-      decoration: const BoxDecoration(color: AppColors.secondaryCream),
+      decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
         child: Consumer<WaterProvider>(
           builder: (context, provider, child) {
@@ -135,6 +137,8 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,14 +149,14 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             Text(
               'Water Tracker',
               style: theme.textTheme.displaySmall?.copyWith(
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Stay hydrated & healthy',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.7),
+                color: themeProvider.textSecondary,
               ),
             ),
           ],
@@ -201,12 +205,12 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.settings,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
           ),
@@ -220,6 +224,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WaterProvider provider,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final progress = provider.todayIntake?.getProgress(dailyGoalMl: _dailyGoal) ?? 0.0;
     final percentage = (progress * 100).toInt();
     final glassCount = provider.todayIntake?.logs.length ?? 0;
@@ -228,9 +233,9 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,16 +243,16 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           // Section Header
           Row(
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.trendingUp,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 'TODAY\'S PROGRESS',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -265,7 +270,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   '${provider.todayAmount}',
                   style: theme.textTheme.displayLarge?.copyWith(
                     fontSize: 36,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -273,7 +278,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   'ml',
                   style: theme.textTheme.displayLarge?.copyWith(
                     fontSize: 24,
-                    color: AppColors.darkGrey.withValues(alpha: 0.6),
+                    color: themeProvider.textSecondary,
                   ),
                 ),
               ],
@@ -284,7 +289,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           Text(
             'of ${_dailyGoal}ml daily goal',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.darkGrey.withValues(alpha: 0.7),
+              color: themeProvider.textSecondary,
             ),
           ),
           const SizedBox(height: 20),
@@ -362,11 +367,17 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   Widget _buildStatCard(BuildContext context, String value, String label) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCream,
+        color: themeProvider.surfaceColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: themeProvider.borderColor,
+          width: 2,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -374,14 +385,14 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           Text(
             value,
             style: theme.textTheme.headlineMedium?.copyWith(
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.darkGrey.withValues(alpha: 0.7),
+              color: themeProvider.textSecondary,
             ),
           ),
         ],
@@ -391,25 +402,31 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   Widget _buildStatCardWithIcon(BuildContext context, String label) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCream,
+        color: themeProvider.surfaceColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: themeProvider.borderColor,
+          width: 2,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             LucideIcons.flame,
-            color: AppColors.primaryOrange,
+            color: themeProvider.primaryColor,
             size: 24,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.darkGrey.withValues(alpha: 0.7),
+              color: themeProvider.textSecondary,
             ),
           ),
         ],
@@ -423,6 +440,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     double cardWidth,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
 
     // Use amounts from settings (already sorted)
     final allAmounts = _quickAddAmounts;
@@ -433,16 +451,16 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
         // Section Header
         Row(
           children: [
-            const Icon(
+            Icon(
               LucideIcons.droplet,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               'QUICK ADD',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 letterSpacing: 0.5,
               ),
             ),
@@ -482,13 +500,14 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WaterProvider provider,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
 
     return GestureDetector(
       onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange,
+          color: themeProvider.primaryColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -513,14 +532,15 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   Widget _buildTodaysLogSection(BuildContext context, WaterProvider provider) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final logs = provider.todayIntake?.logs ?? [];
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,16 +551,16 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     LucideIcons.clock,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'TODAY\'S LOG',
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: AppColors.primaryOrange,
+                      color: themeProvider.primaryColor,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -551,14 +571,14 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                    color: themeProvider.primaryColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       '${logs.length}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primaryOrange,
+                        color: themeProvider.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -575,7 +595,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
                 child: Text(
                   'No entries yet',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.darkGrey.withValues(alpha: 0.5),
+                    color: themeProvider.textSecondary,
                   ),
                 ),
               ),
@@ -675,26 +695,27 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
 
     // Show confirmation snackbar
     if (mounted) {
+      final themeProvider = context.read<ThemeProvider>();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.check,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 20,
               ),
               const SizedBox(width: 12),
               Text(
                 '${widget.log.amountMl}ml deleted',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.darkGrey,
+                      color: themeProvider.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
               ),
             ],
           ),
-          backgroundColor: AppColors.backgroundCream,
+          backgroundColor: themeProvider.backgroundColor,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -708,6 +729,7 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final timeFormat = DateFormat('HH:mm');
     final timeString = timeFormat.format(widget.log.timestamp);
 
@@ -719,8 +741,12 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.secondaryCream,
+            color: themeProvider.surfaceColor,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: themeProvider.borderColor,
+              width: 2,
+            ),
           ),
           child: Row(
             children: [
@@ -729,12 +755,12 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                  color: themeProvider.primaryColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.droplet,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   size: 20,
                 ),
               ),
@@ -747,14 +773,14 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
                     Text(
                       '${widget.log.amountMl}ml',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: AppColors.darkGrey,
+                        color: themeProvider.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       timeString,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.darkGrey.withValues(alpha: 0.7),
+                        color: themeProvider.textSecondary,
                       ),
                     ),
                   ],

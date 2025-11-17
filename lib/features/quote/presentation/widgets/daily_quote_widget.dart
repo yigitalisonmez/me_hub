@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/quote_cache_service.dart';
 import '../../../../core/services/quote_service.dart';
 
@@ -45,16 +47,19 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            color: themeProvider.primaryColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -69,34 +74,36 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
   }
 
   Widget _buildLoadingWidget() {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Row(
       children: [
         Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+            color: themeProvider.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Center(
+          child: Center(
             child: SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.primaryOrange,
+                  themeProvider.primaryColor,
                 ),
               ),
             ),
           ),
         ),
         const SizedBox(width: 16),
-        const Expanded(
+        Expanded(
           child: Text(
             'Loading daily inspiration...',
             style: TextStyle(
-              color: AppColors.grey,
+              color: themeProvider.textSecondary,
               fontSize: 14,
               fontStyle: FontStyle.italic,
             ),
@@ -107,6 +114,8 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
   }
 
   Widget _buildQuoteContent() {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,20 +124,20 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                color: themeProvider.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 LucideIcons.quote,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 20,
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Daily Inspiration',
               style: TextStyle(
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -139,8 +148,8 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
         const SizedBox(height: 16),
         Text(
           '"${_quote!.text}"',
-          style: const TextStyle(
-            color: AppColors.darkGrey,
+          style: TextStyle(
+            color: themeProvider.textPrimary,
             fontSize: 16,
             height: 1.4,
             fontStyle: FontStyle.italic,
@@ -151,8 +160,8 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
           alignment: Alignment.centerRight,
           child: Text(
             '— ${_quote!.author}',
-            style: const TextStyle(
-              color: AppColors.grey,
+            style: TextStyle(
+              color: themeProvider.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -163,6 +172,8 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
   }
 
   Widget _buildErrorWidget() {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Column(
       children: [
         Row(
@@ -180,7 +191,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Daily Inspiration',
               style: TextStyle(
                 color: AppColors.error,
@@ -192,15 +203,15 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Unable to load today\'s inspiration. Please check your internet connection.',
-          style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.4),
+          style: TextStyle(color: themeProvider.textSecondary, fontSize: 14, height: 1.4),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Check your internet connection and restart the app.',
           style: TextStyle(
-            color: AppColors.grey,
+            color: themeProvider.textSecondary,
             fontSize: 12,
             fontStyle: FontStyle.italic,
           ),

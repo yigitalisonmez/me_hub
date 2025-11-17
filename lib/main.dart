@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
 import 'core/theme/app_colors.dart';
 import 'core/constants/app_constants.dart';
+import 'core/providers/theme_provider.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/repositories/todo_repository_impl.dart';
 import 'features/todo/domain/usecases/get_today_todos.dart';
@@ -139,14 +140,25 @@ class MeHubApp extends StatelessWidget {
             ),
           ),
         ),
+        ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme.copyWith(
-          extensions: const <ThemeExtension<dynamic>>[AppColorScheme.light],
-        ),
-        home: SplashScreen(child: const HomePage()),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme.copyWith(
+              extensions: const <ThemeExtension<dynamic>>[AppColorScheme.light],
+            ),
+            darkTheme: AppTheme.darkTheme.copyWith(
+              extensions: const <ThemeExtension<dynamic>>[AppColorScheme.dark],
+            ),
+            themeMode: themeProvider.isDarkMode
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            home: SplashScreen(child: const HomePage()),
+          );
+        },
       ),
     );
   }
@@ -180,8 +192,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
+      backgroundColor: themeProvider.backgroundColor,
       body: Stack(children: [_buildPageView(), _buildCelebrationOverlay()]),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -206,8 +220,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHomeContent() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -227,8 +243,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSettingsPage() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -245,6 +263,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMainCard(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Consumer<TodoProvider>(
       builder: (context, provider, child) {
         // Show celebration if all todos just became completed (only after toggle/delete)
@@ -259,12 +279,12 @@ class _HomePageState extends State<HomePage> {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: AppColors.cardGradient,
+            color: themeProvider.cardColor,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.primaryOrange, width: 2),
+            border: Border.all(color: themeProvider.borderColor, width: 2),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                color: themeProvider.primaryColor.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -275,25 +295,25 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     LucideIcons.sparkles,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     size: 24,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'TODAY\'S GOALS',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryOrange,
+                      color: themeProvider.primaryColor,
                       letterSpacing: 1.2,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
+                  Icon(
                     LucideIcons.sparkles,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     size: 24,
                   ),
                 ],
@@ -303,25 +323,25 @@ class _HomePageState extends State<HomePage> {
                 width: 100,
                 margin: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
 
               // Todo list inside the card
               if (provider.todos.isEmpty) ...[
-                const Icon(
+                Icon(
                   LucideIcons.clipboardList200,
                   size: 60,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Set your daily goals and track your progress',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.darkGrey,
+                    color: themeProvider.textPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -332,13 +352,13 @@ class _HomePageState extends State<HomePage> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                    color: themeProvider.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Productivity',
                     style: TextStyle(
-                      color: AppColors.primaryOrange,
+                      color: themeProvider.primaryColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -367,7 +387,7 @@ class _HomePageState extends State<HomePage> {
                 ...provider.todos.map(
                   (todo) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
-                    child: _buildTodoItem(todo, provider),
+                    child: _buildTodoItem(context, todo, provider),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -393,29 +413,33 @@ class _HomePageState extends State<HomePage> {
     required bool isPrimary,
     required VoidCallback onPressed,
   }) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: onPressed,
         style:
             ElevatedButton.styleFrom(
-              backgroundColor: isPrimary ? null : AppColors.white,
+              backgroundColor: isPrimary ? null : themeProvider.cardColor,
               foregroundColor: isPrimary
                   ? AppColors.white
-                  : AppColors.primaryOrange,
+                  : themeProvider.primaryColor,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: isPrimary
                     ? BorderSide.none
                     : BorderSide(
-                        color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
               ),
             ).copyWith(
               backgroundColor: isPrimary
-                  ? MaterialStateProperty.all<Color>(AppColors.primaryOrange)
-                  : MaterialStateProperty.all<Color>(AppColors.white),
+                  ? MaterialStateProperty.all<Color>(themeProvider.primaryColor)
+                  : MaterialStateProperty.all<Color>(themeProvider.cardColor),
             ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -437,6 +461,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Expanded(
           child: _buildQuickActionCard(
+            context: context,
             icon: Icons.add,
             title: 'Add Goal',
             subtitle: 'New goal',
@@ -446,6 +471,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(width: 16),
         Expanded(
           child: _buildQuickActionCard(
+            context: context,
             icon: LucideIcons.activity,
             title: 'Progress',
             subtitle: 'Track growth',
@@ -459,21 +485,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildQuickActionCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: themeProvider.borderColor, width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.08),
+              color: themeProvider.primaryColor.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -481,19 +511,22 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: AppColors.primaryOrange, size: 32),
+            Icon(icon, color: themeProvider.primaryColor, size: 32),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkGrey,
+                color: themeProvider.textPrimary,
               ),
             ),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: AppColors.grey),
+              style: TextStyle(
+                fontSize: 12,
+                color: themeProvider.textSecondary,
+              ),
             ),
           ],
         ),
@@ -502,12 +535,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNavigationBar() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: themeProvider.cardColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+            color: themeProvider.primaryColor.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -522,9 +557,9 @@ class _HomePageState extends State<HomePage> {
             curve: Curves.easeInOut,
           );
         },
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryOrange,
-        unselectedItemColor: AppColors.grey,
+        backgroundColor: themeProvider.cardColor,
+        selectedItemColor: themeProvider.primaryColor,
+        unselectedItemColor: themeProvider.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         items: const [
@@ -550,15 +585,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSettingsCard() {
+    final themeProvider = context.watch<ThemeProvider>();
+    final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+            color: themeProvider.primaryColor.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -569,25 +608,25 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.settings,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 24,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'SETTINGS',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 LucideIcons.settings,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 24,
               ),
             ],
@@ -597,40 +636,75 @@ class _HomePageState extends State<HomePage> {
             width: 100,
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
           const SizedBox(height: 20),
-          const Icon(
+          Icon(
             LucideIcons.slidersHorizontal,
             size: 60,
-            color: AppColors.primaryOrange,
+            color: themeProvider.primaryColor,
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Customize your experience and manage your preferences',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.darkGrey,
+              color: themeProvider.textPrimary,
               height: 1.4,
             ),
           ),
           const SizedBox(height: 24),
+          // Dark Mode Toggle
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
+              color: themeProvider.surfaceColor,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: themeProvider.borderColor, width: 2),
             ),
-            child: const Text(
-              'Preferences',
-              style: TextStyle(
-                color: AppColors.primaryOrange,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      LucideIcons.palette,
+                      color: themeProvider.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dark Mode',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: themeProvider.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Switch to dark theme',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: themeProvider.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Switch(
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) {
+                    themeProvider.setTheme(value);
+                  },
+                  activeColor: themeProvider.primaryColor,
+                ),
+              ],
             ),
           ),
         ],
@@ -638,16 +712,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTodoItem(todo, TodoProvider provider) {
+  Widget _buildTodoItem(BuildContext context, todo, TodoProvider provider) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: themeProvider.surfaceColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            color: themeProvider.primaryColor.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -662,12 +739,12 @@ class _HomePageState extends State<HomePage> {
               height: 24,
               decoration: BoxDecoration(
                 color: todo.isCompleted
-                    ? AppColors.primaryOrange
+                    ? themeProvider.primaryColor
                     : Colors.transparent,
                 border: Border.all(
                   color: todo.isCompleted
-                      ? AppColors.primaryOrange
-                      : AppColors.primaryOrange.withValues(alpha: 0.3),
+                      ? themeProvider.primaryColor
+                      : themeProvider.primaryColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(6),
@@ -693,8 +770,8 @@ class _HomePageState extends State<HomePage> {
                         ? TextDecoration.lineThrough
                         : null,
                     color: todo.isCompleted
-                        ? AppColors.grey
-                        : AppColors.darkGrey,
+                        ? themeProvider.textSecondary
+                        : themeProvider.textPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -708,13 +785,15 @@ class _HomePageState extends State<HomePage> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         todo.priorityText,
-                        style: const TextStyle(
-                          color: AppColors.primaryOrange,
+                        style: TextStyle(
+                          color: themeProvider.primaryColor,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
@@ -732,13 +811,20 @@ class _HomePageState extends State<HomePage> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(LucideIcons.trash2, color: AppColors.error, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete'),
+                    const Icon(
+                      LucideIcons.trash2,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Delete',
+                      style: TextStyle(color: themeProvider.textPrimary),
+                    ),
                   ],
                 ),
               ),

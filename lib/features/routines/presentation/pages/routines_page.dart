@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
@@ -29,8 +30,10 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
         child: Consumer<RoutinesProvider>(
           builder: (context, provider, child) {
@@ -98,6 +101,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,14 +113,14 @@ class _RoutinesPageState extends State<RoutinesPage> {
             Text(
               'Routines',
               style: theme.textTheme.displaySmall?.copyWith(
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Build habits & stay consistent',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.7),
+                color: themeProvider.textSecondary,
               ),
             ),
           ],
@@ -124,12 +129,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+            border: Border.all(color: themeProvider.borderColor, width: 1.5),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
+          child: Icon(
             LucideIcons.settings,
-            color: AppColors.primaryOrange,
+            color: themeProvider.primaryColor,
             size: 20,
           ),
         ),
@@ -138,6 +143,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   }
 
   Widget _buildHeroHeader(BuildContext context, RoutinesProvider provider) {
+    final themeProvider = context.watch<ThemeProvider>();
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
     int totalItems = 0;
@@ -153,12 +159,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryOrange, width: 2),
+        border: Border.all(color: themeProvider.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+            color: themeProvider.primaryColor.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -171,23 +177,23 @@ class _RoutinesPageState extends State<RoutinesPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.repeat,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 24,
               ),
               const SizedBox(width: 8),
               Text(
                 'ROUTINES',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 LucideIcons.repeat,
-                color: AppColors.primaryOrange,
+                color: themeProvider.primaryColor,
                 size: 24,
               ),
             ],
@@ -197,7 +203,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
             width: 100,
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -249,7 +255,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
           Text(
             '${today.day}.${today.month}.${today.year}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.darkGrey.withValues(alpha: 0.6),
+              color: themeProvider.textSecondary,
             ),
           ),
         ],
@@ -264,6 +270,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
     int total,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: progress),
       duration: const Duration(milliseconds: 1200),
@@ -284,7 +292,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   strokeWidth: 10,
                   backgroundColor: Colors.transparent,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.primaryOrange.withValues(alpha: 0.15),
+                    themeProvider.primaryColor.withValues(alpha: 0.15),
                   ),
                 ),
               ),
@@ -296,8 +304,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   value: animatedProgress,
                   strokeWidth: 10,
                   backgroundColor: Colors.transparent,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.primaryOrange,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    themeProvider.primaryColor,
                   ),
                   strokeCap: StrokeCap.round,
                 ),
@@ -309,14 +317,14 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   Text(
                     '${(animatedProgress * 100).toStringAsFixed(0)}%',
                     style: theme.textTheme.displayMedium?.copyWith(
-                      color: AppColors.primaryOrange,
+                      color: themeProvider.primaryColor,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Today',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.darkGrey.withValues(alpha: 0.7),
+                      color: themeProvider.textSecondary,
                     ),
                   ),
                 ],
@@ -335,16 +343,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
     String label,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+            border: Border.all(color: themeProvider.borderColor, width: 1.5),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: AppColors.primaryOrange, size: 18),
+          child: Icon(icon, color: themeProvider.primaryColor, size: 18),
         ),
         const SizedBox(width: 10),
         Column(
@@ -354,13 +364,13 @@ class _RoutinesPageState extends State<RoutinesPage> {
             Text(
               value,
               style: theme.textTheme.headlineSmall?.copyWith(
-                color: AppColors.darkGrey,
+                color: themeProvider.textPrimary,
               ),
             ),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.6),
+                color: themeProvider.textSecondary,
               ),
             ),
           ],
@@ -375,6 +385,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
     RoutinesProvider provider,
   ) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
@@ -387,12 +398,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+        border: Border.all(color: themeProvider.borderColor, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            color: themeProvider.primaryColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -412,7 +423,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                     child: Text(
                       routine.name,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: AppColors.darkGrey,
+                        color: themeProvider.textPrimary,
                       ),
                     ),
                   ),
@@ -421,7 +432,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   PopupMenuButton<String>(
                     icon: Icon(
                       LucideIcons.ellipsisVertical,
-                      color: AppColors.primaryOrange.withValues(alpha: 0.7),
+                      color: themeProvider.primaryColor.withValues(alpha: 0.7),
                       size: 24,
                     ),
                     onSelected: (v) async {
@@ -431,14 +442,14 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         RoutineDialogs.showDeleteRoutine(context, routine);
                       }
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(LucideIcons.pencil, size: 20),
-                            SizedBox(width: 8),
-                            Text('Edit'),
+                            Icon(LucideIcons.pencil, size: 20, color: themeProvider.textPrimary),
+                            const SizedBox(width: 8),
+                            Text('Edit', style: TextStyle(color: themeProvider.textPrimary)),
                           ],
                         ),
                       ),
@@ -446,9 +457,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(LucideIcons.trash2, size: 20),
-                            SizedBox(width: 8),
-                            Text('Delete'),
+                            const Icon(LucideIcons.trash2, size: 20, color: AppColors.error),
+                            const SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: themeProvider.textPrimary)),
                           ],
                         ),
                       ),
@@ -459,7 +470,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                     duration: const Duration(milliseconds: 300),
                     child: Icon(
                       LucideIcons.chevronDown,
-                      color: AppColors.primaryOrange.withValues(alpha: 0.7),
+                      color: themeProvider.primaryColor.withValues(alpha: 0.7),
                       size: 28,
                     ),
                   ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
@@ -117,8 +117,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
+      backgroundColor: themeProvider.backgroundColor,
       body: SafeArea(
         child: Consumer<RoutinesProvider>(
           builder: (context, provider, _) {
@@ -139,6 +141,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Widget _buildHeader(BuildContext context, Routine routine) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -146,8 +150,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           end: Alignment.bottomCenter,
           stops: const [0.0, 0.7],
           colors: [
-            Color(0xFFFFE8D6), // Açık turuncu/krem - header'ın başı
-            AppColors.backgroundCream, // Header'ın ortası - sayfa rengi
+            themeProvider.primaryColor.withValues(alpha: 0.1),
+            themeProvider.backgroundColor,
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -171,26 +175,28 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Widget _buildHeaderButtons(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Back button (circular, white background)
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
+            color: themeProvider.cardColor.withValues(alpha: 0.9),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: themeProvider.primaryColor.withValues(alpha: 0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
           child: IconButton(
-            icon: const Icon(
+            icon: Icon(
               LucideIcons.arrowLeft,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
             onPressed: () => Navigator.pop(context),
@@ -199,18 +205,18 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         // Save button (circular, orange background)
         Container(
           decoration: BoxDecoration(
-            color: AppColors.primaryOrange,
+            color: themeProvider.primaryColor,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                color: themeProvider.primaryColor.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           child: IconButton(
-            icon: const Icon(LucideIcons.check, color: Colors.white, size: 20),
+            icon: Icon(LucideIcons.check, color: themeProvider.textPrimary, size: 20),
             onPressed: _saveRoutine,
           ),
         ),
@@ -219,15 +225,17 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Widget _buildHeaderIcon(Routine routine) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: themeProvider.primaryColor.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -240,31 +248,35 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                   ) ??
                   LucideIcons.sun)
             : LucideIcons.sun,
-        color: AppColors.primaryOrange,
+        color: themeProvider.primaryColor,
         size: 28,
       ),
     );
   }
 
   Widget _buildHeaderTitle(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Text(
       'Edit Routine',
       style: Theme.of(
         context,
-      ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
+      ).textTheme.titleLarge?.copyWith(color: themeProvider.primaryColor),
     );
   }
 
   Widget _buildRoutineNameBadge(BuildContext context, Routine routine) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Material(
       elevation: 0.5,
       borderRadius: BorderRadius.circular(100),
-      color: Colors.white,
+      color: themeProvider.cardColor,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -273,8 +285,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryOrange,
+              decoration: BoxDecoration(
+                color: themeProvider.primaryColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -282,7 +294,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             Text(
               routine.name,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.darkGrey.withValues(alpha: 0.7),
+                color: themeProvider.textPrimary.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -308,9 +320,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           provider.reorderItems(widget.routine.id, oldIndex, newIndex);
         },
         proxyDecorator: (child, index, animation) {
+          final themeProvider = context.watch<ThemeProvider>();
           final item = routine.items[index];
           return Material(
-            color: Colors.white,
+            color: themeProvider.cardColor,
             elevation: 8,
             borderRadius: BorderRadius.circular(16),
             clipBehavior: Clip.antiAlias,
@@ -340,6 +353,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Widget _buildAddItemButton(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return SafeArea(
       top: false,
       child: Padding(
@@ -348,16 +363,16 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _addItem(context),
-            icon: const Icon(LucideIcons.plus, color: AppColors.primaryOrange),
+            icon: Icon(LucideIcons.plus, color: themeProvider.primaryColor),
             label: Text(
               'Add New Item',
               style: Theme.of(
                 context,
-              ).textTheme.titleLarge?.copyWith(color: AppColors.primaryOrange),
+              ).textTheme.titleLarge?.copyWith(color: themeProvider.primaryColor),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              side: const BorderSide(color: AppColors.primaryOrange, width: 2),
+              side: BorderSide(color: themeProvider.borderColor, width: 2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -425,15 +440,17 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          gradient: AppColors.cardGradient,
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: themeProvider.cardColor,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
@@ -446,22 +463,22 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   LucideIcons.pencilLine,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   size: 22,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Edit Habit',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
+                Icon(
                   LucideIcons.pencilLine,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   size: 22,
                 ),
               ],
@@ -472,7 +489,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                 height: 2,
                 width: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -483,34 +500,35 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               'Habit Name',
               style: Theme.of(
                 context,
-              ).textTheme.titleMedium?.copyWith(color: AppColors.darkGrey),
+              ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _titleController,
+              style: TextStyle(color: themeProvider.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Enter habit name',
                 hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.darkGrey.withValues(alpha: 0.4),
+                  color: themeProvider.textSecondary.withValues(alpha: 0.4),
                 ),
                 filled: true,
-                fillColor: AppColors.white,
+                fillColor: themeProvider.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryOrange,
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor,
                     width: 2,
                   ),
                 ),
@@ -526,7 +544,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               'Icon',
               style: Theme.of(
                 context,
-              ).textTheme.titleMedium?.copyWith(color: AppColors.darkGrey),
+              ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -534,10 +552,10 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: themeProvider.surfaceColor,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -546,7 +564,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.secondaryCream,
+                          color: themeProvider.cardColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
@@ -554,7 +572,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                                 _selectedIconCodePoint!,
                               ) ??
                               LucideIcons.circle,
-                          color: AppColors.primaryOrange,
+                          color: themeProvider.primaryColor,
                           size: 24,
                         ),
                       ),
@@ -565,14 +583,14 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                           ? 'Change Icon'
                           : 'Select Icon',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.darkGrey.withValues(alpha: 0.7),
+                        color: themeProvider.textPrimary.withValues(alpha: 0.7),
                       ),
                     ),
                     const Spacer(),
                     Icon(
                       LucideIcons.chevronRight,
                       size: 16,
-                      color: AppColors.darkGrey.withValues(alpha: 0.4),
+                      color: themeProvider.textSecondary.withValues(alpha: 0.4),
                     ),
                   ],
                 ),
@@ -588,7 +606,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide(
-                        color: AppColors.darkGrey.withValues(alpha: 0.3),
+                        color: themeProvider.textSecondary.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
@@ -598,7 +616,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                     child: Text(
                       'Cancel',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.darkGrey,
+                        color: themeProvider.textPrimary,
                       ),
                     ),
                   ),
@@ -607,11 +625,11 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: themeProvider.primaryGradient,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                          color: themeProvider.primaryColor.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -631,7 +649,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                         'Save',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
-                              color: AppColors.white,
+                              color: themeProvider.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                       ),

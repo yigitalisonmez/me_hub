@@ -76,6 +76,24 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     cardGradient: AppColors.cardGradient,
     backgroundGradient: AppColors.backgroundGradient,
   );
+
+  static const AppColorScheme dark = AppColorScheme(
+    success: AppColors.success,
+    warning: AppColors.warning,
+    error: AppColors.error,
+    info: AppColors.info,
+    primaryGradient: AppColors.darkPrimaryGradient,
+    cardGradient: LinearGradient(
+      colors: [AppColors.darkCard, AppColors.darkSurface],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    ),
+    backgroundGradient: LinearGradient(
+      colors: [AppColors.darkBackground, AppColors.darkCard],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    ),
+  );
 }
 
 /// Tema uzantılarına erişim için extension

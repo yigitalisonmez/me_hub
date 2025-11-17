@@ -12,7 +12,7 @@ class AppColors {
   static const Color backgroundCream = Color(0xFFFFF5ED);
   static const Color secondaryCream = Color(0xFFFFF9F5); // Açık bej/krem
   static const Color accentGrey = Color(0xFFE8E8E8); // Açık gri
-   // Arka plan krem
+  // Arka plan krem
 
   // Renk varyasyonları
   static const Color primaryOrangeLight = Color(0xFFE8A87C);
@@ -57,5 +57,33 @@ class AppColors {
     colors: [backgroundCream, backgroundCreamLight],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
+  );
+
+  // Dark Mode Renkleri - Figma AI tasarımından
+  static const Color darkBackground = Color(
+    0xFF1E1E1E,
+  ); // Çok koyu gri - ana arka plan
+  static const Color darkCard = Color(
+    0xFF2A2A2A,
+  ); // Orta koyu gri - kart arka planı
+  static const Color darkSurface = Color(
+    0xFF343434,
+  ); // Açık koyu gri - yüzeyler (stat cards, log items)
+  static const Color darkOrange = Color(
+    0xFFFF8A65,
+  ); // Canlı coral/salmon turuncu - accent
+  static const Color darkTextPrimary = Color(0xFFFFFFFF); // Beyaz - ana metin
+  static const Color darkTextSecondary = Color(
+    0xFFB0B0B0,
+  ); // Açık gri - ikincil metin
+  static const Color darkBorder = Color(
+    0xFFFF8A65,
+  ); // Border rengi (aynı orange)
+
+  // Dark Mode Gradient - uses same orange as light mode
+  static const LinearGradient darkPrimaryGradient = LinearGradient(
+    colors: [primaryOrangeLight, primaryOrange],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 }

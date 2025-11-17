@@ -6,6 +6,7 @@ import '../providers/todo_provider.dart';
 import '../widgets/todo_item.dart';
 import '../widgets/add_todo_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../shared/widgets/custom_button.dart';
 
@@ -79,21 +80,23 @@ class _TodoPageState extends State<TodoPage> {
       print('🔴 TodoPage: Condition NOT met - _previousAllCompleted: $_previousAllCompleted, isAllCompleted: $isAllCompleted');
     }
     
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
+      backgroundColor: themeProvider.backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundCream,
+        backgroundColor: themeProvider.backgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
+              color: themeProvider.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.arrowLeft,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
           ),
@@ -102,7 +105,7 @@ class _TodoPageState extends State<TodoPage> {
         title: Text(
           'Daily Goals',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppColors.darkGrey,
+            color: themeProvider.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -113,12 +116,12 @@ class _TodoPageState extends State<TodoPage> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.refreshCw,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   size: 20,
                 ),
               ),
@@ -134,11 +137,11 @@ class _TodoPageState extends State<TodoPage> {
               : _buildTodoList(provider),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
+          gradient: themeProvider.primaryGradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.3),
+              color: themeProvider.primaryColor.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -148,11 +151,11 @@ class _TodoPageState extends State<TodoPage> {
           onPressed: () => _showAddTodoDialog(context),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          icon: const Icon(LucideIcons.plus, color: AppColors.white),
+          icon: Icon(LucideIcons.plus, color: themeProvider.textPrimary),
           label: Text(
             'Add Goal',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.white,
+              color: themeProvider.textPrimary,
             ),
           ),
         ),
@@ -161,22 +164,26 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Widget _buildErrorWidget(TodoProvider provider) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(LucideIcons.circleAlert, size: 64, color: AppColors.error),
+          Icon(LucideIcons.circleAlert, size: 64, color: AppColors.error),
           const SizedBox(height: 16),
           Text(
             'An error occurred',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: themeProvider.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             provider.error!,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.grey,
+              color: themeProvider.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -218,6 +225,8 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Widget _buildEmptyState() {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -225,20 +234,20 @@ class _TodoPageState extends State<TodoPage> {
           Icon(
             LucideIcons.clipboardList,
             size: 80,
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            color: themeProvider.primaryColor.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 24),
           Text(
             'No todos yet',
             style: Theme.of(
               context,
-            ).textTheme.headlineSmall?.copyWith(color: AppColors.grey),
+            ).textTheme.headlineSmall?.copyWith(color: themeProvider.textSecondary),
           ),
           const SizedBox(height: 8),
           Text(
             'Start by adding your first daily goal',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.grey,
+              color: themeProvider.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -253,6 +262,7 @@ class _TodoPageState extends State<TodoPage> {
 
   Widget _buildDateHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final now = DateTime.now();
     final weekdays = [
       'Monday',
@@ -282,11 +292,12 @@ class _TodoPageState extends State<TodoPage> {
       margin: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        gradient: themeProvider.primaryGradient,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            color: themeProvider.primaryColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -297,12 +308,12 @@ class _TodoPageState extends State<TodoPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
+              color: themeProvider.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.calendar,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 20,
             ),
           ),
@@ -314,13 +325,13 @@ class _TodoPageState extends State<TodoPage> {
                 Text(
                   '${now.day} ${months[now.month - 1]}',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.darkGrey,
+                    color: themeProvider.textPrimary,
                   ),
                 ),
                 Text(
                   weekdays[now.weekday - 1],
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.grey,
+                    color: themeProvider.textSecondary,
                   ),
                 ),
               ],
@@ -363,6 +374,7 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   void _showCelebrationDialog(BuildContext context) {
+    final themeProvider = context.read<ThemeProvider>();
     print('🟢 TodoPage: _showCelebrationDialog called');
     showDialog(
       context: context,
@@ -395,7 +407,7 @@ class _TodoPageState extends State<TodoPage> {
               Text(
                 'All tasks completed! 🎉',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
+                  color: themeProvider.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
