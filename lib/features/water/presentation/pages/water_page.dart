@@ -8,6 +8,8 @@ import '../../core/constants/water_constants.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../data/services/custom_amount_service.dart';
+import '../../data/services/daily_goal_service.dart';
+import 'water_settings_page.dart';
 
 class WaterPage extends StatefulWidget {
   const WaterPage({super.key});
@@ -21,6 +23,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   List<int> _customAmounts = [];
   final GlobalKey _statCardKey = GlobalKey();
   double? _statCardWidth;
+  int _dailyGoal = 2000;
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WaterProvider>().loadTodayWaterIntake();
       _loadCustomAmounts();
+      _loadDailyGoal();
     });
   }
 
@@ -41,6 +45,15 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {
         _customAmounts = amounts;
+      });
+    }
+  }
+
+  Future<void> _loadDailyGoal() async {
+    final goal = await DailyGoalService.getDailyGoal();
+    if (mounted) {
+      setState(() {
+        _dailyGoal = goal;
       });
     }
   }
@@ -142,17 +155,33 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             ),
           ],
         ),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primaryOrange, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            LucideIcons.settings,
-            color: AppColors.primaryOrange,
-            size: 20,
+        GestureDetector(
+          onTap: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const WaterSettingsPage(),
+              ),
+            );
+            // Reload settings if saved
+            if (result == true) {
+              _loadCustomAmounts();
+              _loadDailyGoal();
+              // Reload water intake to update progress with new goal
+              context.read<WaterProvider>().loadTodayWaterIntake();
+            }
+          },
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primaryOrange, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              LucideIcons.settings,
+              color: AppColors.primaryOrange,
+              size: 20,
+            ),
           ),
         ),
       ],
@@ -164,9 +193,10 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WaterProvider provider,
   ) {
     final theme = Theme.of(context);
-    final percentage = (provider.todayProgress * 100).toInt();
+    final progress = provider.todayIntake?.getProgress(dailyGoalMl: _dailyGoal) ?? 0.0;
+    final percentage = (progress * 100).toInt();
     final glassCount = provider.todayIntake?.logs.length ?? 0;
-    final remaining = WaterConstants.dailyGoalMl - provider.todayAmount;
+    final remaining = _dailyGoal - provider.todayAmount;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -225,7 +255,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           const SizedBox(height: 4),
           // Goal
           Text(
-            'of ${WaterConstants.dailyGoalMl}ml daily goal',
+            'of ${_dailyGoal}ml daily goal',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkGrey.withValues(alpha: 0.7),
             ),
@@ -233,10 +263,10 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           const SizedBox(height: 20),
           // Horizontal Progress Bar with Wave Effect
           WaveProgressBar(
-            progress: provider.todayProgress,
+            progress: progress,
             centerText: '$percentage%',
             bottomText:
-                '${provider.todayAmount} / ${WaterConstants.dailyGoalMl} ml',
+                '${provider.todayAmount} / $_dailyGoal ml',
           ),
           const SizedBox(height: 20),
           // Three Stat Cards
