@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/providers/theme_provider.dart';
 
 /// Özel buton widget'ı
 class CustomButton extends StatelessWidget {
@@ -74,6 +76,8 @@ class CustomButton extends StatelessWidget {
   }
 
   ButtonStyle _getButtonStyle(BuildContext context, bool isDisabled) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     final baseStyle = ElevatedButton.styleFrom(
       elevation: isDisabled ? 0 : 2,
       shape: RoundedRectangleBorder(
@@ -86,40 +90,40 @@ class CustomButton extends StatelessWidget {
       case ButtonType.primary:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.lightGrey;
-            return backgroundColor ?? AppColors.primaryOrange;
+            if (isDisabled) return themeProvider.borderColor;
+            return backgroundColor ?? themeProvider.primaryColor;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.grey;
-            return textColor ?? AppColors.white;
+            if (isDisabled) return themeProvider.textSecondary;
+            return textColor ?? themeProvider.textPrimary;
           }),
         );
       
       case ButtonType.secondary:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.lightGrey;
-            return backgroundColor ?? AppColors.secondaryCream;
+            if (isDisabled) return themeProvider.borderColor;
+            return backgroundColor ?? themeProvider.surfaceColor;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.grey;
-            return textColor ?? AppColors.white;
+            if (isDisabled) return themeProvider.textSecondary;
+            return textColor ?? themeProvider.textPrimary;
           }),
         );
       
       case ButtonType.outline:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.lightGrey;
-            return backgroundColor ?? AppColors.white;
+            if (isDisabled) return themeProvider.borderColor;
+            return backgroundColor ?? themeProvider.cardColor;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.grey;
-            return textColor ?? AppColors.primaryOrange;
+            if (isDisabled) return themeProvider.textSecondary;
+            return textColor ?? themeProvider.primaryColor;
           }),
           side: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return const BorderSide(color: AppColors.grey);
-            return BorderSide(color: textColor ?? AppColors.primaryOrange);
+            if (isDisabled) return BorderSide(color: themeProvider.borderColor);
+            return BorderSide(color: textColor ?? themeProvider.primaryColor);
           }),
         );
       
@@ -129,8 +133,8 @@ class CustomButton extends StatelessWidget {
             return Colors.transparent;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (isDisabled) return AppColors.grey;
-            return textColor ?? AppColors.primaryOrange;
+            if (isDisabled) return themeProvider.textSecondary;
+            return textColor ?? themeProvider.primaryColor;
           }),
           elevation: WidgetStateProperty.all(0),
         );
@@ -146,16 +150,9 @@ class CustomButton extends StatelessWidget {
   }
 
   Color _getTextColor() {
-    if (!isEnabled || isLoading) return AppColors.grey;
-    
-    switch (type) {
-      case ButtonType.primary:
-      case ButtonType.secondary:
-        return textColor ?? AppColors.white;
-      case ButtonType.outline:
-      case ButtonType.text:
-        return textColor ?? AppColors.primaryOrange;
-    }
+    // This method is only used for loading indicator, not for button text
+    // Button text color is handled by ButtonStyle foregroundColor
+    return textColor ?? AppColors.white;
   }
 
   double _getHeight() {

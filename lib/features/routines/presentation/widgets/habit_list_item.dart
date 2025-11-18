@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/constants/routine_icons.dart';
 import '../../domain/entities/routine.dart';
 
@@ -20,23 +21,26 @@ class HabitListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Material(
       key: key,
-      color: AppColors.white,
+      color: themeProvider.cardColor,
       elevation: 0.5,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
+          color: themeProvider.cardColor,
           border: Border.all(
-            color: AppColors.primaryOrange.withValues(alpha: 0.25),
+            color: themeProvider.borderColor.withValues(alpha: 0.25),
             width: 0.75,
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.08),
+              color: themeProvider.primaryColor.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -47,7 +51,7 @@ class HabitListItem extends StatelessWidget {
             // Drag handle icon (visual indicator)
             Icon(
               LucideIcons.gripVertical,
-              color: AppColors.primaryOrange,
+              color: themeProvider.primaryColor,
               size: 24,
             ),
             const SizedBox(width: 16),
@@ -58,13 +62,13 @@ class HabitListItem extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.secondaryCream,
+                    color: themeProvider.surfaceColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
                         LucideIcons.circle,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     size: 24,
                   ),
                 ),
@@ -75,12 +79,12 @@ class HabitListItem extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.secondaryCream,
+                    color: themeProvider.surfaceColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     LucideIcons.circle,
-                    color: AppColors.primaryOrange,
+                    color: themeProvider.primaryColor,
                     size: 24,
                   ),
                 ),
@@ -92,10 +96,10 @@ class HabitListItem extends StatelessWidget {
                 onTap: onEdit,
                 child: Text(
                   item.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.darkGrey,
+                    color: themeProvider.textPrimary,
                   ),
                 ),
               ),

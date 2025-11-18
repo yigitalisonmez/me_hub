@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/utils/validators.dart';
@@ -28,8 +29,14 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return AlertDialog(
-      title: const Text('Add New Todo'),
+      backgroundColor: themeProvider.cardColor,
+      title: Text(
+        'Add New Todo',
+        style: TextStyle(color: themeProvider.textPrimary),
+      ),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -38,6 +45,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
             children: [
               CustomTextField(
                 label: 'Title',
+                hint: 'What do you want to accomplish?',
                 controller: _titleController,
                 validator: (value) =>
                     Validators.required(value, fieldName: 'Title'),
@@ -61,15 +69,17 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   }
 
   Widget _buildPrioritySelector() {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Priority',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.darkGrey,
+            color: themeProvider.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -88,6 +98,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   Widget _buildPriorityOption(int priority, String label, Color color) {
     final isSelected = _selectedPriority == priority;
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Expanded(
       child: InkWell(
@@ -99,7 +110,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                 ? color.withValues(alpha: 0.1)
                 : Colors.transparent,
             border: Border.all(
-              color: isSelected ? color : AppColors.lightGrey,
+              color: isSelected ? color : themeProvider.borderColor,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -117,7 +128,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? color : AppColors.grey,
+                  color: isSelected ? color : themeProvider.textSecondary,
                 ),
               ),
             ],

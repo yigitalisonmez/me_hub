@@ -754,6 +754,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  smooth_gradient:
+    dependency: "direct main"
+    description:
+      name: smooth_gradient
+      sha256: a04846782f495997203bb9deaba6611751de86c8a865a6f84feb014793675c4a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0+1"
   source_gen:
     dependency: transitive
     description:

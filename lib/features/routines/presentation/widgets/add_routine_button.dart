@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 class AddRoutineButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -12,41 +13,28 @@ class AddRoutineButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    return SizedBox(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(LucideIcons.plus, size: 20, color: themeProvider.primaryColor),
+        label: Text(
+          'Add New Routine',
+          style: TextStyle(
+            color: themeProvider.primaryColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(LucideIcons.plus, color: AppColors.white),
-                SizedBox(width: 8),
-                Text(
-                  'Add New Routine',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: themeProvider.primaryColor,
+          backgroundColor: themeProvider.cardColor,
+          side: BorderSide(color: themeProvider.borderColor, width: 2),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
       ),

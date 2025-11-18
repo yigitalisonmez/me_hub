@@ -226,11 +226,16 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 16),
+              // Header
+              _buildTodayHeader(context),
+              const SizedBox(height: 24),
               const DailyQuoteWidget(),
+              const SizedBox(height: 20),
               _buildMainCard(context),
               const SizedBox(height: 20),
               _buildQuickActions(context),
@@ -239,6 +244,52 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTodayHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Daily Goals',
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: themeProvider.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Stay consistent & achieve',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: themeProvider.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () => context.read<TodoProvider>().loadTodayTodos(),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              LucideIcons.refreshCw,
+              color: themeProvider.primaryColor,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -296,31 +347,25 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    LucideIcons.sparkles,
+                    LucideIcons.target,
                     color: themeProvider.primaryColor,
-                    size: 24,
+                    size: 20,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Text(
                     'TODAY\'S GOALS',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: themeProvider.primaryColor,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    LucideIcons.sparkles,
-                    color: themeProvider.primaryColor,
-                    size: 24,
                   ),
                 ],
               ),
               Container(
                 height: 2,
-                width: 100,
+                width: 60,
                 margin: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: themeProvider.primaryColor,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/providers/theme_provider.dart';
 
 /// Özel text field widget'ı
 class CustomTextField extends StatefulWidget {
@@ -111,6 +113,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -118,7 +122,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           Text(
             widget.label!,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: _isFocused ? AppColors.primaryOrange : AppColors.darkGrey,
+              color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -140,21 +144,22 @@ class _CustomTextFieldState extends State<CustomTextField> {
           autofocus: widget.autofocus,
           textCapitalization: widget.textCapitalization,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: widget.enabled ? AppColors.darkGrey : AppColors.grey,
+            color: widget.enabled ? themeProvider.textPrimary : themeProvider.textSecondary,
           ),
           decoration: InputDecoration(
             hintText: widget.hint,
+            hintStyle: TextStyle(color: themeProvider.textSecondary),
             helperText: widget.helperText,
             errorText: widget.errorText,
             filled: true,
-            fillColor: widget.fillColor ?? AppColors.white,
+            fillColor: widget.fillColor ?? themeProvider.surfaceColor,
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,
-                    color: _isFocused ? AppColors.primaryOrange : AppColors.grey,
+                    color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
                   )
                 : widget.prefixWidget,
-            suffixIcon: _buildSuffixIcon(),
+            suffixIcon: _buildSuffixIcon(themeProvider),
             contentPadding: widget.contentPadding ?? const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
@@ -162,19 +167,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
             border: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                color: themeProvider.borderColor,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                color: themeProvider.borderColor,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: AppColors.primaryOrange,
+              borderSide: BorderSide(
+                color: themeProvider.primaryColor,
                 width: 2,
               ),
             ),
@@ -193,8 +198,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: AppColors.lightGrey,
+              borderSide: BorderSide(
+                color: themeProvider.borderColor.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -203,7 +208,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 
-  Widget? _buildSuffixIcon() {
+  Widget? _buildSuffixIcon(ThemeProvider themeProvider) {
     if (widget.suffixWidget != null) {
       return widget.suffixWidget;
     }
@@ -212,7 +217,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       return IconButton(
         icon: Icon(
           _isObscured ? LucideIcons.eyeOff : LucideIcons.eye,
-          color: AppColors.grey,
+          color: themeProvider.textSecondary,
         ),
         onPressed: _toggleObscureText,
       );
@@ -222,7 +227,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       return IconButton(
         icon: Icon(
           widget.suffixIcon,
-          color: _isFocused ? AppColors.primaryOrange : AppColors.grey,
+          color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
         ),
         onPressed: widget.onSuffixIconTap,
       );

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import '../theme/app_colors.dart';
+import '../providers/theme_provider.dart';
 
 /// A reusable wave progress bar widget
 class WaveProgressBar extends StatefulWidget {
   /// Progress value between 0.0 and 1.0
   final double progress;
 
-  /// Gradient for the progress fill
-  final Gradient gradient;
+  /// Gradient for the progress fill (optional, uses theme gradient if not provided)
+  final Gradient? gradient;
 
   /// Height of the progress bar
   final double height;
@@ -28,7 +29,7 @@ class WaveProgressBar extends StatefulWidget {
   const WaveProgressBar({
     super.key,
     required this.progress,
-    this.gradient = AppColors.primaryGradient,
+    this.gradient,
     this.height = 20,
     this.centerText,
     this.centerTextStyle,
@@ -62,15 +63,25 @@ class _WaveProgressBarState extends State<WaveProgressBar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    // Use provided gradient or theme-based gradient
+    final effectiveGradient = widget.gradient ?? themeProvider.primaryGradient;
+    
+    // Center text style - white for visibility in dark mode
     final defaultCenterTextStyle =
         widget.centerTextStyle ??
         theme.textTheme.bodySmall?.copyWith(
-          color: AppColors.darkGrey.withValues(alpha: 0.8),
+          color: themeProvider.textPrimary,
+          fontWeight: FontWeight.bold,
         );
+    
+    // Bottom text style - use textSecondary for better visibility
     final defaultBottomTextStyle =
         widget.bottomTextStyle ??
         theme.textTheme.bodySmall?.copyWith(
-          color: AppColors.darkGrey.withValues(alpha: 0.7),
+          color: themeProvider.textSecondary,
+          fontWeight: FontWeight.w500,
         );
 
     return Column(
@@ -94,7 +105,8 @@ class _WaveProgressBarState extends State<WaveProgressBar>
                           painter: _WaveProgressPainter(
                             progress: animatedProgress,
                             wavePhase: _waveController.value,
-                            gradient: widget.gradient,
+                            gradient: effectiveGradient,
+                            backgroundColor: themeProvider.surfaceColor,
                           ),
                           size: Size(double.infinity, widget.height),
                         ),
@@ -128,18 +140,20 @@ class _WaveProgressPainter extends CustomPainter {
   final double progress;
   final double wavePhase;
   final Gradient gradient;
+  final Color backgroundColor;
 
   _WaveProgressPainter({
     required this.progress,
     required this.wavePhase,
     required this.gradient,
+    required this.backgroundColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Background
+    // Background - use theme-aware color
     final bgPaint = Paint()
-      ..color = AppColors.primaryOrange.withValues(alpha: 0.12);
+      ..color = backgroundColor.withValues(alpha: 0.3);
     final bgRect = RRect.fromRectAndRadius(
       Offset.zero & size,
       const Radius.circular(10),

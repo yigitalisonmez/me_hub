@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:smooth_gradient/smooth_gradient.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/constants/routine_icons.dart';
@@ -118,47 +119,38 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
-    return Scaffold(
-      backgroundColor: themeProvider.backgroundColor,
-      body: SafeArea(
-        child: Consumer<RoutinesProvider>(
-          builder: (context, provider, _) {
-            final updatedRoutine =
-                provider.getRoutineById(widget.routine.id) ?? widget.routine;
 
-            return Column(
-              children: [
-                _buildHeader(context, updatedRoutine),
-                _buildHabitsList(context, provider, updatedRoutine),
-                _buildAddItemButton(context),
-              ],
-            );
-          },
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: SmoothGradient(
+            from: themeProvider.primaryColor.withValues(alpha: 0.3),
+            to: themeProvider.backgroundColor,
+            curve: Curves.easeInOut,
+          ),
+        ),
+        child: SafeArea(
+          child: Consumer<RoutinesProvider>(
+            builder: (context, provider, _) {
+              final updatedRoutine =
+                  provider.getRoutineById(widget.routine.id) ?? widget.routine;
+
+              return Column(
+                children: [
+                  _buildHeader(context, updatedRoutine),
+                  _buildHabitsList(context, provider, updatedRoutine),
+                  _buildAddItemButton(context),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, Routine routine) {
-    final themeProvider = context.watch<ThemeProvider>();
-    
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: const [0.0, 0.7],
-          colors: [
-            themeProvider.primaryColor.withValues(alpha: 0.1),
-            themeProvider.backgroundColor,
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
         children: [
@@ -176,7 +168,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildHeaderButtons(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -216,7 +208,11 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ],
           ),
           child: IconButton(
-            icon: Icon(LucideIcons.check, color: themeProvider.textPrimary, size: 20),
+            icon: Icon(
+              LucideIcons.check,
+              color: themeProvider.textPrimary,
+              size: 20,
+            ),
             onPressed: _saveRoutine,
           ),
         ),
@@ -226,7 +222,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildHeaderIcon(Routine routine) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Container(
       width: 56,
       height: 56,
@@ -256,7 +252,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildHeaderTitle(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Text(
       'Edit Routine',
       style: Theme.of(
@@ -268,7 +264,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   Widget _buildRoutineNameBadge(BuildContext context, Routine routine) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Material(
       elevation: 0.5,
       borderRadius: BorderRadius.circular(100),
@@ -354,11 +350,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildAddItemButton(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return SafeArea(
       top: false,
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: themeProvider.backgroundColor),
         child: SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -366,11 +363,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             icon: Icon(LucideIcons.plus, color: themeProvider.primaryColor),
             label: Text(
               'Add New Item',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: themeProvider.primaryColor),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: themeProvider.primaryColor,
+              ),
             ),
             style: OutlinedButton.styleFrom(
+              backgroundColor: themeProvider.cardColor,
               padding: const EdgeInsets.symmetric(vertical: 16),
               side: BorderSide(color: themeProvider.borderColor, width: 2),
               shape: RoundedRectangleBorder(
@@ -441,7 +439,7 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -498,9 +496,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             // Title field
             Text(
               'Habit Name',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: themeProvider.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -542,9 +540,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
             // Icon picker
             Text(
               'Icon',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: themeProvider.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -606,7 +604,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide(
-                        color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                        color: themeProvider.textSecondary.withValues(
+                          alpha: 0.3,
+                        ),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
@@ -629,7 +629,9 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: themeProvider.primaryColor.withValues(alpha: 0.3),
+                          color: themeProvider.primaryColor.withValues(
+                            alpha: 0.3,
+                          ),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),

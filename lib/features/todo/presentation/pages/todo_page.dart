@@ -24,16 +24,13 @@ class _TodoPageState extends State<TodoPage> {
   @override
   void initState() {
     super.initState();
-    print('🔵 TodoPage: initState() called');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔵 TodoPage: PostFrameCallback called');
       final provider = context.read<TodoProvider>();
       provider.loadTodayTodos().then((_) {
         // Initialize flag based on current state after loading
         if (mounted) {
           setState(() {
             _previousAllCompleted = provider.allTodosCompleted;
-            print('🔵 TodoPage: initState - Initial _previousAllCompleted set to: $_previousAllCompleted');
           });
         }
       });
@@ -42,100 +39,122 @@ class _TodoPageState extends State<TodoPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('🔵 TodoPage: build() called');
     final provider = context.watch<TodoProvider>();
-    print('🔵 TodoPage: context.watch called - provider obtained');
-    
+
     // Check if all todos are completed
     final isAllCompleted = provider.allTodosCompleted;
     final todosCount = provider.todos.length;
-    
-    print('🔵 TodoPage: Rebuild - isAllCompleted: $isAllCompleted, todosCount: $todosCount, _previousAllCompleted: $_previousAllCompleted');
-    print('🔵 TodoPage: Completed count: ${provider.completedCount}, Total count: ${provider.totalTodos}');
-    
-    // Debug: Print condition check
-    print('🔵 TodoPage: Condition check - !_previousAllCompleted: ${!_previousAllCompleted}, isAllCompleted: $isAllCompleted, todosCount > 0: ${todosCount > 0}');
-    
+
     // If all todos just became completed (wasn't before, but is now)
     if (!_previousAllCompleted && isAllCompleted && todosCount > 0) {
-      print('🟢 TodoPage: Condition met! All todos just completed!');
       // Update previous state BEFORE showing animation to prevent multiple triggers
       _previousAllCompleted = true;
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          print('🟢 TodoPage: All todos completed! Showing celebration dialog');
-          print('🟢 TodoPage: Total todos: $todosCount');
-          print('🟢 TodoPage: Completed todos: ${provider.completedCount}');
           _showCelebrationDialog(context);
         }
       });
     } else if (!isAllCompleted) {
       // Reset flag when todos become incomplete again
-      if (_previousAllCompleted) {
-        print('🟡 TodoPage: Todos became incomplete, resetting flag');
-      }
       _previousAllCompleted = false;
-    } else {
-      print('🔴 TodoPage: Condition NOT met - _previousAllCompleted: $_previousAllCompleted, isAllCompleted: $isAllCompleted');
     }
-    
+
     final themeProvider = context.watch<ThemeProvider>();
-    
-    return Scaffold(
-      backgroundColor: themeProvider.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: themeProvider.backgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
+
+    return Container(
+      decoration: BoxDecoration(color: themeProvider.backgroundColor),
+      child: SafeArea(
+        child: Consumer<TodoProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading && provider.todos.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (provider.error != null) {
+              return _buildErrorWidget(provider);
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  // Header
+                  _buildHeader(context),
+                  const SizedBox(height: 24),
+                  // Content
+                  provider.todos.isEmpty
+                      ? SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: _buildEmptyState(),
+                        )
+                      : _buildTodoList(provider),
+                  const SizedBox(height: 24),
+                  // Add button at bottom
+                  _buildAddButton(context, themeProvider),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Daily Goals',
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: themeProvider.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Stay consistent & achieve',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: themeProvider.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () => context.read<TodoProvider>().loadTodayTodos(),
+          child: Container(
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: themeProvider.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              LucideIcons.arrowLeft,
+              LucideIcons.refreshCw,
               color: themeProvider.primaryColor,
               size: 20,
             ),
           ),
-          onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          'Daily Goals',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: themeProvider.textPrimary,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  LucideIcons.refreshCw,
-                  color: themeProvider.primaryColor,
-                  size: 20,
-                ),
-              ),
-              onPressed: () => context.read<TodoProvider>().loadTodayTodos(),
-            ),
-          ),
-        ],
-      ),
-      body: provider.isLoading && provider.todos.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : provider.error != null
-              ? _buildErrorWidget(provider)
-              : _buildTodoList(provider),
-      floatingActionButton: Container(
+      ],
+    );
+  }
+
+  Widget _buildAddButton(BuildContext context, ThemeProvider themeProvider) {
+    return GestureDetector(
+      onTap: () => _showAddTodoDialog(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           gradient: themeProvider.primaryGradient,
           borderRadius: BorderRadius.circular(16),
@@ -147,17 +166,18 @@ class _TodoPageState extends State<TodoPage> {
             ),
           ],
         ),
-        child: FloatingActionButton.extended(
-          onPressed: () => _showAddTodoDialog(context),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: Icon(LucideIcons.plus, color: themeProvider.textPrimary),
-          label: Text(
-            'Add Goal',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: themeProvider.textPrimary,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.plus, color: themeProvider.textPrimary),
+            const SizedBox(width: 8),
+            Text(
+              'Add Goal',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: themeProvider.textPrimary,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -165,7 +185,7 @@ class _TodoPageState extends State<TodoPage> {
 
   Widget _buildErrorWidget(TodoProvider provider) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -202,61 +222,55 @@ class _TodoPageState extends State<TodoPage> {
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildDateHeader(context),
-        Expanded(
-          child: ListView.builder(
-            itemCount: provider.todos.length,
-            itemBuilder: (context, index) {
-              final todo = provider.todos[index];
-              return TodoItem(
-                todo: todo,
-                onToggle: () {
-                  print('🟡 TodoPage: onToggle called for todo: ${todo.title}');
-                  provider.toggleTodoCompletion(todo.id);
-                },
-                onDelete: () => _showDeleteDialog(context, provider, todo.id),
-              );
-            },
-          ),
-        ),
+        const SizedBox(height: 24),
+        ...provider.todos.map((todo) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TodoItem(
+              todo: todo,
+              onToggle: () => provider.toggleTodoCompletion(todo.id),
+              onDelete: () => _showDeleteDialog(context, provider, todo.id),
+            ),
+          );
+        }),
       ],
     );
   }
 
   Widget _buildEmptyState() {
     final themeProvider = context.watch<ThemeProvider>();
-    
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            LucideIcons.clipboardList,
-            size: 80,
-            color: themeProvider.primaryColor.withValues(alpha: 0.3),
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          LucideIcons.clipboardList,
+          size: 80,
+          color: themeProvider.primaryColor.withValues(alpha: 0.3),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'No todos yet',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: themeProvider.textSecondary,
           ),
-          const SizedBox(height: 24),
-          Text(
-            'No todos yet',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(color: themeProvider.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start by adding your first daily goal',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: themeProvider.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          CustomButton(
-            text: 'Add Todo',
-            onPressed: () => _showAddTodoDialog(context),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Start by adding your first daily goal',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: themeProvider.textSecondary),
+        ),
+        const SizedBox(height: 24),
+        CustomButton(
+          text: 'Add Todo',
+          onPressed: () => _showAddTodoDialog(context),
+        ),
+      ],
     );
   }
 
@@ -289,7 +303,6 @@ class _TodoPageState extends State<TodoPage> {
     ];
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         gradient: themeProvider.primaryGradient,
@@ -375,13 +388,11 @@ class _TodoPageState extends State<TodoPage> {
 
   void _showCelebrationDialog(BuildContext context) {
     final themeProvider = context.read<ThemeProvider>();
-    print('🟢 TodoPage: _showCelebrationDialog called');
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.7),
       barrierDismissible: true,
       builder: (context) {
-        print('🟢 TodoPage: Dialog builder called');
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -395,7 +406,6 @@ class _TodoPageState extends State<TodoPage> {
                 fit: BoxFit.contain,
                 repeat: false,
                 errorBuilder: (context, error, stackTrace) {
-                  print('🔴 TodoPage: Lottie error: $error');
                   return const Icon(
                     Icons.check_circle,
                     color: Colors.green,
