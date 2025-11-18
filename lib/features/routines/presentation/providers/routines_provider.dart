@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import '../../domain/usecases/usecases.dart';
 
@@ -82,15 +83,30 @@ class RoutinesProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addNewRoutine(String id, String name) async {
+  Future<void> addNewRoutine(
+    String name, {
+    int? iconCodePoint,
+    TimeOfDay? time,
+    List<int>? selectedDays,
+  }) async {
     final routine = Routine(
-      id: id,
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name,
       items: const [],
       streakCount: 0,
+      iconCodePoint: iconCodePoint,
+      timeHour: time?.hour,
+      timeMinute: time?.minute,
+      selectedDays: selectedDays,
     );
     await _addRoutine(routine);
     await loadRoutines();
+  }
+
+  /// Get routines active on a specific weekday
+  /// weekday: 0=Monday, 6=Sunday
+  List<Routine> getActiveRoutinesForDay(int weekday) {
+    return _routines.where((routine) => routine.isActiveOnDay(weekday)).toList();
   }
 
   /// Get routine by ID, returns null if not found

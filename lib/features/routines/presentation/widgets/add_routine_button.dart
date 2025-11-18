@@ -21,13 +21,13 @@ class AddRoutineButton extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(LucideIcons.plus, size: 20, color: themeProvider.primaryColor),
         label: Text(
-          'Add New Routine',
-          style: TextStyle(
+                  'Add New Routine',
+                  style: TextStyle(
             color: themeProvider.primaryColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         style: OutlinedButton.styleFrom(
           foregroundColor: themeProvider.primaryColor,
           backgroundColor: themeProvider.cardColor,

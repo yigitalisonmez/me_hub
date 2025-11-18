@@ -75,7 +75,7 @@ dependencies:
   
   # Glassmorphism UI
   glassmorphism: ^3.0.0
-  
+
   # Smooth Gradient
   smooth_gradient: ^0.2.0+1
 

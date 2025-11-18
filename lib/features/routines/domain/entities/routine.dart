@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 @HiveType(typeId: 10)
@@ -63,12 +64,28 @@ class Routine {
   @HiveField(4)
   final DateTime? lastStreakDate;
 
+  @HiveField(5)
+  final int? iconCodePoint; // Icon code point for the routine
+
+  @HiveField(6)
+  final int? timeHour; // Hour of the routine time (0-23)
+
+  @HiveField(7)
+  final int? timeMinute; // Minute of the routine time (0-59)
+
+  @HiveField(8)
+  final List<int>? selectedDays; // Days of week (0=Monday, 6=Sunday)
+
   const Routine({
     required this.id,
     required this.name,
     required this.items,
     this.streakCount = 0,
     this.lastStreakDate,
+    this.iconCodePoint,
+    this.timeHour,
+    this.timeMinute,
+    this.selectedDays,
   });
 
   Routine copyWith({
@@ -78,6 +95,13 @@ class Routine {
     int? streakCount,
     DateTime? lastStreakDate,
     bool clearLastStreakDate = false,
+    int? iconCodePoint,
+    bool clearIconCodePoint = false,
+    int? timeHour,
+    int? timeMinute,
+    bool clearTime = false,
+    List<int>? selectedDays,
+    bool clearSelectedDays = false,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -87,7 +111,31 @@ class Routine {
       lastStreakDate: clearLastStreakDate
           ? null
           : (lastStreakDate ?? this.lastStreakDate),
+      iconCodePoint: clearIconCodePoint
+          ? null
+          : (iconCodePoint ?? this.iconCodePoint),
+      timeHour: clearTime ? null : (timeHour ?? this.timeHour),
+      timeMinute: clearTime ? null : (timeMinute ?? this.timeMinute),
+      selectedDays: clearSelectedDays
+          ? null
+          : (selectedDays ?? this.selectedDays),
     );
+  }
+
+  /// Get TimeOfDay from stored hour and minute
+  TimeOfDay? get time {
+    if (timeHour == null || timeMinute == null) return null;
+    return TimeOfDay(hour: timeHour!, minute: timeMinute!);
+  }
+
+  /// Check if routine is active on a specific weekday
+  /// weekday: 0=Monday, 6=Sunday
+  bool isActiveOnDay(int weekday) {
+    if (selectedDays == null || selectedDays!.isEmpty) {
+      // If no days selected, routine is active on all days (backward compatibility)
+      return true;
+    }
+    return selectedDays!.contains(weekday);
   }
 
   bool allItemsCheckedToday(DateTime today) {
@@ -163,13 +211,17 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       items: (fields[2] as List).cast<RoutineItem>(),
       streakCount: fields[3] as int,
       lastStreakDate: fields[4] as DateTime?,
+      iconCodePoint: fields[5] as int?,
+      timeHour: fields[6] as int?,
+      timeMinute: fields[7] as int?,
+      selectedDays: fields[8] as List<int>?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Routine obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -179,6 +231,14 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       ..writeByte(3)
       ..write(obj.streakCount)
       ..writeByte(4)
-      ..write(obj.lastStreakDate);
+      ..write(obj.lastStreakDate)
+      ..writeByte(5)
+      ..write(obj.iconCodePoint)
+      ..writeByte(6)
+      ..write(obj.timeHour)
+      ..writeByte(7)
+      ..write(obj.timeMinute)
+      ..writeByte(8)
+      ..write(obj.selectedDays);
   }
 }

@@ -5,6 +5,7 @@ import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/add_item_dialog.dart';
 import '../pages/edit_routine_page.dart';
+import '../pages/create_routine_page.dart';
 
 class RoutineDialogs {
   RoutineDialogs._();
@@ -55,33 +56,11 @@ class RoutineDialogs {
   }
 
   static Future<void> showAddRoutine(BuildContext context) async {
-    final provider = context.read<RoutinesProvider>();
-    final controller = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('New Routine'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Routine name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Create'),
-          ),
-        ],
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateRoutinePage(),
       ),
     );
-    if (ok == true && controller.text.trim().isNotEmpty) {
-      await provider.addNewRoutine(
-        DateTime.now().microsecondsSinceEpoch.toString(),
-        controller.text.trim(),
-      );
-    }
   }
 }

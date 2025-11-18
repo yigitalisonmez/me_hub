@@ -80,8 +80,10 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   // Hero Header
                   _buildHeroHeader(context, provider),
                   const SizedBox(height: 24),
-                  // Routine Cards
-                  ...provider.routines.map(
+                  // Routine Cards - Filter by active days
+                  ...provider.getActiveRoutinesForDay(
+                    DateTime.now().weekday - 1, // Convert to 0-6 format
+                  ).map(
                     (r) => _buildRoutineCard(context, r, provider),
                   ),
                   const SizedBox(height: 24),
@@ -146,13 +148,17 @@ class _RoutinesPageState extends State<RoutinesPage> {
     final themeProvider = context.watch<ThemeProvider>();
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
+    // Filter routines by active days
+    final activeRoutines = provider.getActiveRoutinesForDay(
+      DateTime.now().weekday - 1, // Convert to 0-6 format
+    );
     int totalItems = 0;
     int completedToday = 0;
-    for (final r in provider.routines) {
+    for (final r in activeRoutines) {
       totalItems += r.items.length;
       completedToday += r.items.where((i) => i.isCheckedToday(today)).length;
     }
-    final totalRoutines = provider.routines.length;
+    final totalRoutines = activeRoutines.length;
     final completionRate = totalItems == 0 ? 0.0 : completedToday / totalItems;
 
     return Container(
