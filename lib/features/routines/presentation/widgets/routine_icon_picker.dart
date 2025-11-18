@@ -57,7 +57,11 @@ class RoutineIconPicker extends StatelessWidget {
                             : themeProvider.cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: themeProvider.primaryColor,
+                          color: themeProvider.isDarkMode
+                              ? themeProvider.textSecondary.withValues(
+                                  alpha: 0.3,
+                                )
+                              : themeProvider.primaryColor,
                           width: isSelected ? 2 : 1.5,
                         ),
                       ),
@@ -76,7 +80,9 @@ class RoutineIconPicker extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              iconName,
+                              iconName.isNotEmpty
+                                  ? '${iconName[0].toUpperCase()}${iconName.substring(1)}'
+                                  : iconName,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: isSelected

@@ -11,6 +11,7 @@ import '../widgets/routine_item_widget.dart';
 import '../widgets/add_item_button.dart';
 import '../widgets/add_routine_button.dart';
 import '../utils/routine_dialogs.dart';
+import '../../../../core/constants/routine_icons.dart';
 
 class RoutinesPage extends StatefulWidget {
   const RoutinesPage({super.key});
@@ -31,7 +32,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Container(
       decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
@@ -81,11 +82,11 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   _buildHeroHeader(context, provider),
                   const SizedBox(height: 24),
                   // Routine Cards - Filter by active days
-                  ...provider.getActiveRoutinesForDay(
-                    DateTime.now().weekday - 1, // Convert to 0-6 format
-                  ).map(
-                    (r) => _buildRoutineCard(context, r, provider),
-                  ),
+                  ...provider
+                      .getActiveRoutinesForDay(
+                        DateTime.now().weekday - 1, // Convert to 0-6 format
+                      )
+                      .map((r) => _buildRoutineCard(context, r, provider)),
                   const SizedBox(height: 24),
                   // Add Routine Button
                   AddRoutineButton(
@@ -104,7 +105,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,9 +261,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
           // Date
           Text(
             '${today.day}.${today.month}.${today.year}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: themeProvider.textSecondary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: themeProvider.textSecondary),
           ),
         ],
       ),
@@ -277,7 +278,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   ) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: progress),
       duration: const Duration(milliseconds: 1200),
@@ -350,7 +351,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   ) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -418,73 +419,155 @@ class _RoutinesPageState extends State<RoutinesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: () => provider.toggleRoutineExpansion(routine.id),
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      routine.name,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: themeProvider.textPrimary,
-                      ),
+          // Header with icon, name, time and actions
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Icon
+                if (routine.iconCodePoint != null)
+                  Container(
+                    width: 56,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: themeProvider.primaryColor,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  StreakBadge(count: routine.streakCount),
-                  const SizedBox(width: 4),
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      LucideIcons.ellipsisVertical,
-                      color: themeProvider.primaryColor.withValues(alpha: 0.7),
-                      size: 24,
-                    ),
-                    onSelected: (v) async {
-                      if (v == 'edit') {
-                        RoutineDialogs.showEditRoutine(context, routine);
-                      } else if (v == 'delete') {
-                        RoutineDialogs.showDeleteRoutine(context, routine);
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(LucideIcons.pencil, size: 20, color: themeProvider.textPrimary),
-                            const SizedBox(width: 8),
-                            Text('Edit', style: TextStyle(color: themeProvider.textPrimary)),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            const Icon(LucideIcons.trash2, size: 20, color: AppColors.error),
-                            const SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: themeProvider.textPrimary)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
                     child: Icon(
-                      LucideIcons.chevronDown,
-                      color: themeProvider.primaryColor.withValues(alpha: 0.7),
+                      RoutineIcons.getIconFromCodePoint(
+                            routine.iconCodePoint!,
+                          ) ??
+                          LucideIcons.circle,
+                      color: Colors.white,
                       size: 28,
                     ),
                   ),
-                ],
-              ),
+                // Name and time
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        routine.name,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: themeProvider.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (routine.time != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.clock,
+                              size: 14,
+                              color: themeProvider.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatTime(routine.time!),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: themeProvider.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                // Actions
+                Row(
+                  children: [
+                    StreakBadge(count: routine.streakCount),
+                    const SizedBox(width: 4),
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        LucideIcons.ellipsisVertical,
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.7,
+                        ),
+                        size: 24,
+                      ),
+                      onSelected: (v) async {
+                        if (v == 'edit') {
+                          RoutineDialogs.showEditRoutine(context, routine);
+                        } else if (v == 'delete') {
+                          RoutineDialogs.showDeleteRoutine(context, routine);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(
+                                LucideIcons.pencil,
+                                size: 20,
+                                color: themeProvider.textPrimary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Edit',
+                                style: TextStyle(
+                                  color: themeProvider.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.trash2,
+                                size: 20,
+                                color: AppColors.error,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: themeProvider.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () => provider.toggleRoutineExpansion(routine.id),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: AnimatedRotation(
+                          turns: isExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 300),
+                          child: Icon(
+                            LucideIcons.chevronDown,
+                            color: themeProvider.primaryColor.withValues(
+                              alpha: 0.7,
+                            ),
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
+          // Days selector
+          if (routine.selectedDays != null &&
+              routine.selectedDays!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildDaysIndicator(routine.selectedDays!, themeProvider),
+          ],
+          const SizedBox(height: 12),
           // Progress bar always visible
           WaveProgressBar(
             progress: pct,
@@ -540,5 +623,52 @@ class _RoutinesPageState extends State<RoutinesPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildDaysIndicator(
+    List<int> selectedDays,
+    ThemeProvider themeProvider,
+  ) {
+    const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    // Get today's index (0=Monday, 6=Sunday)
+    final todayIndex = (DateTime.now().weekday - 1) % 7;
+
+    return Row(
+      children: List.generate(7, (index) {
+        final isSelected = selectedDays.contains(index);
+        final isToday = index == todayIndex;
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
+            height: 32,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? themeProvider.surfaceColor
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: isToday && isSelected
+                  ? Border.all(color: themeProvider.primaryColor, width: 1.5)
+                  : null,
+            ),
+            child: Center(
+              child: Text(
+                dayAbbreviations[index],
+                style: TextStyle(
+                  color: isSelected
+                      ? themeProvider.primaryColor
+                      : themeProvider.textSecondary,
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  String _formatTime(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 }

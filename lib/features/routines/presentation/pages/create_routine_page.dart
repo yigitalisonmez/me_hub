@@ -166,34 +166,54 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: 60),
           // Large icon display
           Center(
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: _selectedIconCodePoint != null
-                    ? themeProvider.primaryColor.withValues(alpha: 0.15)
-                    : themeProvider.surfaceColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: _selectedIconCodePoint != null
-                      ? themeProvider.primaryColor
-                      : themeProvider.borderColor,
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                _selectedIconCodePoint != null
-                    ? (RoutineIcons.getIconFromCodePoint(
-                            _selectedIconCodePoint!,
-                          ) ??
-                          RoutineIcons.allIcons[0]['icon'] as IconData)
-                    : RoutineIcons.allIcons[0]['icon'] as IconData,
-                color: themeProvider.primaryColor,
-                size: 60,
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final screenWidth = MediaQuery.of(context).size.width;
+                final iconContainerSize =
+                    screenWidth * 0.35; // Ekran genişliğinin %30'u
+                final iconSize =
+                    iconContainerSize * 0.5; // Container boyutunun %50'si
+
+                return Container(
+                  width: iconContainerSize,
+                  height: iconContainerSize,
+                  decoration: BoxDecoration(
+                    color: _selectedIconCodePoint != null
+                        ? themeProvider.backgroundColor
+                        : themeProvider.surfaceColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _selectedIconCodePoint != null
+                          ? themeProvider.primaryColor
+                          : themeProvider.borderColor,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.3,
+                        ),
+                        blurRadius: 12,
+                        spreadRadius: 4,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    _selectedIconCodePoint != null
+                        ? (RoutineIcons.getIconFromCodePoint(
+                                _selectedIconCodePoint!,
+                              ) ??
+                              RoutineIcons.allIcons[0]['icon'] as IconData)
+                        : RoutineIcons.allIcons[0]['icon'] as IconData,
+                    color: themeProvider.primaryColor,
+                    size: iconSize,
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 32),
@@ -208,8 +228,15 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
               vertical: 20,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           // Icon picker
+          Text(
+            'Select Icon',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+          ),
+          const SizedBox(height: 12),
           RoutineIconPicker(
             selectedIconCodePoint: _selectedIconCodePoint,
             onIconSelected: (codePoint) {

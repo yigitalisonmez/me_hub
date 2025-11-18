@@ -21,25 +21,37 @@ class RoutineIcons {
   }
 
   static final List<Map<String, dynamic>> allIcons = [
-    // Health & Fitness
-    {'icon': LucideIcons.droplet, 'name': 'water'},
-    {'icon': LucideIcons.droplets, 'name': 'hydrate'},
-    {'icon': LucideIcons.dumbbell, 'name': 'fitness'},
-    {'icon': LucideIcons.heart, 'name': 'health'},
-    {'icon': LucideIcons.heartPulse, 'name': 'heart rate'},
-    {'icon': LucideIcons.activity, 'name': 'activity'},
-    {'icon': LucideIcons.zap, 'name': 'energy'},
-    {'icon': LucideIcons.flame, 'name': 'burn'},
-    {'icon': LucideIcons.trophy, 'name': 'trophy'},
-    {'icon': LucideIcons.target, 'name': 'target'},
-    {'icon': LucideIcons.award, 'name': 'award'},
-    {'icon': LucideIcons.move, 'name': 'exercise'},
-    {'icon': LucideIcons.bike, 'name': 'bike'},
+    // Time of Day - En başta zaman iconları
+    {'icon': LucideIcons.sunrise, 'name': 'morning'},
+    {'icon': LucideIcons.sun, 'name': 'noon'},
+    {'icon': LucideIcons.sunset, 'name': 'evening'},
+    {'icon': LucideIcons.moon, 'name': 'night'},
     
-    // Food & Drink
+    // Education & Study - Ders/Eğitim iconları
+    {'icon': LucideIcons.book, 'name': 'book'},
+    {'icon': LucideIcons.bookOpen, 'name': 'reading'},
+    {'icon': LucideIcons.graduationCap, 'name': 'school'},
+    {'icon': LucideIcons.library, 'name': 'library'},
+    {'icon': LucideIcons.pencil, 'name': 'writing'},
+    {'icon': LucideIcons.penTool, 'name': 'drawing'},
+    {'icon': LucideIcons.fileText, 'name': 'homework'},
+    {'icon': LucideIcons.clipboardList, 'name': 'planning'},
+    {'icon': LucideIcons.clipboard, 'name': 'tasks'},
+    {'icon': LucideIcons.stickyNote, 'name': 'notes'},
+    {'icon': LucideIcons.bookMarked, 'name': 'bookmark'},
+    
+    // Daily Routines - Genel günlük rutinler
+    {'icon': LucideIcons.droplet, 'name': 'water'},
     {'icon': LucideIcons.coffee, 'name': 'coffee'},
     {'icon': LucideIcons.utensils, 'name': 'meal'},
-    {'icon': LucideIcons.utensilsCrossed, 'name': 'dining'},
+    {'icon': LucideIcons.showerHead, 'name': 'shower'},
+    {'icon': LucideIcons.briefcase, 'name': 'work'},
+    {'icon': LucideIcons.laptop, 'name': 'laptop'},
+    {'icon': LucideIcons.monitor, 'name': 'computer'},
+    
+    // Food & Drink
+    {'icon': LucideIcons.droplets, 'name': 'hydration'},
+    {'icon': LucideIcons.utensilsCrossed, 'name': 'dinner'},
     {'icon': LucideIcons.pizza, 'name': 'pizza'},
     {'icon': LucideIcons.sandwich, 'name': 'sandwich'},
     {'icon': LucideIcons.salad, 'name': 'salad'},
@@ -57,33 +69,29 @@ class RoutineIcons {
     {'icon': LucideIcons.soup, 'name': 'soup'},
     
     // Sleep & Rest
-    {'icon': LucideIcons.moon, 'name': 'moon'},
-    {'icon': LucideIcons.bed, 'name': 'bed'},
+    {'icon': LucideIcons.bed, 'name': 'sleep'},
     {'icon': LucideIcons.bedDouble, 'name': 'rest'},
     {'icon': LucideIcons.bedSingle, 'name': 'nap'},
     
-    // Work & Study
-    {'icon': LucideIcons.briefcase, 'name': 'work'},
-    {'icon': LucideIcons.laptop, 'name': 'laptop'},
-    {'icon': LucideIcons.monitor, 'name': 'computer'},
-    {'icon': LucideIcons.book, 'name': 'book'},
-    {'icon': LucideIcons.bookOpen, 'name': 'read'},
-    {'icon': LucideIcons.bookMarked, 'name': 'bookmark'},
-    {'icon': LucideIcons.graduationCap, 'name': 'education'},
-    {'icon': LucideIcons.library, 'name': 'library'},
-    {'icon': LucideIcons.pencil, 'name': 'pencil'},
-    {'icon': LucideIcons.penTool, 'name': 'pen'},
-    {'icon': LucideIcons.fileText, 'name': 'document'},
-    {'icon': LucideIcons.clipboardList, 'name': 'checklist'},
-    {'icon': LucideIcons.clipboard, 'name': 'clipboard'},
-    {'icon': LucideIcons.stickyNote, 'name': 'notes'},
+    // Health & Fitness
+    {'icon': LucideIcons.dumbbell, 'name': 'fitness'},
+    {'icon': LucideIcons.heart, 'name': 'health'},
+    {'icon': LucideIcons.heartPulse, 'name': 'heart rate'},
+    {'icon': LucideIcons.activity, 'name': 'activity'},
+    {'icon': LucideIcons.zap, 'name': 'energy'},
+    {'icon': LucideIcons.flame, 'name': 'calories'},
+    {'icon': LucideIcons.trophy, 'name': 'trophy'},
+    {'icon': LucideIcons.target, 'name': 'goal'},
+    {'icon': LucideIcons.award, 'name': 'achievement'},
+    {'icon': LucideIcons.move, 'name': 'workout'},
+    {'icon': LucideIcons.bike, 'name': 'cycling'},
     
     // Time & Planning
     {'icon': LucideIcons.clock, 'name': 'clock'},
     {'icon': LucideIcons.timer, 'name': 'timer'},
     {'icon': LucideIcons.alarmClock, 'name': 'alarm'},
     {'icon': LucideIcons.calendar, 'name': 'calendar'},
-    {'icon': LucideIcons.calendarDays, 'name': 'days'},
+    {'icon': LucideIcons.calendarDays, 'name': 'weekly'},
     {'icon': LucideIcons.calendarCheck, 'name': 'schedule'},
     {'icon': LucideIcons.hourglass, 'name': 'hourglass'},
     {'icon': LucideIcons.watch, 'name': 'watch'},
@@ -113,9 +121,9 @@ class RoutineIcons {
     {'icon': LucideIcons.phoneCall, 'name': 'call'},
     {'icon': LucideIcons.video, 'name': 'video'},
     {'icon': LucideIcons.bell, 'name': 'notification'},
-    {'icon': LucideIcons.bellRing, 'name': 'alert'},
-    {'icon': LucideIcons.megaphone, 'name': 'announce'},
-    {'icon': LucideIcons.mic, 'name': 'microphone'},
+    {'icon': LucideIcons.bellRing, 'name': 'reminder'},
+    {'icon': LucideIcons.megaphone, 'name': 'announcement'},
+    {'icon': LucideIcons.mic, 'name': 'recording'},
     
     // Home & Living
     {'icon': LucideIcons.house, 'name': 'home'},
@@ -141,14 +149,14 @@ class RoutineIcons {
     {'icon': LucideIcons.camera, 'name': 'camera'},
     {'icon': LucideIcons.image, 'name': 'photo'},
     {'icon': LucideIcons.palette, 'name': 'art'},
-    {'icon': LucideIcons.paintbrush, 'name': 'paint'},
-    {'icon': LucideIcons.scissors, 'name': 'craft'},
+    {'icon': LucideIcons.paintbrush, 'name': 'painting'},
+    {'icon': LucideIcons.scissors, 'name': 'crafting'},
     
     // Shopping & Money
     {'icon': LucideIcons.shoppingCart, 'name': 'shopping'},
-    {'icon': LucideIcons.shoppingBag, 'name': 'bag'},
+    {'icon': LucideIcons.shoppingBag, 'name': 'shopping bag'},
     {'icon': LucideIcons.wallet, 'name': 'wallet'},
-    {'icon': LucideIcons.creditCard, 'name': 'card'},
+    {'icon': LucideIcons.creditCard, 'name': 'payment'},
     {'icon': LucideIcons.banknote, 'name': 'money'},
     {'icon': LucideIcons.coins, 'name': 'coins'},
     {'icon': LucideIcons.piggyBank, 'name': 'savings'},
