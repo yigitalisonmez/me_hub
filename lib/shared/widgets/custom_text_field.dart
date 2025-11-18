@@ -35,6 +35,7 @@ class CustomTextField extends StatefulWidget {
   final EdgeInsets? contentPadding;
   final bool autofocus;
   final TextCapitalization textCapitalization;
+  final TextAlign? textAlign;
 
   const CustomTextField({
     super.key,
@@ -66,6 +67,7 @@ class CustomTextField extends StatefulWidget {
     this.contentPadding,
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.none,
+    this.textAlign,
   });
 
   @override
@@ -143,6 +145,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           inputFormatters: widget.inputFormatters,
           autofocus: widget.autofocus,
           textCapitalization: widget.textCapitalization,
+          textAlign: widget.textAlign ?? TextAlign.start,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: widget.enabled ? themeProvider.textPrimary : themeProvider.textSecondary,
           ),

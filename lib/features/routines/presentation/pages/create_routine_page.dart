@@ -25,6 +25,16 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
   List<int> _selectedDays = [];
 
   @override
+  void initState() {
+    super.initState();
+    // Set default icon (first icon from RoutineIcons)
+    if (RoutineIcons.allIcons.isNotEmpty) {
+      final defaultIcon = RoutineIcons.allIcons[0]['icon'] as IconData;
+      _selectedIconCodePoint = defaultIcon.codePoint;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -42,9 +52,9 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     } else if (_currentStep == 1) {
       // Validate step 2: time must be selected
       if (_selectedTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a time')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please select a time')));
         return;
       }
     } else if (_currentStep == 2) {
@@ -125,10 +135,7 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
             decoration: BoxDecoration(
               color: themeProvider.cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: themeProvider.borderColor,
-                width: 1.5,
-              ),
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
             ),
             child: Icon(
               LucideIcons.arrowLeft,
@@ -137,19 +144,17 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Icon(
-          LucideIcons.sparkles,
-          color: themeProvider.primaryColor,
-          size: 20,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Create Routine',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: themeProvider.textPrimary,
+        Expanded(
+          child: Center(
+            child: Text(
+              'Create Routine',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: themeProvider.textPrimary,
+              ),
+            ),
           ),
         ),
+        const SizedBox(width: 40), // Balance the back button
       ],
     );
   }
@@ -165,8 +170,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
           // Large icon display
           Center(
             child: Container(
-              width: 100,
-              height: 100,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
                 color: _selectedIconCodePoint != null
                     ? themeProvider.primaryColor.withValues(alpha: 0.15)
@@ -179,37 +184,32 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                   width: 2,
                 ),
               ),
-              child: _selectedIconCodePoint != null
-                  ? Icon(
-                      RoutineIcons.getIconFromCodePoint(_selectedIconCodePoint!) ??
-                          LucideIcons.circle,
-                      color: themeProvider.primaryColor,
-                      size: 50,
-                    )
-                  : Icon(
-                      LucideIcons.circle,
-                      color: themeProvider.textSecondary,
-                      size: 50,
-                    ),
+              child: Icon(
+                _selectedIconCodePoint != null
+                    ? (RoutineIcons.getIconFromCodePoint(
+                            _selectedIconCodePoint!,
+                          ) ??
+                          RoutineIcons.allIcons[0]['icon'] as IconData)
+                    : RoutineIcons.allIcons[0]['icon'] as IconData,
+                color: themeProvider.primaryColor,
+                size: 60,
+              ),
             ),
           ),
           const SizedBox(height: 32),
           // Name input
           CustomTextField(
-            label: 'Routine Name',
             hint: 'Enter routine name...',
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
+            textAlign: TextAlign.center,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 20,
+            ),
           ),
           const SizedBox(height: 24),
           // Icon picker
-          Text(
-            'Select Icon',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: themeProvider.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
           RoutineIconPicker(
             selectedIconCodePoint: _selectedIconCodePoint,
             onIconSelected: (codePoint) {
@@ -332,8 +332,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                 child: _currentStep == 0
                     ? _buildStep1()
                     : _currentStep == 1
-                        ? _buildStep2()
-                        : _buildStep3(),
+                    ? _buildStep2()
+                    : _buildStep3(),
               ),
             ),
             // Bottom buttons
@@ -356,9 +356,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                       ),
                       child: Text(
                         'Back',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: themeProvider.textPrimary,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: themeProvider.textPrimary),
                       ),
                     ),
                   ),
@@ -386,9 +385,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                           if (_currentStep == 2) const SizedBox(width: 8),
                           Text(
                             _currentStep == 2 ? 'Create Routine' : 'Continue',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: themeProvider.textPrimary,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: themeProvider.textPrimary),
                           ),
                         ],
                       ),
@@ -403,4 +401,3 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     );
   }
 }
-
