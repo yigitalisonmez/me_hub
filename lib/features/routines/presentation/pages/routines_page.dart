@@ -431,7 +431,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
                       color: themeProvider.primaryColor,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       RoutineIcons.getIconFromCodePoint(

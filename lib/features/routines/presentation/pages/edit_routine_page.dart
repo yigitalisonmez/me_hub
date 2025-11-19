@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:smooth_gradient/smooth_gradient.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/constants/routine_icons.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/icon_picker_dialog.dart';
 import '../widgets/habit_list_item.dart';
 import '../widgets/add_item_dialog.dart';
+import '../widgets/routine_icon_picker.dart';
+import '../widgets/routine_time_picker.dart';
+import '../utils/routine_dialogs.dart';
 
 class EditRoutinePage extends StatefulWidget {
   final Routine routine;
@@ -22,11 +25,17 @@ class EditRoutinePage extends StatefulWidget {
 
 class _EditRoutinePageState extends State<EditRoutinePage> {
   late TextEditingController _nameController;
+  int? _selectedIconCodePoint;
+  TimeOfDay? _selectedTime;
+  late List<int> _selectedDays;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.routine.name);
+    _selectedIconCodePoint = widget.routine.iconCodePoint;
+    _selectedTime = widget.routine.time;
+    _selectedDays = List<int>.from(widget.routine.selectedDays ?? []);
   }
 
   @override
@@ -99,17 +108,18 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Future<void> _saveRoutine() async {
     final provider = context.read<RoutinesProvider>();
-    final error = await provider.updateRoutineName(
-      widget.routine.id,
-      _nameController.text,
+    final currentRoutine =
+        provider.getRoutineById(widget.routine.id) ?? widget.routine;
+
+    final updatedRoutine = currentRoutine.copyWith(
+      name: _nameController.text.trim(),
+      iconCodePoint: _selectedIconCodePoint,
+      timeHour: _selectedTime?.hour,
+      timeMinute: _selectedTime?.minute,
+      selectedDays: _selectedDays,
     );
 
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
-      return;
-    }
+    await provider.updateRoutine(updatedRoutine);
 
     if (mounted) {
       Navigator.pop(context);
@@ -120,30 +130,32 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: SmoothGradient(
-            from: themeProvider.primaryColor.withValues(alpha: 0.3),
-            to: themeProvider.backgroundColor,
-            curve: Curves.easeInOut,
-          ),
-        ),
-        child: SafeArea(
-          child: Consumer<RoutinesProvider>(
-            builder: (context, provider, _) {
-              final updatedRoutine =
-                  provider.getRoutineById(widget.routine.id) ?? widget.routine;
+    return Material(
+      color: themeProvider.backgroundColor,
+      child: SafeArea(
+        child: Consumer<RoutinesProvider>(
+          builder: (context, provider, _) {
+            final updatedRoutine =
+                provider.getRoutineById(widget.routine.id) ?? widget.routine;
 
-              return Column(
-                children: [
-                  _buildHeader(context, updatedRoutine),
-                  _buildHabitsList(context, provider, updatedRoutine),
-                  _buildAddItemButton(context),
-                ],
-              );
-            },
-          ),
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildHeader(context, updatedRoutine),
+                        _buildRoutineSettings(context),
+                        const SizedBox(height: 16),
+                        _buildHabitsSection(context, provider, updatedRoutine),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildAddItemButton(context),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -222,32 +234,113 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildHeaderIcon(Routine routine) {
     final themeProvider = context.watch<ThemeProvider>();
+    final icon = _selectedIconCodePoint != null
+        ? RoutineIcons.getIconFromCodePoint(_selectedIconCodePoint!)
+        : null;
 
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Icon(
-        routine.items.isNotEmpty && routine.items.first.iconCodePoint != null
-            ? (RoutineIcons.getIconFromCodePoint(
-                    routine.items.first.iconCodePoint!,
-                  ) ??
-                  LucideIcons.sun)
-            : LucideIcons.sun,
-        color: themeProvider.primaryColor,
-        size: 28,
+    return GestureDetector(
+      onTap: () => _pickRoutineIcon(context),
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: _selectedIconCodePoint != null
+              ? themeProvider.primaryColor
+              : themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: themeProvider.primaryColor, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: themeProvider.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              spreadRadius: 2,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon ?? LucideIcons.circle,
+          color: _selectedIconCodePoint != null
+              ? Colors.white
+              : themeProvider.primaryColor,
+          size: 40,
+        ),
       ),
     );
+  }
+
+  Future<void> _pickRoutineIcon(BuildContext context) async {
+    final iconCodePoint = await showDialog<int>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxHeight = MediaQuery.of(context).size.height * 0.7;
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: maxHeight,
+                maxWidth: constraints.maxWidth,
+              ),
+              decoration: BoxDecoration(
+                color: context.watch<ThemeProvider>().cardColor,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Select Icon',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: context
+                                    .watch<ThemeProvider>()
+                                    .textPrimary,
+                              ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            LucideIcons.x,
+                            color: context.watch<ThemeProvider>().textSecondary,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: SizedBox(
+                      height: maxHeight * 0.6,
+                      child: RoutineIconPicker(
+                        selectedIconCodePoint: _selectedIconCodePoint,
+                        onIconSelected: (codePoint) {
+                          setState(() {
+                            _selectedIconCodePoint = codePoint;
+                          });
+                          Navigator.pop(context, codePoint);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    if (iconCodePoint != null) {
+      setState(() {
+        _selectedIconCodePoint = iconCodePoint;
+      });
+    }
   }
 
   Widget _buildHeaderTitle(BuildContext context) {
@@ -299,52 +392,243 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Widget _buildHabitsList(
+  Widget _buildRoutineSettings(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: themeProvider.borderColor, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name field
+          Text(
+            'Routine Name',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+          ),
+          const SizedBox(height: 12),
+          CustomTextField(
+            hint: 'Enter routine name...',
+            controller: _nameController,
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 20),
+          // Time picker
+          Text(
+            'Time',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+          ),
+          const SizedBox(height: 12),
+          RoutineTimePicker(
+            selectedTime: _selectedTime,
+            onTimeSelected: (time) {
+              setState(() {
+                _selectedTime = time;
+              });
+            },
+          ),
+          const SizedBox(height: 20),
+          // Days selector
+          Text(
+            'Active Days',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
+          ),
+          const SizedBox(height: 12),
+          _buildCompactDaysSelector(context),
+          const SizedBox(height: 32),
+          // Delete button
+          _buildDeleteButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showDeleteRoutineDialog(context),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.red.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.trash2, color: Colors.red, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Delete Routine',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDeleteRoutineDialog(BuildContext context) async {
+    final confirmed = await RoutineDialogs.showDeleteRoutine(
+      context,
+      widget.routine,
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  Widget _buildHabitsSection(
     BuildContext context,
     RoutinesProvider provider,
     Routine routine,
   ) {
-    return Expanded(
-      child: ReorderableListView.builder(
-        key: ValueKey('habits_list_${routine.id}_${routine.items.length}'),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: routine.items.length,
-        onReorder: (oldIndex, newIndex) {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
-          provider.reorderItems(widget.routine.id, oldIndex, newIndex);
-        },
-        proxyDecorator: (child, index, animation) {
-          final themeProvider = context.watch<ThemeProvider>();
-          final item = routine.items[index];
-          return Material(
-            color: themeProvider.cardColor,
-            elevation: 8,
-            borderRadius: BorderRadius.circular(16),
-            clipBehavior: Clip.antiAlias,
-            child: HabitListItem(
-              item: item,
-              index: index,
-              onDelete: () => _confirmDeleteItem(context, item),
-              onEdit: () => _editHabit(context, item),
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Habits',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: themeProvider.textPrimary),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
             ),
-          );
-        },
-        itemBuilder: (context, index) {
-          final item = routine.items[index];
-          return Padding(
-            key: ValueKey(item.id),
-            padding: const EdgeInsets.only(bottom: 12),
-            child: HabitListItem(
-              item: item,
-              index: index,
-              onDelete: () => _confirmDeleteItem(context, item),
-              onEdit: () => _editHabit(context, item),
+            decoration: BoxDecoration(
+              color: themeProvider.cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: themeProvider.borderColor, width: 1.5),
             ),
-          );
-        },
+            child: ReorderableListView.builder(
+              key: ValueKey(
+                'habits_list_${routine.id}_${routine.items.length}',
+              ),
+              padding: const EdgeInsets.all(16),
+              itemCount: routine.items.length,
+              onReorder: (oldIndex, newIndex) {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                provider.reorderItems(widget.routine.id, oldIndex, newIndex);
+              },
+              proxyDecorator: (child, index, animation) {
+                final themeProvider = context.watch<ThemeProvider>();
+                final item = routine.items[index];
+                return Material(
+                  color: themeProvider.cardColor,
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.antiAlias,
+                  child: HabitListItem(
+                    item: item,
+                    index: index,
+                    onDelete: () => _confirmDeleteItem(context, item),
+                    onEdit: () => _editHabit(context, item),
+                  ),
+                );
+              },
+              itemBuilder: (context, index) {
+                final item = routine.items[index];
+                return Padding(
+                  key: ValueKey(item.id),
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HabitListItem(
+                    item: item,
+                    index: index,
+                    onDelete: () => _confirmDeleteItem(context, item),
+                    onEdit: () => _editHabit(context, item),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildCompactDaysSelector(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    // Get today's index (0=Monday, 6=Sunday)
+    final todayIndex = (DateTime.now().weekday - 1) % 7;
+
+    return Row(
+      children: List.generate(7, (index) {
+        final isSelected = _selectedDays.contains(index);
+        final isToday = index == todayIndex;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _selectedDays.remove(index);
+                } else {
+                  _selectedDays.add(index);
+                }
+              });
+            },
+            child: Container(
+              margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? themeProvider.surfaceColor
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: isToday && isSelected
+                    ? Border.all(color: themeProvider.primaryColor, width: 1.5)
+                    : Border.all(
+                        color: themeProvider.isDarkMode
+                            ? themeProvider.textSecondary.withValues(alpha: 0.3)
+                            : themeProvider.primaryColor,
+                        width: 1.5,
+                      ),
+              ),
+              child: Center(
+                child: Text(
+                  dayAbbreviations[index],
+                  style: TextStyle(
+                    color: isSelected
+                        ? themeProvider.primaryColor
+                        : themeProvider.textSecondary,
+                    fontSize: 12,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 

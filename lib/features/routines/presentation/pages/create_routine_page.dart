@@ -159,10 +159,11 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     );
   }
 
-  Widget _buildStep1() {
+  Widget _buildStep1({Key? key}) {
     final themeProvider = context.watch<ThemeProvider>();
 
     return SingleChildScrollView(
+      key: key,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -180,38 +181,38 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                 return Container(
                   width: iconContainerSize,
                   height: iconContainerSize,
-                  decoration: BoxDecoration(
-                    color: _selectedIconCodePoint != null
+              decoration: BoxDecoration(
+                color: _selectedIconCodePoint != null
                         ? themeProvider.backgroundColor
-                        : themeProvider.surfaceColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _selectedIconCodePoint != null
-                          ? themeProvider.primaryColor
-                          : themeProvider.borderColor,
+                    : themeProvider.surfaceColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _selectedIconCodePoint != null
+                      ? themeProvider.primaryColor
+                      : themeProvider.borderColor,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: themeProvider.primaryColor.withValues(
                           alpha: 0.3,
-                        ),
+                ),
                         blurRadius: 12,
                         spreadRadius: 4,
                         offset: const Offset(0, 4),
                       ),
                     ],
-                  ),
-                  child: Icon(
-                    _selectedIconCodePoint != null
-                        ? (RoutineIcons.getIconFromCodePoint(
-                                _selectedIconCodePoint!,
-                              ) ??
-                              RoutineIcons.allIcons[0]['icon'] as IconData)
-                        : RoutineIcons.allIcons[0]['icon'] as IconData,
-                    color: themeProvider.primaryColor,
+              ),
+              child: Icon(
+                _selectedIconCodePoint != null
+                    ? (RoutineIcons.getIconFromCodePoint(
+                            _selectedIconCodePoint!,
+                          ) ??
+                          RoutineIcons.allIcons[0]['icon'] as IconData)
+                    : RoutineIcons.allIcons[0]['icon'] as IconData,
+                color: themeProvider.primaryColor,
                     size: iconSize,
-                  ),
+              ),
                 );
               },
             ),
@@ -250,8 +251,9 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     );
   }
 
-  Widget _buildStep2() {
+  Widget _buildStep2({Key? key}) {
     return SingleChildScrollView(
+      key: key,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -292,8 +294,9 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     );
   }
 
-  Widget _buildStep3() {
+  Widget _buildStep3({Key? key}) {
     return SingleChildScrollView(
+      key: key,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -356,11 +359,36 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+
+                    var tween = Tween(begin: begin, end: end).chain(
+                      CurveTween(curve: curve),
+                    );
+
+                    var offsetAnimation = animation.drive(tween);
+                    var fadeAnimation = Tween(begin: 0.0, end: 1.0).chain(
+                      CurveTween(curve: curve),
+                    ).animate(animation);
+
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
                 child: _currentStep == 0
-                    ? _buildStep1()
+                      ? _buildStep1(key: const ValueKey('step1'))
                     : _currentStep == 1
-                    ? _buildStep2()
-                    : _buildStep3(),
+                      ? _buildStep2(key: const ValueKey('step2'))
+                      : _buildStep3(key: const ValueKey('step3')),
+                ),
               ),
             ),
             // Bottom buttons

@@ -24,11 +24,11 @@ class RoutineIconPicker extends StatelessWidget {
         builder: (context, constraints) {
           const crossAxisCount = 4;
           const crossAxisSpacing = 12.0;
-
+          
           final totalSpacing = (crossAxisCount - 1) * crossAxisSpacing;
           final cardWidth =
               (constraints.maxWidth - totalSpacing) / crossAxisCount;
-
+          
           return GridView.builder(
             padding: const EdgeInsets.only(top: 20),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
