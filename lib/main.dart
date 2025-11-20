@@ -35,6 +35,7 @@ import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
 import 'package:lottie/lottie.dart';
 import 'features/water/domain/entities/water_intake.dart';
+import 'features/mood_tracker/presentation/pages/mood_tracker_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -214,6 +215,7 @@ class _HomePageState extends State<HomePage> {
         _buildHomeContent(),
         const WaterPage(),
         const RoutinesPage(),
+        const MoodTrackerPage(),
         _buildSettingsPage(),
       ],
     );
@@ -619,6 +621,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.repeat),
             label: 'Routines',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.heart),
+            label: 'Mood',
           ),
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.settings),

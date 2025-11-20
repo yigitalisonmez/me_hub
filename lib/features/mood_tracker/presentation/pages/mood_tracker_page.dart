@@ -1,0 +1,729 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/providers/theme_provider.dart';
+
+class MoodTrackerPage extends StatefulWidget {
+  const MoodTrackerPage({super.key});
+
+  @override
+  State<MoodTrackerPage> createState() => _MoodTrackerPageState();
+}
+
+class _MoodTrackerPageState extends State<MoodTrackerPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  int _activeMood = 1;
+  bool _expanded = false;
+
+  final List<_MoodProfile> _moods = const [
+    _MoodProfile(
+      title: 'Elevated',
+      subtitle: 'Everything feels radiant',
+      emoji: '🌤️',
+      gradient: [
+        Color(0xFFffecd2),
+        Color(0xFFfcb69f),
+      ],
+    ),
+    _MoodProfile(
+      title: 'Balanced',
+      subtitle: 'Calm energy, steady focus',
+      emoji: '🫧',
+      gradient: [
+        Color(0xFFcfd9df),
+        Color(0xFFe2ebf0),
+      ],
+    ),
+    _MoodProfile(
+      title: 'Reflective',
+      subtitle: 'Soft introspection',
+      emoji: '🌙',
+      gradient: [
+        Color(0xFFa9c9ff),
+        Color(0xFFffbbec),
+      ],
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 14),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _cycleMood() {
+    setState(() {
+      _activeMood = (_activeMood + 1) % _moods.length;
+      _expanded = !_expanded;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Scaffold(
+      backgroundColor: themeProvider.backgroundColor,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                _LiquidBackdrop(
+                  controller: _controller,
+                  themeProvider: themeProvider,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(themeProvider),
+                    Expanded(
+                      child: Center(
+                        child: _buildMorphingCard(
+                          constraints,
+                          themeProvider,
+                        ),
+                      ),
+                    ),
+                    _buildMeltedActions(themeProvider),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ThemeProvider themeProvider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mood Morph',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: themeProvider.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Lava Lamp x VisionOS',
+                style: TextStyle(
+                  color: themeProvider.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: themeProvider.cardColor.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.4),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: themeProvider.primaryColor.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Icon(
+              LucideIcons.sparkles,
+              color: themeProvider.primaryColor,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMorphingCard(
+    BoxConstraints constraints,
+    ThemeProvider themeProvider,
+  ) {
+    final mood = _moods[_activeMood];
+    final targetWidth = _expanded ? constraints.maxWidth - 40 : 360.0;
+    final targetHeight = _expanded ? 460.0 : 360.0;
+    final borderRadius = BorderRadius.circular(_expanded ? 48 : 28);
+
+    return GestureDetector(
+      onTap: _cycleMood,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 900),
+        curve: Curves.easeInOutCubic,
+        width: targetWidth,
+        height: targetHeight,
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          boxShadow: [
+            BoxShadow(
+              color: mood.gradient.last.withValues(alpha: 0.35),
+              blurRadius: 45,
+              spreadRadius: 6,
+              offset: const Offset(0, 25),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeInOut,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    mood.gradient.first.withValues(alpha: 0.95),
+                    mood.gradient.last.withValues(alpha: _expanded ? 0.85 : 0.65),
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        mood.emoji,
+                        style: const TextStyle(fontSize: 42),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 600),
+                            child: Text(
+                              mood.title,
+                              key: ValueKey(mood.title),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: themeProvider.textPrimary,
+                              ),
+                            ),
+                          ),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 600),
+                            child: Text(
+                              mood.subtitle,
+                              key: ValueKey(mood.subtitle),
+                              style: TextStyle(
+                                color: themeProvider.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Expanded(
+                    child: _LiquidWave(
+                      animation: _controller,
+                      color: themeProvider.primaryColor.withValues(alpha: 0.7),
+                      accent: themeProvider.textPrimary.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 700),
+                    child: _expanded
+                        ? _buildExpandedPanel(themeProvider)
+                        : _buildCompactPanel(themeProvider),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactPanel(ThemeProvider themeProvider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _MiniStat(
+          label: 'Focus',
+          value: '82%',
+          color: themeProvider.textPrimary,
+        ),
+        _MiniStat(
+          label: 'Energy',
+          value: '67%',
+          color: themeProvider.textPrimary,
+        ),
+        _MiniStat(
+          label: 'Recovery',
+          value: '54%',
+          color: themeProvider.textPrimary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpandedPanel(ThemeProvider themeProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Daily Arc',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: themeProvider.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _ArcPill(
+                label: 'Morning Glow',
+                value: 'Warm & bright',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ArcPill(
+                label: 'Evening Drift',
+                value: 'Soft focus',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Tap to melt into another state',
+          style: TextStyle(
+            color: themeProvider.textSecondary,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMeltedActions(ThemeProvider themeProvider) {
+    final actions = [
+      _ActionButtonConfig(
+        label: 'Log Mood',
+        icon: LucideIcons.penTool,
+      ),
+      _ActionButtonConfig(
+        label: 'Breathwork',
+        icon: LucideIcons.wind,
+      ),
+      _ActionButtonConfig(
+        label: 'Sound Bath',
+        icon: LucideIcons.waves,
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: actions.map((action) {
+          final isPrimary = actions.indexOf(action) == 0;
+          return _MeltedButton(
+            config: action,
+            controller: _controller,
+            highlightColor: themeProvider.primaryColor,
+            isPrimary: isPrimary,
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _LiquidBackdrop extends StatelessWidget {
+  final AnimationController controller;
+  final ThemeProvider themeProvider;
+
+  const _LiquidBackdrop({
+    required this.controller,
+    required this.themeProvider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final progress = controller.value;
+        return Stack(
+          children: [
+            _Blob(
+              color: themeProvider.primaryColor.withValues(alpha: 0.12),
+              alignment: Alignment(
+                math.sin(progress * math.pi * 2) * 0.7,
+                -0.8 + progress * 0.1,
+              ),
+              size: 220 + 80 * progress,
+            ),
+            _Blob(
+              color: themeProvider.textSecondary.withValues(alpha: 0.12),
+              alignment: Alignment(
+                -0.6 + progress * 0.6,
+                0.8 - progress * 0.3,
+              ),
+              size: 260 - 40 * progress,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _Blob extends StatelessWidget {
+  final Color color;
+  final Alignment alignment;
+  final double size;
+
+  const _Blob({
+    required this.color,
+    required this.alignment,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.4),
+              blurRadius: 80,
+              spreadRadius: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            color: color.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ArcPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ArcPill({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: themeProvider.borderColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: themeProvider.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MeltedButton extends StatelessWidget {
+  final _ActionButtonConfig config;
+  final AnimationController controller;
+  final Color highlightColor;
+  final bool isPrimary;
+
+  const _MeltedButton({
+    required this.config,
+    required this.controller,
+    required this.highlightColor,
+    required this.isPrimary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final wobble = (math.sin(controller.value * 2 * math.pi) + 1) / 2;
+        final radius = 22 + (wobble * 6);
+        final scale = 0.96 + wobble * 0.04;
+
+        return Transform.scale(
+          scale: scale,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  if (isPrimary) highlightColor.withValues(alpha: 0.9)
+                  else highlightColor.withValues(alpha: 0.15),
+                  if (isPrimary) highlightColor.withValues(alpha: 0.7)
+                  else highlightColor.withValues(alpha: 0.25),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(
+                color: highlightColor.withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: highlightColor.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  config.icon,
+                  color: isPrimary ? Colors.white : highlightColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  config.label,
+                  style: TextStyle(
+                    color: isPrimary ? Colors.white : highlightColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LiquidWave extends StatelessWidget {
+  final Animation<double> animation;
+  final Color color;
+  final Color accent;
+
+  const _LiquidWave({
+    required this.animation,
+    required this.color,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _WavePainter(
+            progress: animation.value,
+            color: color,
+            accent: accent,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WavePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color accent;
+
+  _WavePainter({
+    required this.progress,
+    required this.color,
+    required this.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+    final path2 = Path();
+    final amplitude = size.height * 0.35;
+    final baseHeight = size.height / 2;
+
+    for (double x = 0; x <= size.width; x += 1) {
+      final normalized = x / size.width;
+      final y = baseHeight +
+          math.sin((normalized * 3 * math.pi) + progress * 2 * math.pi) *
+              amplitude;
+      if (x == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+
+      final y2 = baseHeight +
+          math.cos((normalized * 2.5 * math.pi) + progress * math.pi) *
+              amplitude *
+              0.6;
+      if (x == 0) {
+        path2.moveTo(x, y2);
+      } else {
+        path2.lineTo(x, y2);
+      }
+    }
+
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    path2.lineTo(size.width, size.height);
+    path2.lineTo(0, size.height);
+    path2.close();
+
+    final paint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          color.withValues(alpha: 0.5),
+          color.withValues(alpha: 0.2),
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final paint2 = Paint()
+      ..color = accent.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(path, paint);
+    canvas.drawPath(path2, paint2);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WavePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.color != color ||
+        oldDelegate.accent != accent;
+  }
+}
+
+class _MoodProfile {
+  final String title;
+  final String subtitle;
+  final String emoji;
+  final List<Color> gradient;
+
+  const _MoodProfile({
+    required this.title,
+    required this.subtitle,
+    required this.emoji,
+    required this.gradient,
+  });
+}
+
+class _ActionButtonConfig {
+  final String label;
+  final IconData icon;
+
+  const _ActionButtonConfig({
+    required this.label,
+    required this.icon,
+  });
+}
