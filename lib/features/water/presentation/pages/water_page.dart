@@ -7,7 +7,6 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
-import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
 import 'water_settings_page.dart';
@@ -24,7 +23,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   List<QuickAddAmount> _quickAddAmounts = [];
   final GlobalKey _statCardKey = GlobalKey();
   double? _statCardWidth;
-  int _dailyGoal = 2000;
 
   @override
   void initState() {
@@ -37,7 +35,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WaterProvider>().loadTodayWaterIntake();
       _loadQuickAddAmounts();
-      _loadDailyGoal();
     });
   }
 
@@ -46,15 +43,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {
         _quickAddAmounts = amounts;
-      });
-    }
-  }
-
-  Future<void> _loadDailyGoal() async {
-    final goal = await DailyGoalService.getDailyGoal();
-    if (mounted) {
-      setState(() {
-        _dailyGoal = goal;
       });
     }
   }
@@ -196,7 +184,6 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             // Reload settings if saved
             if (result == true) {
               _loadQuickAddAmounts();
-              _loadDailyGoal();
               // Reload water intake to update progress with new goal
               context.read<WaterProvider>().loadTodayWaterIntake();
             }
@@ -225,10 +212,11 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   ) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    final progress = provider.todayIntake?.getProgress(dailyGoalMl: _dailyGoal) ?? 0.0;
+    final dailyGoal = provider.dailyGoal;
+    final progress = provider.todayIntake?.getProgress(dailyGoalMl: dailyGoal) ?? 0.0;
     final percentage = (progress * 100).toInt();
     final glassCount = provider.todayIntake?.logs.length ?? 0;
-    final remaining = _dailyGoal - provider.todayAmount;
+    final remaining = dailyGoal - provider.todayAmount;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -287,7 +275,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
           const SizedBox(height: 4),
           // Goal
           Text(
-            'of ${_dailyGoal}ml daily goal',
+            'of ${provider.dailyGoal}ml daily goal',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: themeProvider.textSecondary,
             ),
@@ -298,7 +286,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             progress: progress,
             centerText: '$percentage%',
             bottomText:
-                '${provider.todayAmount} / $_dailyGoal ml',
+                '${provider.todayAmount} / ${provider.dailyGoal} ml',
           ),
           const SizedBox(height: 20),
           // Three Stat Cards

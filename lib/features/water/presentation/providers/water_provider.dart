@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../domain/usecases/usecases.dart';
+import '../../data/services/daily_goal_service.dart';
 
 class WaterProvider with ChangeNotifier {
   final GetTodayWaterIntake _getTodayWaterIntake;
@@ -26,6 +27,7 @@ class WaterProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _justReachedGoal = false;
+  int _dailyGoal = 2000;
 
   WaterIntake? get todayIntake => _todayIntake;
   List<WaterIntake> get history => _history;
@@ -35,11 +37,14 @@ class WaterProvider with ChangeNotifier {
   /// Get today's water intake amount
   int get todayAmount => _todayIntake?.amountMl ?? 0;
 
+  /// Get daily goal
+  int get dailyGoal => _dailyGoal;
+
   /// Get today's progress (0.0 to 1.0)
-  double get todayProgress => _todayIntake?.getProgress() ?? 0.0;
+  double get todayProgress => _todayIntake?.getProgress(dailyGoalMl: _dailyGoal) ?? 0.0;
 
   /// Check if today's goal is reached
-  bool get isGoalReached => _todayIntake?.isGoalReached() ?? false;
+  bool get isGoalReached => _todayIntake?.isGoalReached(dailyGoalMl: _dailyGoal) ?? false;
 
   /// Check if goal was just reached (for celebration)
   bool get justReachedGoal {
@@ -56,6 +61,8 @@ class WaterProvider with ChangeNotifier {
 
     try {
       _todayIntake = await _getTodayWaterIntake();
+      // Load daily goal
+      _dailyGoal = await DailyGoalService.getDailyGoal();
     } catch (e) {
       _error = 'Failed to load water intake';
     } finally {
