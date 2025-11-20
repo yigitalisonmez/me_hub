@@ -121,16 +121,16 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Mood Morph',
+                'Mood Tracker',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: themeProvider.textPrimary,
+                  color: themeProvider.primaryColor,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Lava Lamp x VisionOS',
+                'Track your emotional well-being',
                 style: TextStyle(
                   color: themeProvider.textSecondary,
                 ),
@@ -138,24 +138,19 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
             ],
           ),
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: themeProvider.cardColor.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: themeProvider.borderColor.withValues(alpha: 0.4),
+                color: themeProvider.borderColor,
+                width: 1.5,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              LucideIcons.sparkles,
+              LucideIcons.heart,
               color: themeProvider.primaryColor,
+              size: 20,
             ),
           )
         ],
@@ -183,10 +178,10 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
           borderRadius: borderRadius,
           boxShadow: [
             BoxShadow(
-              color: mood.gradient.last.withValues(alpha: 0.35),
-              blurRadius: 45,
-              spreadRadius: 6,
-              offset: const Offset(0, 25),
+              color: themeProvider.primaryColor.withValues(alpha: 0.15),
+              blurRadius: 30,
+              spreadRadius: 4,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
@@ -202,9 +197,13 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    mood.gradient.first.withValues(alpha: 0.95),
-                    mood.gradient.last.withValues(alpha: _expanded ? 0.85 : 0.65),
+                    mood.gradient.first.withValues(alpha: 0.9),
+                    mood.gradient.last.withValues(alpha: _expanded ? 0.8 : 0.7),
                   ],
+                ),
+                border: Border.all(
+                  color: themeProvider.borderColor.withValues(alpha: 0.2),
+                  width: 1,
                 ),
               ),
               padding: const EdgeInsets.all(28),
@@ -499,11 +498,19 @@ class _ArcPill extends StatelessWidget {
       curve: Curves.easeInOut,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: themeProvider.cardColor.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
+        color: themeProvider.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: themeProvider.borderColor.withValues(alpha: 0.3),
+          color: themeProvider.borderColor,
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: themeProvider.primaryColor.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,14 +574,16 @@ class _MeltedButton extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
-                color: highlightColor.withValues(alpha: 0.35),
-                width: 1.2,
+                color: isPrimary
+                    ? highlightColor
+                    : highlightColor.withValues(alpha: 0.3),
+                width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: highlightColor.withValues(alpha: 0.25),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
+                  color: highlightColor.withValues(alpha: isPrimary ? 0.2 : 0.1),
+                  blurRadius: isPrimary ? 16 : 12,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
