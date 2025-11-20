@@ -92,9 +92,6 @@ class _TodoPageState extends State<TodoPage> {
                         )
                       : _buildTodoList(provider),
                   const SizedBox(height: 24),
-                  // Add button at bottom
-                  _buildAddButton(context, themeProvider),
-                  const SizedBox(height: 24),
                 ],
               ),
             );
@@ -147,39 +144,6 @@ class _TodoPageState extends State<TodoPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAddButton(BuildContext context, ThemeProvider themeProvider) {
-    return GestureDetector(
-      onTap: () => _showAddTodoDialog(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: themeProvider.primaryGradient,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: themeProvider.primaryColor.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.plus, color: themeProvider.textPrimary),
-            const SizedBox(width: 8),
-            Text(
-              'Add Goal',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: themeProvider.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

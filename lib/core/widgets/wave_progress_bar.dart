@@ -99,16 +99,20 @@ class _WaveProgressBarState extends State<WaveProgressBar>
                   AnimatedBuilder(
                     animation: _waveController,
                     builder: (context, child) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CustomPaint(
-                          painter: _WaveProgressPainter(
-                            progress: animatedProgress,
-                            wavePhase: _waveController.value,
-                            gradient: effectiveGradient,
-                            backgroundColor: themeProvider.surfaceColor,
+                      return Semantics(
+                        label: widget.centerText ?? 'Progress',
+                        value: '${(widget.progress * 100).toInt()} percent',
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CustomPaint(
+                            painter: _WaveProgressPainter(
+                              progress: animatedProgress,
+                              wavePhase: _waveController.value,
+                              gradient: effectiveGradient,
+                              backgroundColor: themeProvider.surfaceColor,
+                            ),
+                            size: Size(double.infinity, widget.height),
                           ),
-                          size: Size(double.infinity, widget.height),
                         ),
                       );
                     },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -224,28 +225,28 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHomeContent() {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Container(
-      decoration: BoxDecoration(color: themeProvider.backgroundColor),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              // Header
-              _buildTodayHeader(context),
-              const SizedBox(height: 24),
-              const DailyQuoteWidget(),
-              const SizedBox(height: 20),
-              _buildMainCard(context),
-              const SizedBox(height: 20),
-              _buildQuickActions(context),
-              const SizedBox(height: 20), // Bottom padding for navigation bar
-            ],
+    return Stack(
+      children: [
+        Positioned.fill(child: _HomeBackground(themeProvider: themeProvider)),
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                // Header
+                _buildTodayHeader(context),
+                const SizedBox(height: 24),
+                const DailyQuoteWidget(),
+                const SizedBox(height: 20),
+                _buildMainCard(context),
+                const SizedBox(height: 20), // Bottom padding for navigation bar
+              ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -496,84 +497,6 @@ class _HomePageState extends State<HomePage> {
             Text(
               text,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildQuickActionCard(
-            context: context,
-            icon: Icons.add,
-            title: 'Add Goal',
-            subtitle: 'New goal',
-            onTap: () => _showAddTodoDialog(context),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildQuickActionCard(
-            context: context,
-            icon: LucideIcons.activity,
-            title: 'Progress',
-            subtitle: 'Track growth',
-            onTap: () {
-              // TODO: Navigate to progress page
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActionCard({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: themeProvider.borderColor, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: themeProvider.primaryColor.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: themeProvider.primaryColor, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: themeProvider.textPrimary,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: themeProvider.textSecondary,
-              ),
             ),
           ],
         ),
@@ -941,5 +864,92 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCelebrationOverlay() {
     // Celebration is now handled in TodoPage, so this overlay is no longer needed
     return const SizedBox.shrink();
+  }
+}
+
+class _HomeBackground extends StatefulWidget {
+  final ThemeProvider themeProvider;
+
+  const _HomeBackground({required this.themeProvider});
+
+  @override
+  State<_HomeBackground> createState() => _HomeBackgroundState();
+}
+
+class _HomeBackgroundState extends State<_HomeBackground>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _controller.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // Blob 1 (Top Right)
+            Positioned(
+              top: -100 + (_controller.value * 30),
+              right: -100 - (_controller.value * 20),
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.themeProvider.primaryColor.withValues(alpha: 0.08),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+            ),
+            // Blob 2 (Bottom Left)
+            Positioned(
+              bottom: 100 - (_controller.value * 40),
+              left: -50 + (_controller.value * 20),
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.themeProvider.textSecondary.withValues(alpha: 0.05),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
