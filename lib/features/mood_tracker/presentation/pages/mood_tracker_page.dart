@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
 
 class MoodTrackerPage extends StatefulWidget {
   const MoodTrackerPage({super.key});
@@ -20,9 +21,11 @@ class MoodTrackerPage extends StatefulWidget {
 class _MoodTrackerPageState extends State<MoodTrackerPage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
-  int _activeMood = 1;
-  bool _expanded = false;
-  List<Map<String, dynamic>> _todayMoods = [];
+  int _currentStep = 0;
+  int? _selectedMood;
+  int _energyLevel = 5;
+  final _noteController = TextEditingController();
+  Map<String, dynamic>? _todayMood;
   Map<String, dynamic>? _lastMood;
 
   final List<_MoodProfile> _moods = const [
@@ -72,7 +75,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
       vsync: this,
       duration: const Duration(seconds: 14),
     )..repeat(reverse: true);
-    _loadTodayMoods();
+    _loadTodayMood();
     _loadLastMood();
   }
 
@@ -80,6 +83,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -92,28 +96,54 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
     }
   }
 
-  void _cycleMood() {
+  void _nextStep() {
+    if (_currentStep == 0) {
+      if (_selectedMood == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please select a mood')));
+        return;
+      }
+    } else if (_currentStep == 2) {
+      // Final step - log the mood
+      _logMood();
+      return;
+    }
+
     setState(() {
-      _activeMood = (_activeMood + 1) % _moods.length;
-      _expanded = !_expanded;
+      _currentStep++;
     });
   }
 
-  Future<void> _loadTodayMoods() async {
+  void _previousStep() {
+    if (_currentStep > 0) {
+      setState(() {
+        _currentStep--;
+      });
+    }
+  }
+
+  Future<void> _loadTodayMood() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final todayKey = 'mood_today_$today';
-      final moodsJson = prefs.getString(todayKey);
+      final moodJson = prefs.getString(todayKey);
 
-      if (moodsJson != null) {
-        final List<dynamic> decoded = json.decode(moodsJson);
+      if (moodJson != null) {
+        final decoded = json.decode(moodJson) as Map<String, dynamic>;
         setState(() {
-          _todayMoods = decoded.cast<Map<String, dynamic>>();
+          _todayMood = decoded;
+          // Set selected mood to match today's mood
+          final moodTitle = decoded['title'] as String;
+          final moodIndex = _moods.indexWhere((m) => m.title == moodTitle);
+          if (moodIndex != -1) {
+            _selectedMood = moodIndex;
+          }
         });
       }
     } catch (e) {
-      debugPrint('Error loading today moods: $e');
+      debugPrint('Error loading today mood: $e');
     }
   }
 
@@ -133,8 +163,39 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
   }
 
   Future<void> _logMood() async {
+    // Check if mood already logged today
+    if (_todayMood != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.info, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'You have already logged your mood today',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (_selectedMood == null) return;
+
     try {
-      final mood = _moods[_activeMood];
+      final mood = _moods[_selectedMood!];
       final now = DateTime.now();
       final today = DateFormat('yyyy-MM-dd').format(now);
       final time = DateFormat('HH:mm').format(now);
@@ -143,31 +204,30 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
         'title': mood.title,
         'emoji': mood.emoji,
         'time': time,
+        'energyLevel': _energyLevel,
+        'note': _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
         'timestamp': now.toIso8601String(),
       };
 
       final prefs = await SharedPreferences.getInstance();
 
-      // Save to today's moods
+      // Save today's mood (only one per day)
       final todayKey = 'mood_today_$today';
-      final existingMoodsJson = prefs.getString(todayKey);
-      List<Map<String, dynamic>> todayMoods = [];
-
-      if (existingMoodsJson != null) {
-        final List<dynamic> decoded = json.decode(existingMoodsJson);
-        todayMoods = decoded.cast<Map<String, dynamic>>();
-      }
-
-      todayMoods.insert(0, moodData);
-      await prefs.setString(todayKey, json.encode(todayMoods));
+      await prefs.setString(todayKey, json.encode(moodData));
 
       // Save as last mood
       await prefs.setString('mood_last', json.encode(moodData));
 
       // Update state
       setState(() {
-        _todayMoods = todayMoods;
+        _todayMood = moodData;
         _lastMood = moodData;
+        _currentStep = 0; // Reset to first step
+        _selectedMood = null;
+        _energyLevel = 5;
+        _noteController.clear();
       });
 
       if (mounted) {
@@ -212,33 +272,641 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    // If mood already logged today, show the logged mood view
+    if (_todayMood != null) {
+      return Scaffold(
+        backgroundColor: themeProvider.backgroundColor,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  _LiquidBackdrop(
+                    controller: _controller,
+                    themeProvider: themeProvider,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(themeProvider),
+                      Expanded(
+                        child: Center(
+                          child: _buildLoggedMoodCard(
+                            constraints,
+                            themeProvider,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    // Stepper view for logging new mood
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Stack(
+        child: Stack(
+          children: [
+            _LiquidBackdrop(
+              controller: _controller,
+              themeProvider: themeProvider,
+            ),
+            Column(
               children: [
-                _LiquidBackdrop(
-                  controller: _controller,
-                  themeProvider: themeProvider,
+                _buildStepperHeader(themeProvider),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOutCubic;
+
+                          var tween = Tween(
+                            begin: begin,
+                            end: end,
+                          ).chain(CurveTween(curve: curve));
+
+                          var offsetAnimation = animation.drive(tween);
+                          var fadeAnimation = Tween(
+                            begin: 0.0,
+                            end: 1.0,
+                          ).chain(CurveTween(curve: curve)).animate(animation);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: FadeTransition(
+                              opacity: fadeAnimation,
+                              child: child,
+                            ),
+                          );
+                        },
+                    child: _currentStep == 0
+                        ? _buildStep1(key: const ValueKey('step1'))
+                        : _currentStep == 1
+                        ? _buildStep2(key: const ValueKey('step2'))
+                        : _buildStep3(key: const ValueKey('step3')),
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(themeProvider),
-                    Expanded(
-                      child: Center(
-                        child: _buildMorphingCard(constraints, themeProvider),
+                _buildStepperButtons(themeProvider),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepperHeader(ThemeProvider themeProvider) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              if (_currentStep > 0)
+                GestureDetector(
+                  onTap: _previousStep,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: themeProvider.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: themeProvider.borderColor,
+                        width: 1.5,
                       ),
                     ),
-                    _buildMeltedActions(themeProvider),
-                    const SizedBox(height: 24),
-                  ],
+                    child: Icon(
+                      LucideIcons.arrowLeft,
+                      color: themeProvider.primaryColor,
+                      size: 20,
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(width: 40),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Log Your Mood',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: themeProvider.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 40),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildProgressIndicator(themeProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(ThemeProvider themeProvider) {
+    return Row(
+      children: List.generate(3, (index) {
+        final isCompleted = index < _currentStep;
+        final isCurrent = index == _currentStep;
+
+        return Expanded(
+          child: Container(
+            height: 6,
+            margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+            decoration: BoxDecoration(
+              color: isCompleted || isCurrent
+                  ? themeProvider.primaryColor
+                  : themeProvider.textSecondary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildStepperButtons(ThemeProvider themeProvider) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          if (_currentStep > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _previousStep,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(
+                    color: themeProvider.borderColor,
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Back',
+                  style: TextStyle(color: themeProvider.textPrimary),
+                ),
+              ),
+            ),
+          if (_currentStep > 0) const SizedBox(width: 12),
+          Expanded(
+            flex: _currentStep > 0 ? 2 : 1,
+            child: ElevatedButton(
+              onPressed: _nextStep,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeProvider.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                _currentStep == 2 ? 'Complete' : 'Next',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep1({Key? key}) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return SingleChildScrollView(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'How are you feeling?',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: themeProvider.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select your current mood',
+            style: TextStyle(fontSize: 16, color: themeProvider.textSecondary),
+          ),
+          const SizedBox(height: 32),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: List.generate(_moods.length, (index) {
+              final mood = _moods[index];
+              final isSelected = _selectedMood == index;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedMood = index;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 100,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isSelected
+                          ? mood.gradient
+                          : [
+                              mood.gradient.first.withValues(alpha: 0.3),
+                              mood.gradient.last.withValues(alpha: 0.3),
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? themeProvider.primaryColor
+                          : themeProvider.borderColor,
+                      width: isSelected ? 2.5 : 1.5,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: themeProvider.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        mood.emoji,
+                        style: TextStyle(fontSize: isSelected ? 36 : 32),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        mood.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : themeProvider.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2({Key? key}) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return SingleChildScrollView(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'Energy Level',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: themeProvider.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Rate your energy from 0 to 10',
+            style: TextStyle(fontSize: 16, color: themeProvider.textSecondary),
+          ),
+          const SizedBox(height: 40),
+          Center(
+            child: Text(
+              '$_energyLevel',
+              style: TextStyle(
+                fontSize: 64,
+                fontWeight: FontWeight.bold,
+                color: themeProvider.primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          _buildEnergySlider(themeProvider),
+          const SizedBox(height: 40),
+          _buildEnergyColors(themeProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnergySlider(ThemeProvider themeProvider) {
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: themeProvider.primaryColor,
+        inactiveTrackColor: themeProvider.textSecondary.withValues(alpha: 0.3),
+        thumbColor: themeProvider.primaryColor,
+        overlayColor: themeProvider.primaryColor.withValues(alpha: 0.2),
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+        trackHeight: 4,
+      ),
+      child: Slider(
+        value: _energyLevel.toDouble(),
+        min: 0,
+        max: 10,
+        divisions: 10,
+        label: '$_energyLevel',
+        onChanged: (value) {
+          setState(() {
+            _energyLevel = value.round();
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildEnergyColors(ThemeProvider themeProvider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(11, (index) {
+        final color = _getEnergyColor(index);
+        final isSelected = _energyLevel == index;
+
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _energyLevel = index;
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected
+                    ? themeProvider.primaryColor
+                    : Colors.transparent,
+                width: 2.5,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Color _getEnergyColor(int level) {
+    // Gradient from red (0) to green (10) through yellow (5)
+    if (level <= 5) {
+      // Red to Yellow
+      final ratio = level / 5;
+      return Color.lerp(
+        const Color(0xFFFF6B6B), // Red
+        const Color(0xFFFFD93D), // Yellow
+        ratio,
+      )!;
+    } else {
+      // Yellow to Green
+      final ratio = (level - 5) / 5;
+      return Color.lerp(
+        const Color(0xFFFFD93D), // Yellow
+        const Color(0xFF2ECC71), // Green
+        ratio,
+      )!;
+    }
+  }
+
+  Widget _buildStep3({Key? key}) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return SingleChildScrollView(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'Add a Note',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: themeProvider.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Optional: Write about your day',
+            style: TextStyle(fontSize: 16, color: themeProvider.textSecondary),
+          ),
+          const SizedBox(height: 32),
+          CustomTextField(
+            controller: _noteController,
+            hint: 'How was your day? What made you feel this way?',
+            maxLines: 6,
+            maxLength: 500,
+          ),
+          const SizedBox(height: 24),
+          if (_selectedMood != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: themeProvider.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: themeProvider.borderColor,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    _moods[_selectedMood!].emoji,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _moods[_selectedMood!].title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: themeProvider.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Energy: $_energyLevel/10',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: themeProvider.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoggedMoodCard(
+    BoxConstraints constraints,
+    ThemeProvider themeProvider,
+  ) {
+    if (_todayMood == null) return const SizedBox();
+
+    final moodTitle = _todayMood!['title'] as String;
+    final moodIndex = _moods.indexWhere((m) => m.title == moodTitle);
+    final mood = moodIndex != -1 ? _moods[moodIndex] : _moods[0];
+    final energyLevel = _todayMood!['energyLevel'] as int? ?? 5;
+    final note = _todayMood!['note'] as String?;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            width: constraints.maxWidth - 40,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: themeProvider.isDarkMode
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.2),
+              border: Border.all(
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
                 ),
               ],
-            );
-          },
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(mood.emoji, style: const TextStyle(fontSize: 64)),
+                const SizedBox(height: 16),
+                Text(
+                  mood.title,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: themeProvider.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Logged at ${_todayMood!['time']}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: themeProvider.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Energy: ',
+                      style: TextStyle(
+                        color: themeProvider.textSecondary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      '$energyLevel/10',
+                      style: TextStyle(
+                        color: _getEnergyColor(energyLevel),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                if (note != null && note.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: themeProvider.surfaceColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      note,
+                      style: TextStyle(
+                        color: themeProvider.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -292,19 +960,28 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: themeProvider.primaryColor.withValues(alpha: 0.1),
-              border: Border.all(color: themeProvider.borderColor, width: 1.5),
+              color: _todayMood != null
+                  ? themeProvider.primaryColor.withValues(alpha: 0.2)
+                  : themeProvider.primaryColor.withValues(alpha: 0.1),
+              border: Border.all(
+                color: _todayMood != null
+                    ? themeProvider.primaryColor
+                    : themeProvider.borderColor,
+                width: _todayMood != null ? 2 : 1.5,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '${_todayMoods.length}',
+                  _todayMood != null ? '✓' : '○',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: themeProvider.primaryColor,
+                    color: _todayMood != null
+                        ? themeProvider.primaryColor
+                        : themeProvider.textSecondary,
                   ),
                 ),
                 Text(
@@ -318,268 +995,6 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMorphingCard(
-    BoxConstraints constraints,
-    ThemeProvider themeProvider,
-  ) {
-    final mood = _moods[_activeMood];
-    final targetWidth = _expanded ? constraints.maxWidth - 40 : 360.0;
-    final targetHeight = _expanded ? 460.0 : 360.0;
-    final borderRadius = BorderRadius.circular(_expanded ? 48 : 28);
-
-    return GestureDetector(
-      onTap: _cycleMood,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 900),
-        curve: Curves.easeInOutCubic,
-        width: targetWidth,
-        height: targetHeight,
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          boxShadow: [
-            BoxShadow(
-              color: themeProvider.primaryColor.withValues(alpha: 0.15),
-              blurRadius: 30,
-              spreadRadius: 4,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Semantics(
-          label:
-              'Current mood: ${mood.title}. ${mood.subtitle}. Double tap to cycle to next mood.',
-          button: true,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 900),
-                curve: Curves.easeInOut,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      mood.gradient.first.withValues(alpha: 0.9),
-                      mood.gradient.last.withValues(
-                        alpha: _expanded ? 0.8 : 0.7,
-                      ),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: themeProvider.borderColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(mood.emoji, style: const TextStyle(fontSize: 42)),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 600),
-                              child: Text(
-                                mood.title,
-                                key: ValueKey(mood.title),
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: themeProvider.textPrimary,
-                                ),
-                              ),
-                            ),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 600),
-                              child: Text(
-                                mood.subtitle,
-                                key: ValueKey(mood.subtitle),
-                                style: TextStyle(
-                                  color: themeProvider.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    Expanded(
-                      child: _LiquidWave(
-                        animation: _controller,
-                        color: themeProvider.primaryColor.withValues(
-                          alpha: 0.7,
-                        ),
-                        accent: themeProvider.textPrimary.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 700),
-                      child: _expanded
-                          ? _buildExpandedPanel(themeProvider)
-                          : _buildCompactPanel(themeProvider),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompactPanel(ThemeProvider themeProvider) {
-    if (_todayMoods.isEmpty) {
-      return Center(
-        child: Text(
-          'No moods logged today',
-          style: TextStyle(
-            color: themeProvider.textSecondary,
-            fontSize: 14,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      );
-    }
-
-    // Show last 3 moods
-    final recentMoods = _todayMoods.take(3).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Recent Moods',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: themeProvider.textPrimary,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: recentMoods.map((mood) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: themeProvider.surfaceColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: themeProvider.borderColor, width: 1),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    mood['emoji'] as String,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    mood['time'] as String,
-                    style: TextStyle(
-                      color: themeProvider.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExpandedPanel(ThemeProvider themeProvider) {
-    if (_todayMoods.isEmpty) {
-      return Center(
-        child: Text(
-          'Log your first mood to see your daily pattern',
-          style: TextStyle(
-            color: themeProvider.textSecondary,
-            fontSize: 13,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      );
-    }
-
-    // Count mood frequencies
-    final moodCounts = <String, int>{};
-    for (var mood in _todayMoods) {
-      final title = mood['title'] as String;
-      moodCounts[title] = (moodCounts[title] ?? 0) + 1;
-    }
-
-    final mostCommon = moodCounts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Today\'s Pattern',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: themeProvider.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (mostCommon.isNotEmpty) ...[
-          Row(
-            children: [
-              Expanded(
-                child: _ArcPill(
-                  label: 'Most Common',
-                  value: '${mostCommon.first.key} (${mostCommon.first.value}x)',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _ArcPill(
-                  label: 'Total Logs',
-                  value: '${_todayMoods.length}',
-                ),
-              ),
-            ],
-          ),
-        ],
-        const SizedBox(height: 16),
-        Text(
-          'Tap to cycle through moods',
-          style: TextStyle(color: themeProvider.textSecondary, fontSize: 13),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMeltedActions(ThemeProvider themeProvider) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: _MeltedButton(
-        config: _ActionButtonConfig(
-          label: 'Log Mood',
-          icon: LucideIcons.penTool,
-        ),
-        controller: _controller,
-        highlightColor: themeProvider.primaryColor,
-        isPrimary: true,
-        onTap: _logMood,
       ),
     );
   }
