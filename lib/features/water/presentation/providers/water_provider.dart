@@ -26,6 +26,7 @@ class WaterProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _justReachedGoal = false;
+  int _dailyGoalMl = 2000; // Default goal
 
   WaterIntake? get todayIntake => _todayIntake;
   List<WaterIntake> get history => _history;
@@ -36,10 +37,16 @@ class WaterProvider with ChangeNotifier {
   int get todayAmount => _todayIntake?.amountMl ?? 0;
 
   /// Get today's progress (0.0 to 1.0)
-  double get todayProgress => _todayIntake?.getProgress() ?? 0.0;
+  double get todayProgress => _todayIntake?.getProgress(dailyGoalMl: _dailyGoalMl) ?? 0.0;
 
   /// Check if today's goal is reached
-  bool get isGoalReached => _todayIntake?.isGoalReached() ?? false;
+  bool get isGoalReached => _todayIntake?.isGoalReached(dailyGoalMl: _dailyGoalMl) ?? false;
+
+  /// Set daily goal (called from WaterPage)
+  void setDailyGoal(int dailyGoalMl) {
+    _dailyGoalMl = dailyGoalMl;
+    notifyListeners();
+  }
 
   /// Check if goal was just reached (for celebration)
   bool get justReachedGoal {

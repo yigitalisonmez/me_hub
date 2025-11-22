@@ -56,6 +56,8 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
       setState(() {
         _dailyGoal = goal;
       });
+      // Update WaterProvider with the daily goal
+      context.read<WaterProvider>().setDailyGoal(goal);
     }
   }
 
@@ -196,7 +198,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
             // Reload settings if saved
             if (result == true) {
               _loadQuickAddAmounts();
-              _loadDailyGoal();
+              await _loadDailyGoal();
               // Reload water intake to update progress with new goal
               context.read<WaterProvider>().loadTodayWaterIntake();
             }
