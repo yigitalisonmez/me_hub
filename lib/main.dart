@@ -30,6 +30,7 @@ import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
 import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
 import 'features/water/presentation/pages/water_page.dart';
 import 'features/water/presentation/providers/water_provider.dart';
+import 'features/mood_tracker/presentation/pages/mood_page.dart';
 import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
@@ -213,53 +214,44 @@ class _HomePageState extends State<HomePage> {
         _buildHomeContent(),
         const WaterPage(),
         const RoutinesPage(),
+        const MoodPage(),
         _buildSettingsPage(),
       ],
     );
   }
 
   Widget _buildHomeContent() {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Container(
-      decoration: BoxDecoration(color: themeProvider.backgroundColor),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              // Header - TodoPage'den
-              const TodoHeaderWidget(),
-              const SizedBox(height: 24),
-              const DailyQuoteWidget(),
-              const SizedBox(height: 20),
-              // Todo Card - TodoPage'den
-              const TodoCardWidget(),
-              const SizedBox(height: 20), // Bottom padding for navigation bar
-            ],
-          ),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Header - TodoPage'den
+            const TodoHeaderWidget(),
+            const SizedBox(height: 24),
+            const DailyQuoteWidget(),
+            const SizedBox(height: 20),
+            // Todo Card - TodoPage'den
+            const TodoCardWidget(),
+            const SizedBox(height: 20), // Bottom padding for navigation bar
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSettingsPage() {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Container(
-      decoration: BoxDecoration(color: themeProvider.backgroundColor),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              _buildSettingsCard(),
-              const SizedBox(height: 20), // Bottom padding for navigation bar
-            ],
-          ),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            _buildSettingsCard(),
+            const SizedBox(height: 20), // Bottom padding for navigation bar
+          ],
         ),
       ),
     );
@@ -306,6 +298,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(LucideIcons.repeat),
             label: 'Routines',
           ),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.heart), label: 'Mood'),
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.settings),
             label: 'Settings',

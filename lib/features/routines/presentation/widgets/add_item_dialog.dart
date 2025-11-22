@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/routine_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 class AddItemDialog extends StatefulWidget {
   final Function(String title, int? iconCodePoint) onAdd;
@@ -41,7 +42,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
         .toList();
   }
 
-  Widget _buildIconPageView() {
+  Widget _buildIconPageView(ThemeProvider themeProvider) {
     const iconsPerPage = 30; // 5 rows x 6 columns
     final pageCount = (_filteredIcons.length / iconsPerPage).ceil();
 
@@ -77,7 +78,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   borderRadius: BorderRadius.circular(8),
                   border: isSelected
                       ? Border.all(
-                          color: AppColors.primaryOrange,
+                          color: themeProvider.primaryColor,
                           width: 2.5,
                         )
                       : Border.all(
@@ -87,7 +88,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 ),
                 child: Icon(
                   icon,
-                  color: AppColors.primaryOrange,
+                  color: themeProvider.primaryColor,
                   size: 24,
                 ),
               ),
@@ -100,13 +101,24 @@ class _AddItemDialogState extends State<AddItemDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return AlertDialog(
-      title: const Center(
+      backgroundColor: themeProvider.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: themeProvider.borderColor,
+          width: 2,
+        ),
+      ),
+      title: Center(
         child: Text(
           'Add New Habit',
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.bold,
+            color: themeProvider.textPrimary,
           ),
         ),
       ),
@@ -120,26 +132,74 @@ class _AddItemDialogState extends State<AddItemDialog> {
             // Title input
             TextField(
               controller: _titleController,
+              style: TextStyle(color: themeProvider.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Habit name',
                 hintStyle: TextStyle(
-                  color: Colors.grey.shade400,
+                  color: themeProvider.textSecondary,
                 ),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(LucideIcons.pencil),
+                filled: true,
+                fillColor: themeProvider.surfaceColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  LucideIcons.pencil,
+                  color: themeProvider.primaryColor,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             // Search input
             TextField(
               controller: _searchController,
+              style: TextStyle(color: themeProvider.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Search icons...',
                 hintStyle: TextStyle(
-                  color: Colors.grey.shade400,
+                  color: themeProvider.textSecondary,
                 ),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(LucideIcons.search),
+                filled: true,
+                fillColor: themeProvider.surfaceColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeProvider.borderColor,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  LucideIcons.search,
+                  color: themeProvider.primaryColor,
+                ),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -147,8 +207,13 @@ class _AddItemDialogState extends State<AddItemDialog> {
             // Icon horizontal scroll with pages (5 rows per page)
             Expanded(
               child: _filteredIcons.isEmpty
-                  ? const Center(child: Text('No icons found'))
-                  : _buildIconPageView(),
+                  ? Center(
+                      child: Text(
+                        'No icons found',
+                        style: TextStyle(color: themeProvider.textSecondary),
+                      ),
+                    )
+                  : _buildIconPageView(themeProvider),
             ),
           ],
         ),
@@ -157,32 +222,46 @@ class _AddItemDialogState extends State<AddItemDialog> {
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.grey.shade600,
-            side: BorderSide(color: Colors.grey.shade300, width: 1.5),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            side: BorderSide(
+              color: themeProvider.borderColor,
+              width: 1.5,
+            ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-        OutlinedButton(
+        const SizedBox(width: 12),
+        ElevatedButton(
           onPressed: () {
             if (_titleController.text.trim().isNotEmpty) {
               widget.onAdd(_titleController.text.trim(), _selectedIconCodePoint);
               Navigator.pop(context);
             }
           },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.white,
-            backgroundColor: AppColors.primaryOrange,
-            side: const BorderSide(color: AppColors.primaryOrange, width: 1.5),
+          style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            backgroundColor: themeProvider.primaryColor,
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+          ),
+          child: const Text(
+            'Add',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
             ),
           ),
-          child: const Text('Add'),
         ),
       ],
     );

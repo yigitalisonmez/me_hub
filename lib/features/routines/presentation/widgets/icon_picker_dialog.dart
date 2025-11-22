@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/constants/routine_icons.dart';
 
 class IconPickerDialog extends StatefulWidget {
@@ -41,7 +42,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
         .toList();
   }
 
-  Widget _buildIconPageView() {
+  Widget _buildIconPageView(ThemeProvider themeProvider) {
     const iconsPerPage = 30; // 5 rows x 6 columns
     final pageCount = (_filteredIcons.length / iconsPerPage).ceil();
 
@@ -79,10 +80,17 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: isSelected
-                      ? Border.all(color: AppColors.primaryOrange, width: 2.5)
+                      ? Border.all(
+                          color: themeProvider.primaryColor,
+                          width: 2.5,
+                        )
                       : Border.all(color: Colors.transparent, width: 2.5),
                 ),
-                child: Icon(icon, color: AppColors.primaryOrange, size: 24),
+                child: Icon(
+                  icon,
+                  color: themeProvider.primaryColor,
+                  size: 24,
+                ),
               ),
             );
           },
@@ -93,21 +101,27 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         constraints: BoxConstraints(
           maxWidth: 500,
           maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
         decoration: BoxDecoration(
-          gradient: AppColors.cardGradient,
+          color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primaryOrange, width: 2),
+          border: Border.all(
+            color: themeProvider.borderColor,
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.2),
-              blurRadius: 24,
+              color: themeProvider.primaryColor.withValues(alpha: 0.1),
+              blurRadius: 20,
               offset: const Offset(0, 8),
             ),
           ],
@@ -123,25 +137,25 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         LucideIcons.layoutGrid,
-                        color: AppColors.primaryOrange,
+                        color: themeProvider.primaryColor,
                         size: 22,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'SELECT ICON',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primaryOrange,
+                          color: themeProvider.primaryColor,
                           letterSpacing: 1.2,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         LucideIcons.layoutGrid,
-                        color: AppColors.primaryOrange,
+                        color: themeProvider.primaryColor,
                         size: 22,
                       ),
                     ],
@@ -151,7 +165,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                     height: 2,
                     width: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
+                      color: themeProvider.primaryColor,
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -168,21 +182,22 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                     // Search input
                     TextField(
                       controller: _searchController,
+                      style: TextStyle(color: themeProvider.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Search icons...',
                         hintStyle: TextStyle(
-                          color: AppColors.darkGrey.withValues(alpha: 0.4),
+                          color: themeProvider.textSecondary,
                         ),
                         filled: true,
-                        fillColor: AppColors.white,
-                        prefixIcon: const Icon(
+                        fillColor: themeProvider.surfaceColor,
+                        prefixIcon: Icon(
                           LucideIcons.search,
-                          color: AppColors.primaryOrange,
+                          color: themeProvider.primaryColor,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: AppColors.primaryOrange.withValues(
+                            color: themeProvider.borderColor.withValues(
                               alpha: 0.3,
                             ),
                           ),
@@ -190,15 +205,15 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: AppColors.primaryOrange.withValues(
+                            color: themeProvider.borderColor.withValues(
                               alpha: 0.3,
                             ),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.primaryOrange,
+                          borderSide: BorderSide(
+                            color: themeProvider.borderColor,
                             width: 2,
                           ),
                         ),
@@ -213,14 +228,12 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                               child: Text(
                                 'No icons found',
                                 style: TextStyle(
-                                  color: AppColors.darkGrey.withValues(
-                                    alpha: 0.5,
-                                  ),
+                                  color: themeProvider.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
                             )
-                          : _buildIconPageView(),
+                          : _buildIconPageView(themeProvider),
                     ),
                   ],
                 ),
@@ -237,17 +250,17 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         side: BorderSide(
-                          color: AppColors.darkGrey.withValues(alpha: 0.3),
+                          color: themeProvider.borderColor,
                           width: 1.5,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(
-                          color: AppColors.darkGrey,
+                          color: themeProvider.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -255,39 +268,24 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryOrange.withValues(
-                              alpha: 0.3,
-                            ),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context, _selectedIconCodePoint);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, _selectedIconCodePoint);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: themeProvider.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'Select',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Select',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                       ),
                     ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/utils/validators.dart';
 
@@ -33,9 +32,19 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
     return AlertDialog(
       backgroundColor: themeProvider.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: themeProvider.borderColor,
+          width: 2,
+        ),
+      ),
       title: Text(
         'Add New Todo',
-        style: TextStyle(color: themeProvider.textPrimary),
+        style: TextStyle(
+          color: themeProvider.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Form(
         key: _formKey,
@@ -58,12 +67,45 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         ),
       ),
       actions: [
-        CustomButton(
-          text: 'Cancel',
-          type: ButtonType.outline,
+        OutlinedButton(
           onPressed: () => Navigator.of(context).pop(),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            side: BorderSide(
+              color: themeProvider.borderColor,
+              width: 1.5,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-        CustomButton(text: 'Add', onPressed: _addTodo),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: _addTodo,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            backgroundColor: themeProvider.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+          ),
+          child: const Text(
+            'Add',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ],
     );
   }

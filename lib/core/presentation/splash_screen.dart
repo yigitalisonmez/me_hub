@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_colors.dart';
+import '../providers/theme_provider.dart';
 import '../services/quote_cache_service.dart';
 import '../services/quote_service.dart';
 
@@ -123,10 +125,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
+      backgroundColor: themeProvider.backgroundColor,
+      body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(40),
             child: Column(
@@ -218,7 +221,6 @@ class _SplashScreenState extends State<SplashScreen>
               ],
             ),
           ),
-        ),
       ),
     );
   }

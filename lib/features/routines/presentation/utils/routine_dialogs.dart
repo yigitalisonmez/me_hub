@@ -84,10 +84,10 @@ class _DeleteRoutineDialog extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: themeProvider.borderColor,
-            width: 1.5,
+            width: 2,
           ),
           boxShadow: [
             BoxShadow(

@@ -373,4 +373,3 @@ class TodoCardWidget extends StatelessWidget {
     );
   }
 }
-

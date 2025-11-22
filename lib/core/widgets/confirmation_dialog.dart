@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
+import '../providers/theme_provider.dart';
 
 /// Generic confirmation dialog for delete/destructive actions
 /// 
@@ -52,59 +54,67 @@ class ConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final confirmColor = isDangerous ? Colors.red : AppColors.primaryOrange;
-    final confirmBgColor = isDangerous
-        ? Colors.red.withValues(alpha: 0.1)
-        : AppColors.primaryOrange.withValues(alpha: 0.1);
+    final themeProvider = context.watch<ThemeProvider>();
+    final confirmColor = isDangerous ? AppColors.error : themeProvider.primaryColor;
 
     return AlertDialog(
+      backgroundColor: themeProvider.cardColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: themeProvider.borderColor,
+          width: 2,
+        ),
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.bold,
-          color: AppColors.darkGrey,
+          color: themeProvider.textPrimary,
         ),
       ),
       content: Text(
         message,
-        style: const TextStyle(
-          color: AppColors.darkGrey,
+        style: TextStyle(
+          color: themeProvider.textSecondary,
         ),
       ),
       actions: [
         OutlinedButton(
           onPressed: () => Navigator.of(context).pop(false),
           style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             side: BorderSide(
-              color: AppColors.darkGrey.withValues(alpha: 0.3),
+              color: themeProvider.borderColor,
+              width: 1.5,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
           child: Text(
             cancelText,
-            style: const TextStyle(
-              color: AppColors.darkGrey,
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        OutlinedButton(
+        const SizedBox(width: 12),
+        ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: confirmBgColor,
-            side: BorderSide(color: confirmColor),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            backgroundColor: confirmColor,
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 0,
           ),
           child: Text(
             confirmText,
-            style: TextStyle(
-              color: confirmColor,
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
             ),
           ),
