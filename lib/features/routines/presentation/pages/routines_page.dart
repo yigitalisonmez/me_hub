@@ -574,50 +574,45 @@ class _RoutinesPageState extends State<RoutinesPage> {
             centerText: '${(pct * 100).toStringAsFixed(0)}%',
             bottomText: '$done / $total today',
           ),
-          // Expandable content
-          ClipRect(
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: isExpanded
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 12),
-                        ...routine.items.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-                          final isFirst = index == 0;
-                          final isLast = index == routine.items.length - 1;
+          // Expandable content with smooth animation
+          _AnimatedExpandableContent(
+            isExpanded: isExpanded,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                ...routine.items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isFirst = index == 0;
+                  final isLast = index == routine.items.length - 1;
 
-                          // Check if this item is enabled:
-                          // First item is always enabled
-                          // Subsequent items are enabled only if previous item is checked
-                          bool isEnabled = true;
-                          if (index > 0) {
-                            final previousItem = routine.items[index - 1];
-                            isEnabled = previousItem.isCheckedToday(today);
-                          }
+                  // Check if this item is enabled:
+                  // First item is always enabled
+                  // Subsequent items are enabled only if previous item is checked
+                  bool isEnabled = true;
+                  if (index > 0) {
+                    final previousItem = routine.items[index - 1];
+                    isEnabled = previousItem.isCheckedToday(today);
+                  }
 
-                          return RoutineItemWidget(
-                            routine: routine,
-                            item: item,
-                            provider: provider,
-                            isFirst: isFirst,
-                            isLast: isLast,
-                            isEnabled: isEnabled,
-                          );
-                        }),
-                        const SizedBox(height: 12),
-                        AddItemButton(
-                          onPressed: () =>
-                              RoutineDialogs.showAddItem(context, routine),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
+                  return RoutineItemWidget(
+                    routine: routine,
+                    item: item,
+                    provider: provider,
+                    isFirst: isFirst,
+                    isLast: isLast,
+                    isEnabled: isEnabled,
+                  );
+                }),
+                const SizedBox(height: 12),
+                AddItemButton(
+                  onPressed: () =>
+                      RoutineDialogs.showAddItem(context, routine),
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
           ),
         ],
@@ -670,5 +665,81 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
   String _formatTime(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Animated expandable content widget with smooth size and fade transitions
+class _AnimatedExpandableContent extends StatefulWidget {
+  final bool isExpanded;
+  final Widget child;
+
+  const _AnimatedExpandableContent({
+    required this.isExpanded,
+    required this.child,
+  });
+
+  @override
+  State<_AnimatedExpandableContent> createState() =>
+      _AnimatedExpandableContentState();
+}
+
+class _AnimatedExpandableContentState
+    extends State<_AnimatedExpandableContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _heightFactor;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _heightFactor = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    );
+
+    if (widget.isExpanded) {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedExpandableContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SizeTransition(
+          sizeFactor: _heightFactor,
+          axisAlignment: -1.0,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }

@@ -371,34 +371,11 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
     
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: themeProvider.borderColor,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: themeProvider.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: themeProvider.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    return _AnimatedStatCard(
+      value: value,
+      label: label,
+      theme: theme,
+      themeProvider: themeProvider,
     );
   }
 
@@ -504,31 +481,18 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
 
-    return GestureDetector(
-      onTap: () => context.read<WaterProvider>().addWaterAmount(amount),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        decoration: BoxDecoration(
-          color: themeProvider.primaryColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
-            const SizedBox(height: 12),
-            Text(
-              '${amount}ml',
-              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
-            ),
-          ],
-        ),
-      ),
+    return _AnimatedWaterButton(
+      amount: amount,
+      label: label,
+      theme: theme,
+      themeProvider: themeProvider,
+      onTap: () async {
+        // Haptic feedback
+        HapticFeedback.mediumImpact();
+        
+        // Add water
+        await context.read<WaterProvider>().addWaterAmount(amount);
+      },
     );
   }
 
@@ -813,5 +777,243 @@ class _AnimatedLogItemState extends State<_AnimatedLogItem>
       ),
     );
   }
+}
 
+/// Animated stat card with smooth value change animation
+class _AnimatedStatCard extends StatefulWidget {
+  final String value;
+  final String label;
+  final ThemeData theme;
+  final ThemeProvider themeProvider;
+
+  const _AnimatedStatCard({
+    required this.value,
+    required this.label,
+    required this.theme,
+    required this.themeProvider,
+  });
+
+  @override
+  State<_AnimatedStatCard> createState() => _AnimatedStatCardState();
+}
+
+class _AnimatedStatCardState extends State<_AnimatedStatCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  String? _previousValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
+    _previousValue = widget.value;
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedStatCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != _previousValue) {
+      _previousValue = widget.value;
+      _controller.reset();
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      decoration: BoxDecoration(
+        color: widget.themeProvider.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: widget.themeProvider.borderColor,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRect(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Text(
+                      widget.value,
+                      style: widget.theme.textTheme.headlineMedium?.copyWith(
+                        color: widget.themeProvider.primaryColor,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.label,
+            style: widget.theme.textTheme.bodySmall?.copyWith(
+              color: widget.themeProvider.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Animated water button with glow effect and haptic feedback
+class _AnimatedWaterButton extends StatefulWidget {
+  final int amount;
+  final String label;
+  final ThemeData theme;
+  final ThemeProvider themeProvider;
+  final VoidCallback onTap;
+
+  const _AnimatedWaterButton({
+    required this.amount,
+    required this.label,
+    required this.theme,
+    required this.themeProvider,
+    required this.onTap,
+  });
+
+  @override
+  State<_AnimatedWaterButton> createState() => _AnimatedWaterButtonState();
+}
+
+class _AnimatedWaterButtonState extends State<_AnimatedWaterButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleTap() async {
+    // Press animation
+    _controller.forward();
+    
+    // Call the onTap callback
+    widget.onTap();
+    
+    // Wait a bit then reverse
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (mounted) {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _controller.forward();
+      },
+      onTapUp: (_) => _handleTap(),
+      onTapCancel: () {
+        _controller.reverse();
+      },
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+              decoration: BoxDecoration(
+                color: widget.themeProvider.primaryColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.themeProvider.primaryColor.withValues(
+                      alpha: 0.3 * _glowAnimation.value,
+                    ),
+                    blurRadius: 20 * _glowAnimation.value,
+                    spreadRadius: 5 * _glowAnimation.value,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${widget.amount}ml',
+                    style: widget.theme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.label,
+                    style: widget.theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
