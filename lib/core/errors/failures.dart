@@ -1,4 +1,4 @@
-/// Hata sınıfları - Clean Architecture için
+/// Error classes - For Clean Architecture
 abstract class Failure {
   final String message;
   final String? code;
@@ -21,58 +21,58 @@ abstract class Failure {
   String toString() => 'Failure(message: $message, code: $code)';
 }
 
-/// Sunucu hatası
+/// Server error
 class ServerFailure extends Failure {
   const ServerFailure({
-    super.message = 'Sunucu hatası oluştu',
+    super.message = 'A server error occurred',
     super.code,
   });
 }
 
-/// Ağ hatası
+/// Network error
 class NetworkFailure extends Failure {
   const NetworkFailure({
-    super.message = 'İnternet bağlantınızı kontrol edin',
+    super.message = 'Please check your internet connection',
     super.code,
   });
 }
 
-/// Cache hatası
+/// Cache error
 class CacheFailure extends Failure {
   const CacheFailure({
-    super.message = 'Yerel veri hatası oluştu',
+    super.message = 'A local data error occurred',
     super.code,
   });
 }
 
-/// Doğrulama hatası
+/// Validation error
 class ValidationFailure extends Failure {
   const ValidationFailure({
-    super.message = 'Girilen bilgiler geçersiz',
+    super.message = 'Invalid information entered',
     super.code,
   });
 }
 
-/// Yetkilendirme hatası
+/// Authorization error
 class AuthFailure extends Failure {
   const AuthFailure({
-    super.message = 'Yetkilendirme hatası',
+    super.message = 'Authorization error',
     super.code,
   });
 }
 
-/// Zaman aşımı hatası
+/// Timeout error
 class TimeoutFailure extends Failure {
   const TimeoutFailure({
-    super.message = 'İstek zaman aşımına uğradı',
+    super.message = 'Request timed out',
     super.code,
   });
 }
 
-/// Bilinmeyen hata
+/// Unknown error
 class UnknownFailure extends Failure {
   const UnknownFailure({
-    super.message = 'Bilinmeyen bir hata oluştu',
+    super.message = 'An unknown error occurred',
     super.code,
   });
 }
