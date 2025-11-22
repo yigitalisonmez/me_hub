@@ -202,7 +202,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPageView() {
-    return PageView(
+    // Use PageView.builder for true lazy loading - pages are only built when needed
+    return PageView.builder(
       controller: _pageController,
       physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
       onPageChanged: (index) {
@@ -210,13 +211,23 @@ class _HomePageState extends State<HomePage> {
           _currentIndex = index;
         });
       },
-      children: [
-        _buildHomeContent(),
-        const WaterPage(),
-        const RoutinesPage(),
-        const MoodPage(),
-        _buildSettingsPage(),
-      ],
+      itemCount: 5, // Total number of pages
+      itemBuilder: (context, index) {
+        switch (index) {
+          case 0:
+            return _buildHomeContent();
+          case 1:
+            return const WaterPage();
+          case 2:
+            return const RoutinesPage();
+          case 3:
+            return const MoodPage();
+          case 4:
+            return _buildSettingsPage();
+          default:
+            return _buildHomeContent();
+        }
+      },
     );
   }
 
