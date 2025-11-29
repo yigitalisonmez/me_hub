@@ -23,6 +23,7 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
   int? _selectedIconCodePoint;
   TimeOfDay? _selectedTime;
   List<int> _selectedDays = [];
+  bool _isCreating = false;
 
   @override
   void initState() {
@@ -86,15 +87,37 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
   }
 
   Future<void> _createRoutine() async {
-    final provider = context.read<RoutinesProvider>();
-    await provider.addNewRoutine(
-      _nameController.text.trim(),
-      iconCodePoint: _selectedIconCodePoint,
-      time: _selectedTime!,
-      selectedDays: _selectedDays,
-    );
-    if (mounted) {
-      Navigator.of(context).pop();
+    // Çift tıklamayı önle
+    if (_isCreating) return;
+    
+    setState(() {
+      _isCreating = true;
+    });
+    
+    try {
+      final provider = context.read<RoutinesProvider>();
+      await provider.addNewRoutine(
+        _nameController.text.trim(),
+        iconCodePoint: _selectedIconCodePoint,
+        time: _selectedTime!,
+        selectedDays: _selectedDays,
+      );
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating routine: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        setState(() {
+          _isCreating = false;
+        });
+      }
     }
   }
 
@@ -420,31 +443,43 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed: _nextStep,
+                      onPressed: _isCreating ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeProvider.primaryColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        disabledBackgroundColor: themeProvider.textSecondary.withValues(alpha: 0.3),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_currentStep == 2)
-                            Icon(
-                              LucideIcons.sparkles,
-                              color: themeProvider.textPrimary,
-                              size: 20,
+                      child: _isCreating
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  themeProvider.textPrimary,
+                                ),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_currentStep == 2)
+                                  Icon(
+                                    LucideIcons.sparkles,
+                                    color: themeProvider.textPrimary,
+                                    size: 20,
+                                  ),
+                                if (_currentStep == 2) const SizedBox(width: 8),
+                                Text(
+                                  _currentStep == 2 ? 'Create Routine' : 'Continue',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(color: themeProvider.textPrimary),
+                                ),
+                              ],
                             ),
-                          if (_currentStep == 2) const SizedBox(width: 8),
-                          Text(
-                            _currentStep == 2 ? 'Create Routine' : 'Continue',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(color: themeProvider.textPrimary),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ],

@@ -52,7 +52,28 @@ class RoutineDialogs {
 
     if (confirmed == true) {
       final provider = context.read<RoutinesProvider>();
-      await provider.deleteRoutine(routine.id);
+      try {
+        await provider.deleteRoutine(routine.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Routine "${routine.name}" deleted successfully'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting routine: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
 
     return confirmed;

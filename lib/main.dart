@@ -35,6 +35,7 @@ import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
 import 'features/water/domain/entities/water_intake.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,9 @@ void main() async {
   await routinesDataSource.init();
   final waterBox = await Hive.openBox<WaterIntake>('water_intake');
   final waterDataSource = WaterLocalDataSource(waterBox);
+
+  // Notification service'i başlat
+  await NotificationService().initialize();
 
   runApp(
     MeHubApp(
@@ -440,6 +444,72 @@ class _HomePageState extends State<HomePage> {
                   activeColor: themeProvider.primaryColor,
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Test Notification Button
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: themeProvider.borderColor, width: 2),
+            ),
+            child: InkWell(
+              onTap: () async {
+                try {
+                  await NotificationService().showTestNotification();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Test bildirimi gönderildi!'),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.bell,
+                    color: themeProvider.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Test Notification',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: themeProvider.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Send a test notification now',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: themeProvider.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

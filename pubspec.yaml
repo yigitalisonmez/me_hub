@@ -78,6 +78,10 @@ dependencies:
 
   # Smooth Gradient
   smooth_gradient: ^0.2.0+1
+  
+  # Local notifications
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
 
 dev_dependencies:
   flutter_test:

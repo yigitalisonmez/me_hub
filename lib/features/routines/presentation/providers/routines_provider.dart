@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import '../../domain/usecases/usecases.dart';
+import '../../../../core/services/notification_service.dart';
 
 class RoutinesProvider with ChangeNotifier {
   final GetRoutines _getRoutines;
@@ -75,6 +76,9 @@ class RoutinesProvider with ChangeNotifier {
         // Eğer bir güncelleme yapıldıysa, tekrar yükle
         _routines = await _getRoutines();
       }
+
+      // Bildirimleri loadRoutines'da zamanlama - sadece rutin değiştiğinde zamanlanacak
+      // Bu performans sorunlarına neden oluyordu
     } catch (e) {
       _error = 'Routines failed to load';
     } finally {
@@ -89,18 +93,38 @@ class RoutinesProvider with ChangeNotifier {
     TimeOfDay? time,
     List<int>? selectedDays,
   }) async {
-    final routine = Routine(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name,
-      items: const [],
-      streakCount: 0,
-      iconCodePoint: iconCodePoint,
-      timeHour: time?.hour,
-      timeMinute: time?.minute,
-      selectedDays: selectedDays,
-    );
-    await _addRoutine(routine);
-    await loadRoutines();
+    try {
+      final routine = Routine(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        name: name,
+        items: const [],
+        streakCount: 0,
+        iconCodePoint: iconCodePoint,
+        timeHour: time?.hour,
+        timeMinute: time?.minute,
+        selectedDays: selectedDays,
+      );
+      
+      // Önce storage'a kaydet
+      final savedRoutine = await _addRoutine(routine);
+      
+      // Başarılı oldu, şimdi local state'i güncelle
+      // Duplicate kontrolü yap
+      if (!_routines.any((r) => r.id == savedRoutine.id)) {
+        _routines.add(savedRoutine);
+        notifyListeners();
+      }
+      
+      // Bildirimleri arka planda zamanla (async)
+      if (routine.time != null) {
+        NotificationService().scheduleRoutineNotifications(routine).catchError((e) {
+          debugPrint('Error scheduling notifications: $e');
+        });
+      }
+    } catch (e) {
+      debugPrint('Error adding routine: $e');
+      rethrow;
+    }
   }
 
   /// Get routines active on a specific weekday
@@ -217,9 +241,6 @@ class RoutinesProvider with ChangeNotifier {
     // Update local state immediately for UI responsiveness
     _routines[index] = updated;
     notifyListeners();
-
-    // Then reload from storage to ensure consistency
-    await loadRoutines();
   }
 
   Future<void> toggleItemCheckedToday(String routineId, String itemId) async {
@@ -271,12 +292,31 @@ class RoutinesProvider with ChangeNotifier {
     updatedRoutine = _checkAndUpdateStreak(routine, updatedRoutine);
 
     await _updateRoutine(updatedRoutine);
-    await loadRoutines();
+    
+    // Update local state immediately for UI responsiveness
+    _routines[index] = updatedRoutine;
+    notifyListeners();
   }
 
   Future<void> deleteRoutine(String routineId) async {
-    await _deleteRoutine(routineId);
-    await loadRoutines();
+    try {
+      // Önce silme işlemini yap - başarılı olursa state'i güncelle
+      await _deleteRoutine(routineId);
+      
+      // Silme başarılı oldu, şimdi state'i güncelle
+      _routines.removeWhere((r) => r.id == routineId);
+      notifyListeners();
+      
+      // Bildirimleri arka planda iptal et
+      NotificationService().cancelRoutineNotifications(routineId).catchError((e) {
+        debugPrint('Error canceling notifications: $e');
+      });
+    } catch (e) {
+      debugPrint('Error deleting routine: $e');
+      // Hata durumunda state'i güncelleme - rutin hala listede kalmalı
+      // Kullanıcıya hata mesajı gösterilebilir
+      rethrow;
+    }
   }
 
   Future<void> updateRoutine(Routine routine) async {
@@ -289,8 +329,13 @@ class RoutinesProvider with ChangeNotifier {
       notifyListeners();
     }
 
-    // Then reload from storage to ensure consistency
-    await loadRoutines();
+    // Bildirimleri güncelle (sadece zaman değiştiğinde)
+    if (routine.time != null) {
+      await NotificationService().updateRoutineNotifications(routine);
+    } else {
+      // Eğer zaman yoksa bildirimleri iptal et
+      await NotificationService().cancelRoutineNotifications(routine.id);
+    }
   }
 
   /// Update routine name with validation
@@ -347,9 +392,6 @@ class RoutinesProvider with ChangeNotifier {
     // Update local state immediately for UI responsiveness
     _routines[index] = updated;
     notifyListeners();
-
-    // Then reload from storage to ensure consistency
-    await loadRoutines();
   }
 
   // Streak reset kontrolü - bir gün routine yapılmazsa streak sıfırlanır

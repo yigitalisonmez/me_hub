@@ -36,36 +36,43 @@ class _RoutinesPageState extends State<RoutinesPage> {
     return Container(
       decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
-        child: Consumer<RoutinesProvider>(
-          builder: (context, provider, child) {
-            // Check if a routine was just completed
+        child: Selector<RoutinesProvider, List<Routine>>(
+          selector: (_, provider) => provider.getActiveRoutinesForDay(
+            DateTime.now().weekday - 1,
+          ),
+          builder: (context, activeRoutines, child) {
+            final provider = context.read<RoutinesProvider>();
+            
+            // Check for completed routine
             final completedRoutineName = provider.justCompletedRoutineName;
             if (completedRoutineName != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.partyPopper,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'You have completed \'$completedRoutineName\'',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.partyPopper,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'You have completed \'$completedRoutineName\'',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      duration: const Duration(seconds: 2),
                     ),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                  );
+                }
               });
             }
 
@@ -79,14 +86,10 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   _buildHeader(context),
                   const SizedBox(height: 24),
                   // Hero Header
-                  _buildHeroHeader(context, provider),
+                  _buildHeroHeader(context, provider, activeRoutines),
                   const SizedBox(height: 24),
                   // Routine Cards - Filter by active days
-                  ...provider
-                      .getActiveRoutinesForDay(
-                        DateTime.now().weekday - 1, // Convert to 0-6 format
-                      )
-                      .map((r) => _buildRoutineCard(context, r, provider)),
+                  ...activeRoutines.map((r) => _buildRoutineCard(context, r, provider)),
                   const SizedBox(height: 24),
                   // Add Routine Button
                   AddRoutineButton(
@@ -104,7 +107,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -145,14 +148,15 @@ class _RoutinesPageState extends State<RoutinesPage> {
     );
   }
 
-  Widget _buildHeroHeader(BuildContext context, RoutinesProvider provider) {
-    final themeProvider = context.watch<ThemeProvider>();
+  Widget _buildHeroHeader(
+    BuildContext context,
+    RoutinesProvider provider,
+    List<Routine> activeRoutines,
+  ) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
-    // Filter routines by active days
-    final activeRoutines = provider.getActiveRoutinesForDay(
-      DateTime.now().weekday - 1, // Convert to 0-6 format
-    );
+    
     int totalItems = 0;
     int completedToday = 0;
     for (final r in activeRoutines) {
@@ -277,7 +281,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
     int total,
   ) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: progress),
@@ -350,7 +354,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
     String label,
   ) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -392,15 +396,17 @@ class _RoutinesPageState extends State<RoutinesPage> {
     RoutinesProvider provider,
   ) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final date = DateTime.now();
     final today = DateTime(date.year, date.month, date.day);
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
     final total = routine.items.length;
     final pct = total == 0 ? 0.0 : done / total;
-    final isExpanded = provider.isRoutineExpanded(routine.id);
-
-    return Container(
+    
+    return Selector<RoutinesProvider, bool>(
+      selector: (_, p) => p.isRoutineExpanded(routine.id),
+      builder: (context, isExpanded, _) {
+        return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -617,6 +623,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 
