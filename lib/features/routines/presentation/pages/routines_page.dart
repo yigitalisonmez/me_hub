@@ -48,30 +48,30 @@ class _RoutinesPageState extends State<RoutinesPage> {
             if (completedRoutineName != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.partyPopper,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'You have completed \'$completedRoutineName\'',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      duration: const Duration(seconds: 2),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.partyPopper,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'You have completed \'$completedRoutineName\'',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ),
-                  );
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
                 }
               });
             }
@@ -402,11 +402,11 @@ class _RoutinesPageState extends State<RoutinesPage> {
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
     final total = routine.items.length;
     final pct = total == 0 ? 0.0 : done / total;
-    
+
     return Selector<RoutinesProvider, bool>(
       selector: (_, p) => p.isRoutineExpanded(routine.id),
       builder: (context, isExpanded, _) {
-        return Container(
+    return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),

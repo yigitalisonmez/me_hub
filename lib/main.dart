@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -185,7 +186,24 @@ class _HomePageState extends State<HomePage> {
     _pageController = PageController(initialPage: _currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TodoProvider>().loadTodayTodos();
+      // Uygulama açıldığında rutinleri yükle ve bildirimleri yeniden zamanla
+      _rescheduleNotifications();
     });
+  }
+
+  Future<void> _rescheduleNotifications() async {
+    try {
+      final routinesProvider = context.read<RoutinesProvider>();
+      await routinesProvider.loadRoutines();
+      final routines = routinesProvider.routines;
+      if (routines.isNotEmpty) {
+        await NotificationService().rescheduleAllRoutineNotifications(routines);
+        // Debug: Zamanlanmış bildirimleri kontrol et
+        await NotificationService().checkPendingNotifications();
+      }
+    } catch (e) {
+      debugPrint('Bildirimleri yeniden zamanlama hatası: $e');
+    }
   }
 
   @override
@@ -502,6 +520,72 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 2),
                       Text(
                         'Send a test notification now',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: themeProvider.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Check Pending Notifications Button
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: themeProvider.borderColor, width: 2),
+            ),
+            child: InkWell(
+              onTap: () async {
+                try {
+                  await NotificationService().checkPendingNotifications();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Bildirimler kontrol edildi! Console loglarına bakın.'),
+                        backgroundColor: Colors.blue,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.check,
+                    color: themeProvider.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Check Notifications',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: themeProvider.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Check scheduled notifications',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: themeProvider.textSecondary,
                         ),

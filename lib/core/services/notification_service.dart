@@ -4,8 +4,9 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import '../../features/routines/domain/entities/routine.dart';
 
+// flutter_native_timezone paketi KALDIRILDI - gereksiz!
+
 class NotificationService {
-  // Singleton Pattern
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
@@ -14,17 +15,24 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  tz.Location? _localLocation;
 
-  /// Initialize the notification service
   Future<void> initialize() async {
     if (_initialized) return;
 
     tz.initializeTimeZones();
 
+    // Türkiye timezone'u direkt kullan - daha basit ve güvenilir
+    _localLocation = tz.getLocation('Europe/Istanbul');
+    tz.setLocalLocation(_localLocation!);
+
+    if (kDebugMode) {
+      debugPrint('✅ Timezone ayarlandı: Europe/Istanbul');
+    }
+
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -55,17 +63,7 @@ class NotificationService {
           importance: Importance.max,
           playSound: true,
           enableVibration: true,
-        ),
-      );
-
-      await androidImplementation.createNotificationChannel(
-        const AndroidNotificationChannel(
-          'test_channel',
-          'Test Bildirimleri',
-          description: 'Uygulama test bildirimleri',
-          importance: Importance.max,
-          playSound: true,
-          enableVibration: true,
+          showBadge: true,
         ),
       );
 
@@ -82,23 +80,29 @@ class NotificationService {
     _initialized = true;
   }
 
-  /// Bildirime tıklandığında çalışacak fonksiyon
   void _onNotificationTapped(NotificationResponse response) {
     // Navigasyon işlemleri buraya eklenebilir
   }
 
-  /// Tüm rutinlerin bildirimlerini yeniden planla
   Future<void> rescheduleAllRoutineNotifications(List<Routine> routines) async {
     if (!_initialized) await initialize();
 
+    debugPrint('🔄 Tüm bildirimleri yeniden zamanlama başlıyor...');
+
+    await cancelAllNotifications();
+    debugPrint('✅ Tüm bildirimler iptal edildi');
+
+    int scheduledCount = 0;
     for (final routine in routines) {
       if (routine.time != null) {
         await scheduleRoutineNotifications(routine);
+        scheduledCount++;
       }
     }
+
+    debugPrint('✅ Toplam $scheduledCount rutin için bildirimler zamanlandı');
   }
 
-  /// Bir rutin için (seçili günlerde) bildirim planla
   Future<void> scheduleRoutineNotifications(Routine routine) async {
     if (!_initialized) await initialize();
 
@@ -123,13 +127,13 @@ class NotificationService {
     }
   }
 
-  /// Belirli bir gün için saati hesaplayıp planlamayı başlatır
   Future<void> _scheduleNotificationForDay({
     required Routine routine,
     required int dayIndex,
     required int hour,
     required int minute,
   }) async {
+    // 5 dakika önceki saati hesapla
     int notificationMinute = minute - 5;
     int notificationHour = hour;
 
@@ -144,31 +148,55 @@ class NotificationService {
     await _scheduleWeeklyRecurringNotification(
       routine: routine,
       dayIndex: dayIndex,
-      hour: notificationHour,
-      minute: notificationMinute,
+      notificationHour: notificationHour,
+      notificationMinute: notificationMinute,
+      routineHour: hour,
+      routineMinute: minute,
     );
   }
 
-  /// Haftalık tekrar eden bildirimi kurar
   Future<void> _scheduleWeeklyRecurringNotification({
     required Routine routine,
     required int dayIndex,
-    required int hour,
-    required int minute,
+    required int notificationHour,
+    required int notificationMinute,
+    required int routineHour,
+    required int routineMinute,
   }) async {
     try {
-      final now = tz.TZDateTime.now(tz.local);
-      final nextDay = _getNextDayOfWeek(now, dayIndex);
+      final location = _localLocation ?? tz.local;
+      final now = tz.TZDateTime.now(location);
 
-      var scheduledDate = tz.TZDateTime(
-        tz.local,
-        nextDay.year,
-        nextDay.month,
-        nextDay.day,
-        hour,
-        minute,
-      );
+      // Hedef günü bul (0=Pazartesi, 6=Pazar)
+      final currentWeekday =
+          (now.weekday % 7); // 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
 
+      // dayIndex'i DateTime.weekday sistemine çevir
+      // dayIndex: 0=Pazartesi -> weekday: 1
+      final targetWeekday = (dayIndex + 1) % 7; // 0=Pazar, 1=Pazartesi
+
+      int daysUntilTarget;
+      if (currentWeekday == 0) {
+        // Bugün Pazar ise
+        daysUntilTarget = targetWeekday == 0 ? 0 : targetWeekday;
+      } else {
+        daysUntilTarget = targetWeekday - currentWeekday;
+        if (daysUntilTarget < 0) {
+          daysUntilTarget += 7;
+        }
+      }
+
+      // İlk bildirim tarihini hesapla
+      tz.TZDateTime scheduledDate = tz.TZDateTime(
+        location,
+        now.year,
+        now.month,
+        now.day,
+        notificationHour,
+        notificationMinute,
+      ).add(Duration(days: daysUntilTarget));
+
+      // Eğer hesaplanan tarih geçmişte kaldıysa, bir hafta ekle
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 7));
       }
@@ -196,18 +224,40 @@ class NotificationService {
         showWhen: true,
         enableVibration: true,
         playSound: true,
+        autoCancel: true,
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
       );
 
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
       );
 
       const notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
+
+      if (kDebugMode) {
+        final timeUntilNotification = scheduledDate.difference(now);
+        debugPrint('✅ ${routine.name} - ${_getDayName(dayIndex)}');
+        debugPrint(
+          '   🕐 Rutin saati: ${routineHour.toString().padLeft(2, '0')}:${routineMinute.toString().padLeft(2, '0')}',
+        );
+        debugPrint(
+          '   🔔 Bildirim saati: ${notificationHour.toString().padLeft(2, '0')}:${notificationMinute.toString().padLeft(2, '0')}',
+        );
+        debugPrint(
+          '   📅 İlk bildirim: ${scheduledDate.day}/${scheduledDate.month}/${scheduledDate.year} ${scheduledDate.hour.toString().padLeft(2, '0')}:${scheduledDate.minute.toString().padLeft(2, '0')}',
+        );
+        debugPrint(
+          '   ⏳ Kalan süre: ${timeUntilNotification.inMinutes} dakika',
+        );
+        debugPrint('   🆔 ID: $notificationId');
+      }
 
       await _notifications.zonedSchedule(
         notificationId,
@@ -223,32 +273,25 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     } catch (e, stackTrace) {
-      debugPrint('Rutin bildirimi zamanlama hatası: $e');
+      debugPrint('❌ Bildirim zamanlama hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  /// Bir sonraki haftanın gününü bulur
-  tz.TZDateTime _getNextDayOfWeek(tz.TZDateTime now, int targetDay) {
-    final currentWeekday = now.weekday;
-    final targetWeekday = targetDay + 1;
-
-    int daysUntilTarget = targetWeekday - currentWeekday;
-    if (daysUntilTarget < 0) {
-      daysUntilTarget += 7;
-    }
-
-    final targetDate = now.add(Duration(days: daysUntilTarget));
-    return tz.TZDateTime(
-      tz.local,
-      targetDate.year,
-      targetDate.month,
-      targetDate.day,
-    );
+  String _getDayName(int dayIndex) {
+    const days = [
+      'Pazartesi',
+      'Salı',
+      'Çarşamba',
+      'Perşembe',
+      'Cuma',
+      'Cumartesi',
+      'Pazar',
+    ];
+    return days[dayIndex];
   }
 
-  /// Bir rutine ait tüm bildirimleri iptal et
   Future<void> cancelRoutineNotifications(String routineId) async {
     for (int day = 0; day < 7; day++) {
       final notificationId = _getNotificationId(routineId, day);
@@ -256,33 +299,51 @@ class NotificationService {
     }
   }
 
-  /// Tüm bildirimleri iptal et
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
 
-  /// Unique ID oluşturucu
+  Future<void> checkPendingNotifications() async {
+    if (!_initialized) await initialize();
+
+    final pendingNotifications = await _notifications
+        .pendingNotificationRequests();
+    debugPrint(
+      '📋 Zamanlanmış bildirim sayısı: ${pendingNotifications.length}',
+    );
+
+    if (pendingNotifications.isEmpty) {
+      debugPrint('⚠️ Hiç zamanlanmış bildirim yok!');
+    } else {
+      for (final notification in pendingNotifications) {
+        debugPrint(
+          '   - ID: ${notification.id}, Başlık: ${notification.title}',
+        );
+      }
+    }
+  }
+
   int _getNotificationId(String routineId, int dayIndex) {
     final idString = '${routineId}_$dayIndex';
     return idString.hashCode.abs() % 2147483647;
   }
 
-  /// Rutin güncellendiğinde bildirimleri güncelle
   Future<void> updateRoutineNotifications(Routine routine) async {
     await scheduleRoutineNotifications(routine);
   }
 
-  /// Test için 1 dakika sonra bildirim gönder
-  Future<void> showTestNotification() async {
-    if (!_initialized) {
-      await initialize();
-    }
+   Future<void> showTestNotification() async {
+    if (!_initialized) await initialize();
 
     try {
+      final location = _localLocation ?? tz.local;
+      final now = tz.TZDateTime.now(location);
+      final scheduledDate = now.add(const Duration(minutes: 1));
+
       const androidDetails = AndroidNotificationDetails(
-        'test_channel',
-        'Test Bildirimleri',
-        channelDescription: 'Uygulama test bildirimleri',
+        'routine_reminders',
+        'Rutin Hatırlatıcıları',
+        channelDescription: 'Test bildirimi',
         importance: Importance.max,
         priority: Priority.high,
         showWhen: true,
@@ -301,29 +362,14 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      Future.delayed(const Duration(minutes: 1), () async {
-        await _notifications.show(
-          999998,
-          'Test Bildirimi',
-          '1 dakika sonra bildirim geldi! 🎉',
-          notificationDetails,
-        );
-      });
-
       final androidImplementation = _notifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
       bool canScheduleExact = false;
       if (androidImplementation != null) {
-        final canSchedule = await androidImplementation
-            .canScheduleExactNotifications();
+        final canSchedule = await androidImplementation.canScheduleExactNotifications();
         canScheduleExact = canSchedule ?? false;
       }
-
-      final now = tz.TZDateTime.now(tz.local);
-      final scheduledDate = now.add(const Duration(minutes: 1));
 
       await _notifications.zonedSchedule(
         999999,
@@ -337,8 +383,10 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
+
+      debugPrint('✅ Test bildirimi ${scheduledDate.hour}:${scheduledDate.minute} için zamanlandı');
     } catch (e, stackTrace) {
-      debugPrint('Bildirim gönderme hatası: $e');
+      debugPrint('❌ Test bildirimi hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
     }

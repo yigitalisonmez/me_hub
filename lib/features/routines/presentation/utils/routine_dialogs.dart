@@ -53,7 +53,7 @@ class RoutineDialogs {
     if (confirmed == true) {
       final provider = context.read<RoutinesProvider>();
       try {
-        await provider.deleteRoutine(routine.id);
+      await provider.deleteRoutine(routine.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

@@ -95,15 +95,15 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
     });
     
     try {
-      final provider = context.read<RoutinesProvider>();
-      await provider.addNewRoutine(
-        _nameController.text.trim(),
-        iconCodePoint: _selectedIconCodePoint,
-        time: _selectedTime!,
-        selectedDays: _selectedDays,
-      );
-      if (mounted) {
-        Navigator.of(context).pop();
+    final provider = context.read<RoutinesProvider>();
+    await provider.addNewRoutine(
+      _nameController.text.trim(),
+      iconCodePoint: _selectedIconCodePoint,
+      time: _selectedTime!,
+      selectedDays: _selectedDays,
+    );
+    if (mounted) {
+      Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
@@ -464,22 +464,22 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
                               ),
                             )
                           : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (_currentStep == 2)
-                                  Icon(
-                                    LucideIcons.sparkles,
-                                    color: themeProvider.textPrimary,
-                                    size: 20,
-                                  ),
-                                if (_currentStep == 2) const SizedBox(width: 8),
-                                Text(
-                                  _currentStep == 2 ? 'Create Routine' : 'Continue',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: themeProvider.textPrimary),
-                                ),
-                              ],
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_currentStep == 2)
+                            Icon(
+                              LucideIcons.sparkles,
+                              color: themeProvider.textPrimary,
+                              size: 20,
                             ),
+                          if (_currentStep == 2) const SizedBox(width: 8),
+                          Text(
+                            _currentStep == 2 ? 'Create Routine' : 'Continue',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: themeProvider.textPrimary),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

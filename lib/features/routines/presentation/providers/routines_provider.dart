@@ -94,16 +94,16 @@ class RoutinesProvider with ChangeNotifier {
     List<int>? selectedDays,
   }) async {
     try {
-      final routine = Routine(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        name: name,
-        items: const [],
-        streakCount: 0,
-        iconCodePoint: iconCodePoint,
-        timeHour: time?.hour,
-        timeMinute: time?.minute,
-        selectedDays: selectedDays,
-      );
+    final routine = Routine(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: name,
+      items: const [],
+      streakCount: 0,
+      iconCodePoint: iconCodePoint,
+      timeHour: time?.hour,
+      timeMinute: time?.minute,
+      selectedDays: selectedDays,
+    );
       
       // Önce storage'a kaydet
       final savedRoutine = await _addRoutine(routine);
@@ -301,7 +301,7 @@ class RoutinesProvider with ChangeNotifier {
   Future<void> deleteRoutine(String routineId) async {
     try {
       // Önce silme işlemini yap - başarılı olursa state'i güncelle
-      await _deleteRoutine(routineId);
+    await _deleteRoutine(routineId);
       
       // Silme başarılı oldu, şimdi state'i güncelle
       _routines.removeWhere((r) => r.id == routineId);

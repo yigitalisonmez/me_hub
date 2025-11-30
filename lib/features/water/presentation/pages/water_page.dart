@@ -827,6 +827,8 @@ class _AnimatedStatCardState extends State<_AnimatedStatCard>
       ),
     );
     _previousValue = widget.value;
+    // İlk render'da animasyonu başlat
+    _controller.forward();
   }
 
   @override
