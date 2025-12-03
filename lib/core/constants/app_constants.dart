@@ -4,7 +4,7 @@ class AppConstants {
   AppConstants._();
 
   // Uygulama bilgileri
-  static const String appName = 'Me Hub';
+  static const String appName = 'MeHub';
   static const String appVersion = '1.0.0';
   static const String appDescription = 'All-in-one personal tracking app';
 
@@ -41,12 +41,15 @@ class AppConstants {
   static const int maxFileSize = 10 * 1024 * 1024; // 10MB
 
   // Regex patterns
-  static const String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+  static const String emailPattern =
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
   static const String phonePattern = r'^\+?[1-9]\d{1,14}$';
-  static const String passwordPattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$';
+  static const String passwordPattern =
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$';
 
   // Hata mesajları
-  static const String networkErrorMessage = 'İnternet bağlantınızı kontrol edin';
+  static const String networkErrorMessage =
+      'İnternet bağlantınızı kontrol edin';
   static const String serverErrorMessage = 'Sunucu hatası oluştu';
   static const String unknownErrorMessage = 'Bilinmeyen bir hata oluştu';
   static const String timeoutErrorMessage = 'İstek zaman aşımına uğradı';

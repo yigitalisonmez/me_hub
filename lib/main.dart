@@ -21,7 +21,6 @@ import 'features/todo/data/models/daily_todo_model.dart';
 import 'features/quote/presentation/widgets/daily_quote_widget.dart';
 import 'features/todo/presentation/widgets/todo_header_widget.dart';
 import 'features/todo/presentation/widgets/todo_card_widget.dart';
-import 'core/presentation/splash_screen.dart';
 import 'features/routines/presentation/pages/routines_page.dart';
 import 'features/routines/presentation/providers/routines_provider.dart';
 import 'features/routines/data/datasources/routine_local_datasource.dart';
@@ -32,6 +31,9 @@ import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
 import 'features/water/presentation/pages/water_page.dart';
 import 'features/water/presentation/providers/water_provider.dart';
 import 'features/mood_tracker/presentation/pages/mood_page.dart';
+import 'features/mood_tracker/presentation/providers/mood_provider.dart';
+import 'features/mood_tracker/data/datasources/mood_local_datasource.dart';
+import 'features/mood_tracker/domain/entities/mood_entry.dart';
 import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
@@ -51,6 +53,7 @@ void main() async {
   Hive.registerAdapter(RoutineEntities.RoutineAdapter());
   Hive.registerAdapter(WaterIntakeAdapter());
   Hive.registerAdapter(WaterLogAdapter());
+  Hive.registerAdapter(MoodEntryAdapter());
 
   // Data source'ları başlat
   final todoDataSource = TodoLocalDataSourceImpl();
@@ -59,6 +62,8 @@ void main() async {
   await routinesDataSource.init();
   final waterBox = await Hive.openBox<WaterIntake>('water_intake');
   final waterDataSource = WaterLocalDataSource(waterBox);
+  final moodDataSource = MoodLocalDataSource();
+  await moodDataSource.init();
 
   // Notification service'i başlat
   await NotificationService().initialize();
@@ -68,6 +73,7 @@ void main() async {
       todoDataSource: todoDataSource,
       routinesDataSource: routinesDataSource,
       waterDataSource: waterDataSource,
+      moodDataSource: moodDataSource,
     ),
   );
 }
@@ -76,12 +82,14 @@ class MeHubApp extends StatelessWidget {
   final TodoLocalDataSource todoDataSource;
   final RoutineLocalDataSource routinesDataSource;
   final WaterLocalDataSource waterDataSource;
+  final MoodLocalDataSource moodDataSource;
 
   const MeHubApp({
     super.key,
     required this.todoDataSource,
     required this.routinesDataSource,
     required this.waterDataSource,
+    required this.moodDataSource,
   });
 
   @override
@@ -137,15 +145,15 @@ class MeHubApp extends StatelessWidget {
             removeLastLog: WaterUsecases.RemoveLastLog(
               context.read<WaterRepositoryImpl>(),
             ),
-            getWaterHistory: WaterUsecases.GetWaterHistory(
-              context.read<WaterRepositoryImpl>(),
-            ),
             updateWaterIntake: WaterUsecases.UpdateWaterIntake(
               context.read<WaterRepositoryImpl>(),
             ),
           ),
         ),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<MoodProvider>(
+          create: (_) => MoodProvider(moodDataSource),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -161,7 +169,7 @@ class MeHubApp extends StatelessWidget {
             themeMode: themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: SplashScreen(child: const HomePage()),
+            home: const HomePage(),
           );
         },
       ),

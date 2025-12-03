@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/streak_badge.dart';
@@ -106,45 +107,10 @@ class _RoutinesPageState extends State<RoutinesPage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Routines',
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: themeProvider.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Build habits & stay consistent',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: themeProvider.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            border: Border.all(color: themeProvider.borderColor, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            LucideIcons.settings,
-            color: themeProvider.primaryColor,
-            size: 20,
-          ),
-        ),
-      ],
+    return const PageHeader(
+      title: 'Routines',
+      subtitle: 'Build habits & stay consistent',
+      actionIcon: LucideIcons.settings,
     );
   }
 

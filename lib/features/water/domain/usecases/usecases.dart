@@ -26,14 +26,6 @@ class RemoveLastLog {
   Future<void> call(DateTime date) => repository.removeLastLog(date);
 }
 
-class GetWaterHistory {
-  final WaterRepository repository;
-
-  GetWaterHistory(this.repository);
-
-  Future<List<WaterIntake>> call(int days) => repository.getWaterHistory(days);
-}
-
 class UpdateWaterIntake {
   final WaterRepository repository;
 

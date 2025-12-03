@@ -31,10 +31,6 @@ class WaterLocalDataSource {
     await _box.delete(key);
   }
 
-  /// Get all water intakes (for history)
-  Future<List<WaterIntake>> getAllWaterIntakes() async {
-    return _box.values.toList();
-  }
 
   /// Generate key from date (YYYY-MM-DD format)
   String _getKey(DateTime date) {

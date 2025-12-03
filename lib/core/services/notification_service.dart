@@ -336,10 +336,6 @@ class NotificationService {
     if (!_initialized) await initialize();
 
     try {
-      final location = _localLocation ?? tz.local;
-      final now = tz.TZDateTime.now(location);
-      final scheduledDate = now.add(const Duration(minutes: 1));
-
       const androidDetails = AndroidNotificationDetails(
         'routine_reminders',
         'Rutin Hatırlatıcıları',
@@ -349,12 +345,14 @@ class NotificationService {
         showWhen: true,
         enableVibration: true,
         playSound: true,
+        autoCancel: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
       );
 
       const notificationDetails = NotificationDetails(
@@ -362,29 +360,15 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      final androidImplementation = _notifications
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-
-      bool canScheduleExact = false;
-      if (androidImplementation != null) {
-        final canSchedule = await androidImplementation.canScheduleExactNotifications();
-        canScheduleExact = canSchedule ?? false;
-      }
-
-      await _notifications.zonedSchedule(
+      // Hemen bildirimi göster
+      await _notifications.show(
         999999,
         'Test Bildirimi',
-        '1 dakika sonra bildirim geldi! 🎉',
-        scheduledDate,
+        'Bildirim başarıyla gönderildi! 🎉',
         notificationDetails,
-        androidScheduleMode: canScheduleExact
-            ? AndroidScheduleMode.exactAllowWhileIdle
-            : AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
 
-      debugPrint('✅ Test bildirimi ${scheduledDate.hour}:${scheduledDate.minute} için zamanlandı');
+      debugPrint('✅ Test bildirimi hemen gönderildi');
     } catch (e, stackTrace) {
       debugPrint('❌ Test bildirimi hatası: $e');
       debugPrint('Stack trace: $stackTrace');

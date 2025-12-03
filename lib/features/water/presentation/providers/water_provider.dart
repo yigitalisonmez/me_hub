@@ -6,30 +6,25 @@ class WaterProvider with ChangeNotifier {
   final GetTodayWaterIntake _getTodayWaterIntake;
   final AddWater _addWater;
   final RemoveLastLog _removeLastLog;
-  final GetWaterHistory _getWaterHistory;
   final UpdateWaterIntake _updateWaterIntake;
 
   WaterProvider({
     required GetTodayWaterIntake getTodayWaterIntake,
     required AddWater addWater,
     required RemoveLastLog removeLastLog,
-    required GetWaterHistory getWaterHistory,
     required UpdateWaterIntake updateWaterIntake,
   }) : _getTodayWaterIntake = getTodayWaterIntake,
        _addWater = addWater,
        _removeLastLog = removeLastLog,
-       _getWaterHistory = getWaterHistory,
        _updateWaterIntake = updateWaterIntake;
 
   WaterIntake? _todayIntake;
-  List<WaterIntake> _history = [];
   bool _isLoading = false;
   String? _error;
   bool _justReachedGoal = false;
   int _dailyGoalMl = 2000; // Default goal
 
   WaterIntake? get todayIntake => _todayIntake;
-  List<WaterIntake> get history => _history;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -98,17 +93,6 @@ class WaterProvider with ChangeNotifier {
       await loadTodayWaterIntake();
     } catch (e) {
       _error = 'Failed to undo';
-      notifyListeners();
-    }
-  }
-
-  /// Load water history
-  Future<void> loadHistory({int days = 7}) async {
-    try {
-      _history = await _getWaterHistory(days);
-      notifyListeners();
-    } catch (e) {
-      _error = 'Failed to load history';
       notifyListeners();
     }
   }

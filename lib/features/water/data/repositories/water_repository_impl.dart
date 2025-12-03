@@ -8,11 +8,6 @@ class WaterRepositoryImpl implements WaterRepository {
   WaterRepositoryImpl(this.localDataSource);
 
   @override
-  Future<WaterIntake?> getWaterIntake(DateTime date) async {
-    return await localDataSource.getWaterIntake(date);
-  }
-
-  @override
   Future<WaterIntake?> getTodayWaterIntake() async {
     return await localDataSource.getWaterIntake(DateTime.now());
   }
@@ -80,26 +75,6 @@ class WaterRepositoryImpl implements WaterRepository {
   @override
   Future<void> updateWaterIntake(WaterIntake waterIntake) async {
     await localDataSource.saveWaterIntake(waterIntake);
-  }
-
-  @override
-  Future<List<WaterIntake>> getWaterHistory(int days) async {
-    final allIntakes = await localDataSource.getAllWaterIntakes();
-    final cutoffDate = DateTime.now().subtract(Duration(days: days));
-
-    // Filter and sort by date (newest first)
-    final filtered = allIntakes.where((intake) {
-      return intake.date.isAfter(cutoffDate) ||
-          intake.date.isAtSameMomentAs(cutoffDate);
-    }).toList();
-
-    filtered.sort((a, b) => b.date.compareTo(a.date));
-    return filtered;
-  }
-
-  @override
-  Future<void> deleteWaterIntake(DateTime date) async {
-    await localDataSource.deleteWaterIntake(date);
   }
 }
 

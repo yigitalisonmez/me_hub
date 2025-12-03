@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../data/services/daily_goal_service.dart';
@@ -138,86 +139,51 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-    
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Water Tracker',
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: themeProvider.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Stay hydrated & healthy',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: themeProvider.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () async {
-            final result = await Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const WaterSettingsPage(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(1.0, 0.0);
-                  const end = Offset.zero;
-                  const curve = Curves.easeInOutCubic;
+    return PageHeader(
+      title: 'Water Tracker',
+      subtitle: 'Stay hydrated & healthy',
+      actionIcon: LucideIcons.settings,
+      onActionTap: () async {
+        final result = await Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const WaterSettingsPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOutCubic;
 
-                  var tween = Tween(begin: begin, end: end).chain(
-                    CurveTween(curve: curve),
-                  );
+              var tween = Tween(begin: begin, end: end).chain(
+                CurveTween(curve: curve),
+              );
 
-                  var offsetAnimation = animation.drive(tween);
-                  var fadeAnimation = Tween(begin: 0.0, end: 1.0).chain(
-                    CurveTween(curve: curve),
-                  ).animate(animation);
+              var offsetAnimation = animation.drive(tween);
+              var fadeAnimation = Tween(begin: 0.0, end: 1.0).chain(
+                CurveTween(curve: curve),
+              ).animate(animation);
 
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: FadeTransition(
-                      opacity: fadeAnimation,
-                      child: child,
-                    ),
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 300),
-                reverseTransitionDuration: const Duration(milliseconds: 250),
-              ),
-            );
-            // Reload settings if saved
-            if (result == true) {
-              _loadQuickAddAmounts();
-              await _loadDailyGoal();
-              // Reload water intake to update progress with new goal
-              context.read<WaterProvider>().loadTodayWaterIntake();
-            }
-          },
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border.all(color: themeProvider.borderColor, width: 1.5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              LucideIcons.settings,
-              color: themeProvider.primaryColor,
-              size: 20,
-            ),
+              return SlideTransition(
+                position: offsetAnimation,
+                child: FadeTransition(
+                  opacity: fadeAnimation,
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 250),
           ),
-        ),
-      ],
+        );
+        // Reload settings if saved
+        if (result == true) {
+          _loadQuickAddAmounts();
+          await _loadDailyGoal();
+          // Reload water intake to update progress with new goal
+          if (context.mounted) {
+            context.read<WaterProvider>().loadTodayWaterIntake();
+          }
+        }
+      },
     );
   }
 

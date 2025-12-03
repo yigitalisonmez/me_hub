@@ -72,9 +72,12 @@ dependencies:
   
   # SVG support
   flutter_svg: ^2.0.10+1
-  
+
   # Glassmorphism UI
   glassmorphism: ^3.0.0
+
+  # Heatmap calendar
+  contribution_heatmap: ^0.4.2
 
   # Smooth Gradient
   smooth_gradient: ^0.2.0+1
@@ -103,6 +106,9 @@ dev_dependencies:
   
   # Native splash screen
   flutter_native_splash: ^2.3.10
+
+  # App icon generator
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -149,27 +155,54 @@ flutter:
 
 # Native Splash Screen Configuration
 flutter_native_splash:
-  # Background color (cream from app theme)
-  color: "#F5F0E8"
+  # Background color (light mode - white)
+  color: "#FFFFFF"
+  
+  # Dark mode background color (black)
+  color_dark: "#000000"
   
   # App icon as splash screen image
-  image: assets/images/splash_logo.png
+  image: assets/images/app_icon.png
+  
+  # Dark mode image (same logo, but will use dark background)
+  image_dark: assets/images/app_icon.png
   
   # Image size (will be created)
   android_12:
-    image: assets/images/splash_logo.png
-    color: "#F5F0E8"
+    image: assets/images/app_icon.png
+    color: "#FFFFFF" # Light mode
+    image_dark: assets/images/app_icon.png
+    color_dark: "#000000" # Dark mode
   
   # Platforms
   android: true
   ios: true
   web: false
   
-  # Image fill type
-  fill: true
-  
   # Android specific
   android_gravity: center
   
   # iOS specific
   ios_content_mode: center
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  # Adaptive icon for Android (supports dark/light mode)
+  adaptive_icon_background: "#FFFFFF" # Light mode background (white)
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+  web:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+    background_color: "#F5F0E8"
+    theme_color: "#D97D45"
+  windows:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/app_icon.png"

@@ -14,7 +14,12 @@ class RoutineTimePicker extends StatelessWidget {
   });
 
   static const List<Map<String, dynamic>> predefinedTimes = [
-    {'label': 'Early Morning', 'hour': 6, 'minute': 0, 'icon': LucideIcons.sunrise},
+    {
+      'label': 'Early Morning',
+      'hour': 6,
+      'minute': 0,
+      'icon': LucideIcons.sunrise,
+    },
     {'label': 'Morning', 'hour': 8, 'minute': 0, 'icon': LucideIcons.sun},
     {'label': 'Noon', 'hour': 12, 'minute': 0, 'icon': LucideIcons.cloudSun},
     {'label': 'Afternoon', 'hour': 15, 'minute': 0, 'icon': LucideIcons.sun},
@@ -29,7 +34,7 @@ class RoutineTimePicker extends StatelessWidget {
   Future<void> _showCustomTimePicker(BuildContext context) async {
     final themeProvider = context.read<ThemeProvider>();
     final initialTime = selectedTime ?? const TimeOfDay(hour: 8, minute: 0);
-    
+
     final picked = await showTimePicker(
       context: context,
       initialTime: initialTime,
@@ -61,42 +66,52 @@ class RoutineTimePicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Current time display
+        // Current time display - now tappable
         Center(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: themeProvider.cardColor,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _showCustomTimePicker(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: themeProvider.borderColor,
-                width: 1.5,
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: themeProvider.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: themeProvider.borderColor,
+                    width: 1.5,
+                  ),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(
+                        LucideIcons.clock,
+                        color: themeProvider.primaryColor,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _formatTime(currentTime),
+                        style: Theme.of(context).textTheme.displayMedium
+                            ?.copyWith(
+                              color: themeProvider.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getTimeLabel(currentTime),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: themeProvider.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  LucideIcons.clock,
-                  color: themeProvider.primaryColor,
-                  size: 32,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _formatTime(currentTime),
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: themeProvider.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _getTimeLabel(currentTime),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: themeProvider.textSecondary,
-                  ),
-                ),
-              ],
             ),
           ),
         ),
@@ -107,7 +122,8 @@ class RoutineTimePicker extends StatelessWidget {
             hour: timeData['hour'] as int,
             minute: timeData['minute'] as int,
           );
-          final isSelected = selectedTime != null &&
+          final isSelected =
+              selectedTime != null &&
               selectedTime!.hour == time.hour &&
               selectedTime!.minute == time.minute;
 
@@ -116,7 +132,10 @@ class RoutineTimePicker extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTimeSelected(time),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? themeProvider.primaryColor
@@ -145,19 +164,23 @@ class RoutineTimePicker extends StatelessWidget {
                         children: [
                           Text(
                             timeData['label'] as String,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: isSelected
-                                  ? themeProvider.textPrimary
-                                  : themeProvider.textPrimary,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: isSelected
+                                      ? themeProvider.textPrimary
+                                      : themeProvider.textPrimary,
+                                ),
                           ),
                           Text(
                             _formatTime(time),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isSelected
-                                  ? themeProvider.textPrimary.withValues(alpha: 0.7)
-                                  : themeProvider.textSecondary,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isSelected
+                                      ? themeProvider.textPrimary.withValues(
+                                          alpha: 0.7,
+                                        )
+                                      : themeProvider.textSecondary,
+                                ),
                           ),
                         ],
                       ),
@@ -176,34 +199,40 @@ class RoutineTimePicker extends StatelessWidget {
         }),
         const SizedBox(height: 12),
         // Custom time button
-        GestureDetector(
-          onTap: () => _showCustomTimePicker(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: themeProvider.cardColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: themeProvider.borderColor,
-                width: 1,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _showCustomTimePicker(context),
+            borderRadius: BorderRadius.circular(12),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: themeProvider.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: themeProvider.borderColor, width: 1),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  LucideIcons.clock,
-                  color: themeProvider.primaryColor,
-                  size: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Custom Time',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: themeProvider.primaryColor,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.clock,
+                      color: themeProvider.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Custom Time',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: themeProvider.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -219,4 +248,3 @@ class RoutineTimePicker extends StatelessWidget {
     return predefined['label'] as String? ?? 'Custom';
   }
 }
-

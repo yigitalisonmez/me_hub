@@ -7,6 +7,7 @@ import '../../../../core/constants/routine_icons.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
+import '../providers/edit_routine_provider.dart';
 import '../widgets/icon_picker_dialog.dart';
 import '../widgets/habit_list_item.dart';
 import '../widgets/add_item_dialog.dart';
@@ -25,22 +26,26 @@ class EditRoutinePage extends StatefulWidget {
 
 class _EditRoutinePageState extends State<EditRoutinePage> {
   late TextEditingController _nameController;
-  int? _selectedIconCodePoint;
-  TimeOfDay? _selectedTime;
-  late List<int> _selectedDays;
+  late EditRoutineProvider _editProvider;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.routine.name);
-    _selectedIconCodePoint = widget.routine.iconCodePoint;
-    _selectedTime = widget.routine.time;
-    _selectedDays = List<int>.from(widget.routine.selectedDays ?? []);
+    final routinesProvider = context.read<RoutinesProvider>();
+    _editProvider = EditRoutineProvider(
+      routinesProvider: routinesProvider,
+      routineId: widget.routine.id,
+    );
+    _nameController = TextEditingController(text: _editProvider.name);
+    _nameController.addListener(() {
+      _editProvider.updateName(_nameController.text);
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _editProvider.dispose();
     super.dispose();
   }
 
@@ -55,9 +60,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
 
     if (confirmed == true && context.mounted) {
-      final provider = context.read<RoutinesProvider>();
       try {
-        await provider.deleteItem(widget.routine.id, item.id);
+        await _editProvider.deleteItem(item.id);
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(
@@ -68,7 +72,11 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     }
   }
 
-  Future<void> _editHabit(BuildContext context, RoutineItem item) async {
+  Future<void> _editHabit(
+    BuildContext context,
+    RoutineItem item,
+    EditRoutineProvider editProvider,
+  ) async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -77,9 +85,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
 
     if (result != null && context.mounted) {
-      final provider = context.read<RoutinesProvider>();
-      await provider.editItem(
-        widget.routine.id,
+      await editProvider.editItem(
         item.id,
         title: result['title'] as String?,
         iconCodePoint: result['iconCodePoint'] as int?,
@@ -88,38 +94,18 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   }
 
   Future<void> _addItem(BuildContext context) async {
-    final provider = context.read<RoutinesProvider>();
-    final currentRoutine =
-        provider.getRoutineById(widget.routine.id) ?? widget.routine;
-
     await showDialog(
       context: context,
       builder: (context) => AddItemDialog(
         onAdd: (title, iconCodePoint) async {
-          final item = provider.createRoutineItem(
-            title: title,
-            iconCodePoint: iconCodePoint,
-          );
-          await provider.addItem(currentRoutine.id, item);
+          await _editProvider.addItem(title, iconCodePoint);
         },
       ),
     );
   }
 
   Future<void> _saveRoutine() async {
-    final provider = context.read<RoutinesProvider>();
-    final currentRoutine =
-        provider.getRoutineById(widget.routine.id) ?? widget.routine;
-
-    final updatedRoutine = currentRoutine.copyWith(
-      name: _nameController.text.trim(),
-      iconCodePoint: _selectedIconCodePoint,
-      timeHour: _selectedTime?.hour,
-      timeMinute: _selectedTime?.minute,
-      selectedDays: _selectedDays,
-    );
-
-    await provider.updateRoutine(updatedRoutine);
+    await _editProvider.saveRoutine();
 
     if (mounted) {
       Navigator.pop(context);
@@ -130,45 +116,59 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Material(
-      color: themeProvider.backgroundColor,
-      child: SafeArea(
-        child: Consumer<RoutinesProvider>(
-          builder: (context, provider, _) {
-            final updatedRoutine =
-                provider.getRoutineById(widget.routine.id) ?? widget.routine;
+    return ChangeNotifierProvider.value(
+      value: _editProvider,
+      child: Material(
+        color: themeProvider.backgroundColor,
+        child: SafeArea(
+          child: Consumer2<EditRoutineProvider, RoutinesProvider>(
+            builder: (context, editProvider, routinesProvider, _) {
+              final updatedRoutine =
+                  editProvider.currentRoutine ??
+                  routinesProvider.getRoutineById(widget.routine.id) ??
+                  widget.routine;
 
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildHeader(context, updatedRoutine),
-                        _buildRoutineSettings(context),
-                        const SizedBox(height: 16),
-                        _buildHabitsSection(context, provider, updatedRoutine),
-                      ],
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildHeader(context, updatedRoutine, editProvider),
+                          _buildRoutineSettings(context, editProvider),
+                          const SizedBox(height: 16),
+                          _buildHabitsSection(
+                            context,
+                            routinesProvider,
+                            updatedRoutine,
+                            editProvider,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                _buildAddItemButton(context),
-              ],
-            );
-          },
+                  _buildAddItemButton(context),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Routine routine) {
+  Widget _buildHeader(
+    BuildContext context,
+    Routine routine,
+    EditRoutineProvider editProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
         children: [
           _buildHeaderButtons(context),
           const SizedBox(height: 16),
-          _buildHeaderIcon(routine),
+          _buildHeaderIcon(editProvider),
           const SizedBox(height: 12),
           _buildHeaderTitle(context),
           const SizedBox(height: 8),
@@ -232,19 +232,19 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Widget _buildHeaderIcon(Routine routine) {
+  Widget _buildHeaderIcon(EditRoutineProvider editProvider) {
     final themeProvider = context.watch<ThemeProvider>();
-    final icon = _selectedIconCodePoint != null
-        ? RoutineIcons.getIconFromCodePoint(_selectedIconCodePoint!)
+    final icon = editProvider.selectedIconCodePoint != null
+        ? RoutineIcons.getIconFromCodePoint(editProvider.selectedIconCodePoint!)
         : null;
 
     return GestureDetector(
-      onTap: () => _pickRoutineIcon(context),
+      onTap: () => _pickRoutineIcon(context, editProvider),
       child: Container(
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: _selectedIconCodePoint != null
+          color: editProvider.selectedIconCodePoint != null
               ? themeProvider.primaryColor
               : themeProvider.cardColor,
           borderRadius: BorderRadius.circular(20),
@@ -260,7 +260,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         ),
         child: Icon(
           icon ?? LucideIcons.circle,
-          color: _selectedIconCodePoint != null
+          color: editProvider.selectedIconCodePoint != null
               ? Colors.white
               : themeProvider.primaryColor,
           size: 40,
@@ -269,7 +269,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Future<void> _pickRoutineIcon(BuildContext context) async {
+  Future<void> _pickRoutineIcon(
+    BuildContext context,
+    EditRoutineProvider editProvider,
+  ) async {
     final iconCodePoint = await showDialog<int>(
       context: context,
       builder: (context) => Dialog(
@@ -318,11 +321,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                     child: SizedBox(
                       height: maxHeight * 0.6,
                       child: RoutineIconPicker(
-                        selectedIconCodePoint: _selectedIconCodePoint,
+                        selectedIconCodePoint:
+                            editProvider.selectedIconCodePoint,
                         onIconSelected: (codePoint) {
-                          setState(() {
-                            _selectedIconCodePoint = codePoint;
-                          });
+                          editProvider.updateIconCodePoint(codePoint);
                           Navigator.pop(context, codePoint);
                         },
                       ),
@@ -337,9 +339,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
 
     if (iconCodePoint != null) {
-      setState(() {
-        _selectedIconCodePoint = iconCodePoint;
-      });
+      editProvider.updateIconCodePoint(iconCodePoint);
     }
   }
 
@@ -392,7 +392,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Widget _buildRoutineSettings(BuildContext context) {
+  Widget _buildRoutineSettings(
+    BuildContext context,
+    EditRoutineProvider editProvider,
+  ) {
     final themeProvider = context.watch<ThemeProvider>();
 
     return Container(
@@ -429,11 +432,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           ),
           const SizedBox(height: 12),
           RoutineTimePicker(
-            selectedTime: _selectedTime,
+            selectedTime: editProvider.selectedTime,
             onTimeSelected: (time) {
-              setState(() {
-                _selectedTime = time;
-              });
+              editProvider.updateTime(time);
             },
           ),
           const SizedBox(height: 20),
@@ -445,18 +446,21 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
           ),
           const SizedBox(height: 12),
-          _buildCompactDaysSelector(context),
+          _buildCompactDaysSelector(context, editProvider),
           const SizedBox(height: 32),
           // Delete button
-          _buildDeleteButton(context),
+          _buildDeleteButton(context, editProvider),
         ],
       ),
     );
   }
 
-  Widget _buildDeleteButton(BuildContext context) {
+  Widget _buildDeleteButton(
+    BuildContext context,
+    EditRoutineProvider editProvider,
+  ) {
     return GestureDetector(
-      onTap: () => _showDeleteRoutineDialog(context),
+      onTap: () => _showDeleteRoutineDialog(context, editProvider),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -486,11 +490,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Future<void> _showDeleteRoutineDialog(BuildContext context) async {
-    final confirmed = await RoutineDialogs.showDeleteRoutine(
-      context,
-      widget.routine,
-    );
+  Future<void> _showDeleteRoutineDialog(
+    BuildContext context,
+    EditRoutineProvider editProvider,
+  ) async {
+    final routine = editProvider.currentRoutine ?? widget.routine;
+    final confirmed = await RoutineDialogs.showDeleteRoutine(context, routine);
 
     if (confirmed == true && mounted) {
       Navigator.pop(context);
@@ -501,6 +506,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     BuildContext context,
     RoutinesProvider provider,
     Routine routine,
+    EditRoutineProvider editProvider,
   ) {
     final themeProvider = context.watch<ThemeProvider>();
 
@@ -535,7 +541,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                 if (oldIndex < newIndex) {
                   newIndex -= 1;
                 }
-                provider.reorderItems(widget.routine.id, oldIndex, newIndex);
+                editProvider.reorderItems(oldIndex, newIndex);
               },
               proxyDecorator: (child, index, animation) {
                 final themeProvider = context.watch<ThemeProvider>();
@@ -549,7 +555,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                     item: item,
                     index: index,
                     onDelete: () => _confirmDeleteItem(context, item),
-                    onEdit: () => _editHabit(context, item),
+                    onEdit: () => _editHabit(context, item, editProvider),
                   ),
                 );
               },
@@ -562,7 +568,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                     item: item,
                     index: index,
                     onDelete: () => _confirmDeleteItem(context, item),
-                    onEdit: () => _editHabit(context, item),
+                    onEdit: () => _editHabit(context, item, editProvider),
                   ),
                 );
               },
@@ -573,7 +579,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     );
   }
 
-  Widget _buildCompactDaysSelector(BuildContext context) {
+  Widget _buildCompactDaysSelector(
+    BuildContext context,
+    EditRoutineProvider editProvider,
+  ) {
     final themeProvider = context.watch<ThemeProvider>();
     const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     // Get today's index (0=Monday, 6=Sunday)
@@ -581,18 +590,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
     return Row(
       children: List.generate(7, (index) {
-        final isSelected = _selectedDays.contains(index);
+        final isSelected = editProvider.selectedDays.contains(index);
         final isToday = index == todayIndex;
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              setState(() {
-                if (isSelected) {
-                  _selectedDays.remove(index);
-                } else {
-                  _selectedDays.add(index);
-                }
-              });
+              editProvider.toggleDay(index);
             },
             child: Container(
               margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
