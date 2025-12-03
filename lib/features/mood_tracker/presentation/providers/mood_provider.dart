@@ -46,9 +46,9 @@ class MoodProvider with ChangeNotifier {
     }
   }
 
-  /// Save mood entry
   Future<void> saveMood({
     required int score,
+    String? note,
   }) async {
     try {
       if (score < 1 || score > 10) {
@@ -60,6 +60,7 @@ class MoodProvider with ChangeNotifier {
         id: now.microsecondsSinceEpoch.toString(),
         dateTimestamp: now.millisecondsSinceEpoch,
         score: score,
+        note: note,
       );
 
       await _dataSource.saveMoodEntry(moodEntry);

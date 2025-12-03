@@ -3,8 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../providers/mood_provider.dart';
-import '../widgets/mood_heatmap.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/widgets/page_header.dart';
+import '../utils/mood_utils.dart';
+import '../widgets/weekly_mood_trend.dart';
+
+enum _MoodStep { score, note }
 
 class MoodPage extends StatefulWidget {
   const MoodPage({super.key});
@@ -13,18 +17,11 @@ class MoodPage extends StatefulWidget {
   State<MoodPage> createState() => _MoodPageState();
 }
 
-class _MoodPageState extends State<MoodPage> {
-  int _selectedScore = 5; // Default to middle score
-
-  // Slider track measurement for gradient alignment
-  final GlobalKey _sliderKey = GlobalKey();
-  double? _trackLeft;
-  double? _trackWidth;
-
-  // Slider constants
-  static const double _thumbRadius = 10.0;
-  static const double _trackHeight = 6.0;
-
+class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin {
+  double _currentScore = 5.0;
+  _MoodStep _currentStep = _MoodStep.score;
+  final TextEditingController _noteController = TextEditingController();
+  
   @override
   void initState() {
     super.initState();
@@ -32,26 +29,13 @@ class _MoodPageState extends State<MoodPage> {
       final moodProvider = context.read<MoodProvider>();
       moodProvider.loadTodayMood();
       moodProvider.loadAllMoods();
-      _measureSliderTrack();
     });
   }
 
-  /// Measures the slider's track position and width for gradient alignment
-  void _measureSliderTrack() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      final RenderBox? renderBox =
-          _sliderKey.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final size = renderBox.size;
-        // Slider track starts at thumbRadius and ends at width - thumbRadius
-        setState(() {
-          _trackLeft = _thumbRadius;
-          _trackWidth = size.width - (_thumbRadius * 2);
-        });
-      }
-    });
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,11 +54,12 @@ class _MoodPageState extends State<MoodPage> {
               const SizedBox(height: 16),
               _buildHeader(context),
               const SizedBox(height: 32),
-              // Show mood entry if not entered today, otherwise show heatmap
               if (!moodProvider.hasTodayMood)
                 _buildMoodEntryView(context, themeProvider, moodProvider)
               else
-                _buildHeatMapView(context, themeProvider, moodProvider),
+                _buildTodayMoodCard(context, themeProvider, moodProvider),
+              const SizedBox(height: 32),
+              const WeeklyMoodTrend(),
               const SizedBox(height: 20),
             ],
           ),
@@ -88,28 +73,312 @@ class _MoodPageState extends State<MoodPage> {
     ThemeProvider themeProvider,
     MoodProvider moodProvider,
   ) {
-    return Column(
-      children: [
-        _buildScoreSelector(context, themeProvider),
-        const SizedBox(height: 32),
-        _buildSaveButton(context, themeProvider, moodProvider),
-      ],
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      switchInCurve: Curves.easeOutBack,
+      switchOutCurve: Curves.easeInBack,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.9, end: 1.0).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: _currentStep == _MoodStep.score
+          ? _buildScoreStep(context, themeProvider)
+          : _buildNoteStep(context, themeProvider, moodProvider),
     );
   }
 
-  Widget _buildHeatMapView(
+  Widget _buildScoreStep(
+    BuildContext context,
+    ThemeProvider themeProvider,
+  ) {
+    final color = MoodUtils.getColorForScore(_currentScore.toInt());
+    final icon = MoodUtils.getIconForScore(_currentScore.toInt());
+    final label = MoodUtils.getLabelForScore(_currentScore.toInt());
+
+    return Container(
+      key: const ValueKey('score_step'),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: themeProvider.borderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Animated Icon and Score
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: Icon(
+                  icon,
+                  key: ValueKey(icon),
+                  size: 48,
+                  color: color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Label and Score
+          Column(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Text(
+                  label,
+                  key: ValueKey(label),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${_currentScore.toInt()}/10',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: themeProvider.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          // Premium Slider
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: color,
+              inactiveTrackColor: themeProvider.borderColor,
+              thumbColor: Colors.white,
+              overlayColor: color.withValues(alpha: 0.2),
+              trackHeight: 6,
+              thumbShape: _RingThumbShape(
+                enabledThumbRadius: 14,
+                ringColor: color,
+              ),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 26),
+            ),
+            child: Slider(
+              value: _currentScore,
+              min: 1,
+              max: 10,
+              divisions: 9,
+              onChanged: (val) {
+                if (val != _currentScore) {
+                  setState(() => _currentScore = val);
+                  HapticFeedback.selectionClick();
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Low', style: TextStyle(color: themeProvider.textSecondary, fontSize: 12)),
+              Text('High', style: TextStyle(color: themeProvider.textSecondary, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 32),
+          // Continue Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep = _MoodStep.note;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Continue',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoteStep(
     BuildContext context,
     ThemeProvider themeProvider,
     MoodProvider moodProvider,
   ) {
-    return Column(
-      children: [
-        // Today's mood display
-        _buildTodayMoodCard(context, themeProvider, moodProvider),
-        const SizedBox(height: 24),
-        // Heatmap
-        const MoodHeatMap(),
-      ],
+    final color = MoodUtils.getColorForScore(_currentScore.toInt());
+    final icon = MoodUtils.getIconForScore(_currentScore.toInt());
+
+    return Container(
+      key: const ValueKey('note_step'),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: themeProvider.borderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Selected Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                size: 32,
+                color: color,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "What's on your mind?",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: themeProvider.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add a note to remember this moment',
+            style: TextStyle(
+              fontSize: 16,
+              color: themeProvider.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Note Input
+          TextField(
+            controller: _noteController,
+            maxLines: 4,
+            style: TextStyle(color: themeProvider.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'Type your thoughts...',
+              hintStyle: TextStyle(color: themeProvider.textSecondary),
+              filled: true,
+              fillColor: themeProvider.surfaceColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(20),
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Save Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                try {
+                  await moodProvider.saveMood(
+                    score: _currentScore.toInt(),
+                    note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+                  );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Mood saved successfully'),
+                          backgroundColor: themeProvider.primaryColor,
+                        ),
+                      );
+                      // Reset state
+                      setState(() {
+                        _currentStep = _MoodStep.score;
+                        _noteController.clear();
+                        _currentScore = 5.0;
+                      });
+                    }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error saving mood: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Save Mood',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Back Button
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _currentStep = _MoodStep.score;
+              });
+            },
+            child: Text(
+              'Back',
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -121,72 +390,90 @@ class _MoodPageState extends State<MoodPage> {
     final todayMood = moodProvider.todayMood;
     if (todayMood == null) return const SizedBox.shrink();
 
+    final color = MoodUtils.getColorForScore(todayMood.score);
+    final icon = MoodUtils.getIconForScore(todayMood.score);
+    final label = MoodUtils.getLabelForScore(todayMood.score);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: themeProvider.borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         children: [
           Text(
-            'Your mood today',
+            'You are feeling',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: themeProvider.primaryColor,
+              fontSize: 16,
+              color: themeProvider.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Container(
-            width: 80,
-            height: 80,
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
-              color: _getColorForScore(todayMood.score),
-              borderRadius: BorderRadius.circular(20),
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                '${todayMood.score}',
-                style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              child: Icon(
+                icon,
+                size: 40,
+                color: color,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
-            'Score: ${todayMood.score}/10',
+            label,
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: themeProvider.textPrimary,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
-          const SizedBox(height: 16),
-          TextButton(
+          const SizedBox(height: 8),
+          Text(
+            '${todayMood.score}/10',
+            style: TextStyle(
+              fontSize: 18,
+              color: themeProvider.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 32),
+          TextButton.icon(
             onPressed: () async {
               await moodProvider.deleteTodayMood();
               setState(() {
-                _selectedScore = 5;
+                _currentScore = 5.0;
               });
             },
-            child: Text(
-              'Change Mood',
+            icon: Icon(LucideIcons.rotateCcw, size: 18, color: themeProvider.textSecondary),
+            label: Text(
+              'Reset Entry',
               style: TextStyle(
-                color: themeProvider.primaryColor,
+                color: themeProvider.textSecondary,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: themeProvider.surfaceColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -203,188 +490,55 @@ class _MoodPageState extends State<MoodPage> {
     );
   }
 
-  Widget _buildScoreSelector(
-    BuildContext context,
-    ThemeProvider themeProvider,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Select your mood score',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: themeProvider.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Score display
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: _getColorForScore(_selectedScore),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Text(
-                '$_selectedScore',
-                style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Score buttons (1-10)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: List.generate(10, (index) {
-              final score = index + 1;
-              final isSelected = _selectedScore == score;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedScore = score;
-                  });
-                },
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? _getColorForScore(score)
-                        : themeProvider.surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? themeProvider.primaryColor
-                          : themeProvider.borderColor,
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$score',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? Colors.white
-                            : themeProvider.textPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
+
+}
+
+class _RingThumbShape extends SliderComponentShape {
+  final double enabledThumbRadius;
+  final Color ringColor;
+
+  const _RingThumbShape({
+    required this.enabledThumbRadius,
+    required this.ringColor,
+  });
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(enabledThumbRadius);
   }
 
-  Widget _buildSaveButton(
-    BuildContext context,
-    ThemeProvider themeProvider,
-    MoodProvider moodProvider,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () async {
-            try {
-              await moodProvider.saveMood(score: _selectedScore);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Mood saved: $_selectedScore/10'),
-                    backgroundColor: themeProvider.primaryColor,
-                  ),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error saving mood: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeProvider.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: const Text(
-            'Save Mood',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final Canvas canvas = context.canvas;
 
-  /// Get color for mood score (1-10) using gradient scale
-  /// 1-5: Red to White
-  /// 5-10: White to Dark Green
-  Color _getColorForScore(int score) {
-    if (score <= 5) {
-      // 1-5: Red to White
-      final normalized = (score - 1) / 4.0; // 0.0 to 1.0 for scores 1-5
-      return Color.lerp(
-        const Color(0xFFDC2626), // Red
-        Colors.white,
-        normalized,
-      )!;
-    } else {
-      // 5-10: White to Dark Green
-      final normalized = (score - 5) / 5.0; // 0.0 to 1.0 for scores 5-10
-      return Color.lerp(
-        Colors.white,
-        const Color(0xFF15803D), // Dark Green
-        normalized,
-      )!;
-    }
+    // Draw white background
+    canvas.drawCircle(
+      center,
+      enabledThumbRadius,
+      Paint()..color = Colors.white,
+    );
+
+    // Draw colored ring
+    canvas.drawCircle(
+      center,
+      enabledThumbRadius - 2,
+      Paint()
+        ..color = ringColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4,
+    );
   }
 }

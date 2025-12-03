@@ -13,10 +13,14 @@ class MoodEntry {
   @HiveField(2)
   final int score; // Mood score from 1 to 10
 
+  @HiveField(3)
+  final String? note;
+
   const MoodEntry({
     required this.id,
     required this.dateTimestamp,
     required this.score,
+    this.note,
   }) : assert(score >= 1 && score <= 10, 'Score must be between 1 and 10');
 
   /// Get DateTime from timestamp
@@ -29,12 +33,14 @@ class MoodEntry {
     DateTime? date,
     int? dateTimestamp,
     int? score,
+    String? note,
   }) {
     return MoodEntry(
       id: id ?? this.id,
       dateTimestamp: dateTimestamp ??
           (date != null ? date.millisecondsSinceEpoch : this.dateTimestamp),
       score: score ?? this.score,
+      note: note ?? this.note,
     );
   }
 
