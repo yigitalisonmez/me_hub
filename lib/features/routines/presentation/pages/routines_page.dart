@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -53,34 +54,80 @@ class _RoutinesPageState extends State<RoutinesPage> {
             final inactiveRoutines = routinesData.inactive;
             
             // Check for completed routine
+            // Check for completed routine
             final completedRoutineName = provider.justCompletedRoutineName;
             if (completedRoutineName != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.partyPopper,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'You have completed \'$completedRoutineName\'',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                  Navigator.of(context).push(
+                    PageRouteBuilder(
+                      opaque: false,
+                      barrierDismissible: false,
+                      barrierColor: Colors.black54,
+                      transitionDuration: const Duration(milliseconds: 800),
+                      pageBuilder: (context, animation, secondaryAnimation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: Scaffold(
+                            backgroundColor: Colors.transparent,
+                            body: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Hero(
+                                    tag: 'streak_fire',
+                                    child: SizedBox(
+                                      height: 300,
+                                      width: 300,
+                                      child: Lottie.asset(
+                                        'assets/animations/streak.json',
+                                        repeat: false,
+                                        fit: BoxFit.contain,
+                                        onLoaded: (composition) {
+                                          Future.delayed(composition.duration, () {
+                                            if (context.mounted) {
+                                              Navigator.of(context).pop();
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Streak Increased!',
+                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          blurRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'You completed \'$completedRoutineName\'',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          blurRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                  );
                 }
               });
             }

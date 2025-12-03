@@ -25,10 +25,13 @@ class StreakBadge extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            LucideIcons.flame,
-            color: AppColors.primaryOrange,
-            size: 16,
+          Hero(
+            tag: 'streak_fire',
+            child: const Icon(
+              LucideIcons.flame,
+              color: AppColors.primaryOrange,
+              size: 16,
+            ),
           ),
           const SizedBox(width: 6),
           Text(
