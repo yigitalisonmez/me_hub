@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -116,20 +117,31 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  // Header
-                  _buildHeader(context),
-                  const SizedBox(height: 24),
-                  // Today's Progress Section
-                  _buildTodaysProgressCard(context, provider),
-                  const SizedBox(height: 24),
-                  // Today's Log Section
-                  _buildTodaysLogSection(context, provider),
-                  const SizedBox(height: 24),
-                ],
+              child: AnimationLimiter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: AnimationConfiguration.toStaggeredList(
+                    duration: const Duration(milliseconds: 375),
+                    childAnimationBuilder: (widget) => SlideAnimation(
+                      verticalOffset: 50.0,
+                      child: FadeInAnimation(
+                        child: widget,
+                      ),
+                    ),
+                    children: [
+                      const SizedBox(height: 16),
+                      // Header
+                      _buildHeader(context),
+                      const SizedBox(height: 24),
+                      // Today's Progress Section
+                      _buildTodaysProgressCard(context, provider),
+                      const SizedBox(height: 24),
+                      // Today's Log Section
+                      _buildTodaysLogSection(context, provider),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -205,130 +217,143 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: themeProvider.borderColor, width: 2),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
+      child: AnimationLimiter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: AnimationConfiguration.toStaggeredList(
+            duration: const Duration(milliseconds: 375),
+            childAnimationBuilder: (widget) => SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: widget,
+              ),
+            ),
             children: [
-              Icon(
-                LucideIcons.trendingUp,
-                color: themeProvider.primaryColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'TODAY\'S PROGRESS',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: themeProvider.primaryColor,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Current Amount
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '${provider.todayAmount}',
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    fontSize: 36,
+              // Section Header
+              Row(
+                children: [
+                  Icon(
+                    LucideIcons.trendingUp,
                     color: themeProvider.primaryColor,
+                    size: 20,
                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'TODAY\'S PROGRESS',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: themeProvider.primaryColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Current Amount
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${provider.todayAmount}',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontSize: 36,
+                        color: themeProvider.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'ml',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontSize: 24,
+                        color: themeProvider.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  'ml',
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    fontSize: 24,
+              ),
+              const SizedBox(height: 4),
+              // Goal
+              Center(
+                child: Text(
+                  'of ${_dailyGoal}ml daily goal',
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: themeProvider.textSecondary,
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
-          // Goal
-          Text(
-            'of ${_dailyGoal}ml daily goal',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: themeProvider.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Horizontal Progress Bar with Wave Effect
-          WaveProgressBar(
-            progress: progress,
-            centerText: '$percentage%',
-            bottomText:
-                '${provider.todayAmount} / $_dailyGoal ml',
-          ),
-          const SizedBox(height: 20),
-          // Three Stat Cards
-          Builder(
-            builder: (context) {
-              return Column(
-                children: [
-                  Row(
+              ),
+              const SizedBox(height: 20),
+              // Horizontal Progress Bar with Wave Effect
+              WaveProgressBar(
+                progress: progress,
+                centerText: '$percentage%',
+                bottomText:
+                    '${provider.todayAmount} / $_dailyGoal ml',
+              ),
+              const SizedBox(height: 20),
+              // Three Stat Cards
+              Builder(
+                builder: (context) {
+                  return Column(
                     children: [
-                      Expanded(
-                        key: _statCardKey,
-                        child: _buildStatCard(context, '$glassCount', 'Cups'),
+                      Row(
+                        children: [
+                          Expanded(
+                            key: _statCardKey,
+                            child: _buildStatCard(context, '$glassCount', 'Cups'),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              '${remaining > 0 ? remaining : 0}',
+                              'Remaining',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCardWithIcon(context, 'Status'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          '${remaining > 0 ? remaining : 0}',
-                          'Remaining',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCardWithIcon(context, 'Status'),
+                      const SizedBox(height: 24),
+                      // Quick Add Section with same card width
+                      Builder(
+                        builder: (context) {
+                          // Measure stat card width after first frame (only once)
+                          if (_statCardWidth == null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted && _statCardWidth == null) {
+                                final RenderBox? renderBox =
+                                    _statCardKey.currentContext?.findRenderObject()
+                                        as RenderBox?;
+                                if (renderBox != null) {
+                                  setState(() {
+                                    _statCardWidth = renderBox.size.width;
+                                  });
+                                }
+                              }
+                            });
+                          }
+
+                          if (_statCardWidth != null) {
+                            return _buildQuickAddSection(
+                              context,
+                              provider,
+                              _statCardWidth!,
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 24),
-                  // Quick Add Section with same card width
-                  Builder(
-                    builder: (context) {
-                      // Measure stat card width after first frame (only once)
-                      if (_statCardWidth == null) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted && _statCardWidth == null) {
-                            final RenderBox? renderBox =
-                                _statCardKey.currentContext?.findRenderObject()
-                                    as RenderBox?;
-                            if (renderBox != null) {
-                              setState(() {
-                                _statCardWidth = renderBox.size.width;
-                              });
-                            }
-                          }
-                        });
-                      }
-
-                      if (_statCardWidth != null) {
-                        return _buildQuickAddSection(
-                          context,
-                          provider,
-                          _statCardWidth!,
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ],
-              );
-            },
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
