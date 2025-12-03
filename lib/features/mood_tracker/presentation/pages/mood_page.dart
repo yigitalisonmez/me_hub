@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../utils/mood_utils.dart';
 import '../widgets/weekly_mood_trend.dart';
+import '../widgets/mood_history_list.dart';
 
 enum _MoodStep { score, note }
 
@@ -60,6 +61,8 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
                 _buildTodayMoodCard(context, themeProvider, moodProvider),
               const SizedBox(height: 32),
               const WeeklyMoodTrend(),
+              const SizedBox(height: 32),
+              const MoodHistoryList(),
               const SizedBox(height: 20),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,6 +12,7 @@ import '../widgets/streak_badge.dart';
 import '../widgets/routine_item_widget.dart';
 import '../widgets/add_item_button.dart';
 import '../widgets/add_routine_button.dart';
+
 import '../utils/routine_dialogs.dart';
 import '../../../../core/constants/routine_icons.dart';
 
@@ -37,12 +39,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
     return Container(
       decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
-        child: Selector<RoutinesProvider, List<Routine>>(
-          selector: (_, provider) => provider.getActiveRoutinesForDay(
-            DateTime.now().weekday - 1,
-          ),
-          builder: (context, activeRoutines, child) {
+        child: Selector<RoutinesProvider, ({List<Routine> active, List<Routine> inactive})>(
+          selector: (_, provider) {
+            final weekday = DateTime.now().weekday - 1;
+            return (
+              active: provider.getActiveRoutinesForDay(weekday),
+              inactive: provider.getInactiveRoutinesForDay(weekday),
+            );
+          },
+          builder: (context, routinesData, child) {
             final provider = context.read<RoutinesProvider>();
+            final activeRoutines = routinesData.active;
+            final inactiveRoutines = routinesData.inactive;
             
             // Check for completed routine
             final completedRoutineName = provider.justCompletedRoutineName;
@@ -79,26 +87,66 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  // Header
-                  _buildHeader(context),
-                  const SizedBox(height: 24),
-                  // Hero Header
-                  _buildHeroHeader(context, provider, activeRoutines),
-                  const SizedBox(height: 24),
-                  // Routine Cards - Filter by active days
-                  ...activeRoutines.map((r) => _buildRoutineCard(context, r, provider)),
-                  const SizedBox(height: 24),
-                  // Add Routine Button
-                  AddRoutineButton(
-                    onPressed: () => RoutineDialogs.showAddRoutine(context),
+              child: AnimationLimiter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: AnimationConfiguration.toStaggeredList(
+                        duration: const Duration(milliseconds: 375),
+                        childAnimationBuilder: (widget) => SlideAnimation(
+                          verticalOffset: 100.0,
+                          child: FadeInAnimation(
+                            child: widget,
+                          ),
+                        ),
+                        children: [
+                          const SizedBox(height: 16),
+                          // Header
+                          _buildHeader(context),
+                          const SizedBox(height: 24),
+                          // Hero Header
+                          _buildHeroHeader(context, provider, activeRoutines),
+                          const SizedBox(height: 24),
+                          // Routine Cards - Filter by active days
+                          ...activeRoutines.map((r) => _buildRoutineCard(context, r, provider)),
+                          const SizedBox(height: 24),
+                          const SizedBox(height: 24),
+                          // Add Routine Button
+                          AddRoutineButton(
+                            onPressed: () => RoutineDialogs.showAddRoutine(context),
+                          ),
+                          
+                          if (inactiveRoutines.isNotEmpty) ...[
+                            const SizedBox(height: 32),
+                            Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.calendarClock,
+                                  size: 20,
+                                  color: themeProvider.textSecondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Upcoming',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: themeProvider.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            ...inactiveRoutines.map((r) => _buildRoutineCard(
+                              context, 
+                              r, 
+                              provider,
+                              isInactive: true,
+                            )),
+                          ],
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
             );
           },
         ),
@@ -359,8 +407,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
   Widget _buildRoutineCard(
     BuildContext context,
     Routine routine,
-    RoutinesProvider provider,
-  ) {
+    RoutinesProvider provider, {
+    bool isInactive = false,
+  }) {
     final theme = Theme.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final date = DateTime.now();
@@ -372,14 +421,21 @@ class _RoutinesPageState extends State<RoutinesPage> {
     return Selector<RoutinesProvider, bool>(
       selector: (_, p) => p.isRoutineExpanded(routine.id),
       builder: (context, isExpanded, _) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: themeProvider.borderColor, width: 1.5),
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isInactive 
+              ? themeProvider.cardColor.withValues(alpha: 0.5) 
+              : themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isInactive 
+                ? themeProvider.borderColor.withValues(alpha: 0.5) 
+                : themeProvider.borderColor, 
+            width: 1.5,
+          ),
         boxShadow: [
           BoxShadow(
             color: themeProvider.primaryColor.withValues(alpha: 0.08),
@@ -402,7 +458,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
                     width: 56,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      color: themeProvider.primaryColor,
+                      color: isInactive 
+                          ? themeProvider.primaryColor.withValues(alpha: 0.3)
+                          : themeProvider.primaryColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -423,7 +481,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
                       Text(
                         routine.name,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: themeProvider.textPrimary,
+                          color: isInactive 
+                              ? themeProvider.textPrimary.withValues(alpha: 0.6)
+                              : themeProvider.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -510,24 +570,25 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         ),
                       ],
                     ),
-                    InkWell(
-                      onTap: () => provider.toggleRoutineExpansion(routine.id),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: AnimatedRotation(
-                          turns: isExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 300),
-                          child: Icon(
-                            LucideIcons.chevronDown,
-                            color: themeProvider.primaryColor.withValues(
-                              alpha: 0.7,
+                    if (!isInactive)
+                      InkWell(
+                        onTap: () => provider.toggleRoutineExpansion(routine.id),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: AnimatedRotation(
+                            turns: isExpanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Icon(
+                              LucideIcons.chevronDown,
+                              color: themeProvider.primaryColor.withValues(
+                                alpha: 0.7,
+                              ),
+                              size: 24,
                             ),
-                            size: 24,
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],
@@ -539,15 +600,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
             const SizedBox(height: 12),
             _buildDaysIndicator(routine.selectedDays!, themeProvider),
           ],
-          const SizedBox(height: 12),
-          // Progress bar always visible
-          WaveProgressBar(
-            progress: pct,
-            centerText: '${(pct * 100).toStringAsFixed(0)}%',
-            bottomText: '$done / $total today',
-          ),
+          if (!isInactive) ...[
+            const SizedBox(height: 12),
+            // Progress bar always visible
+            WaveProgressBar(
+              progress: pct,
+              centerText: '${(pct * 100).toStringAsFixed(0)}%',
+              bottomText: '$done / $total today',
+            ),
+          ],
           // Expandable content with smooth animation
-          _AnimatedExpandableContent(
+          if (!isInactive)
+            _AnimatedExpandableContent(
             isExpanded: isExpanded,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -717,3 +781,5 @@ class _AnimatedExpandableContentState
     );
   }
 }
+
+

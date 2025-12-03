@@ -49,16 +49,17 @@ class MoodProvider with ChangeNotifier {
   Future<void> saveMood({
     required int score,
     String? note,
+    DateTime? date,
   }) async {
     try {
       if (score < 1 || score > 10) {
         throw ArgumentError('Score must be between 1 and 10');
       }
 
-      final now = DateTime.now();
+      final targetDate = date ?? DateTime.now();
       final moodEntry = MoodEntry(
-        id: now.microsecondsSinceEpoch.toString(),
-        dateTimestamp: now.millisecondsSinceEpoch,
+        id: targetDate.microsecondsSinceEpoch.toString(),
+        dateTimestamp: targetDate.millisecondsSinceEpoch,
         score: score,
         note: note,
       );
@@ -75,18 +76,28 @@ class MoodProvider with ChangeNotifier {
     }
   }
 
-  /// Delete today's mood
-  Future<void> deleteTodayMood() async {
+  /// Delete mood entry for a specific date
+  Future<void> deleteMood(DateTime date) async {
     try {
-      final today = DateTime.now();
-      await _dataSource.deleteMoodEntry(today);
-      _todayMood = null;
+      await _dataSource.deleteMoodEntry(date);
+      
+      // If deleting today's mood, update _todayMood
+      final now = DateTime.now();
+      if (date.year == now.year && date.month == now.month && date.day == now.day) {
+        _todayMood = null;
+      }
+      
       await loadAllMoods();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error deleting today mood: $e');
+      debugPrint('Error deleting mood: $e');
       rethrow;
     }
+  }
+
+  /// Delete today's mood
+  Future<void> deleteTodayMood() async {
+    await deleteMood(DateTime.now());
   }
 
   /// Get mood entry for a specific date

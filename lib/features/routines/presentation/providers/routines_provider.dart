@@ -133,6 +133,12 @@ class RoutinesProvider with ChangeNotifier {
     return _routines.where((routine) => routine.isActiveOnDay(weekday)).toList();
   }
 
+  /// Get routines inactive on a specific weekday
+  /// weekday: 0=Monday, 6=Sunday
+  List<Routine> getInactiveRoutinesForDay(int weekday) {
+    return _routines.where((routine) => !routine.isActiveOnDay(weekday)).toList();
+  }
+
   /// Get routine by ID, returns null if not found
   Routine? getRoutineById(String routineId) {
     try {
