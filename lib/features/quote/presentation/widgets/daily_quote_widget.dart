@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/widgets/elevated_card.dart';
+
 import '../../../../core/services/quote_cache_service.dart';
 import '../../../../core/services/quote_service.dart';
 
@@ -47,24 +49,12 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
+
     
-    return Container(
-      width: double.infinity,
+
+    
+    return ElevatedCard(
       margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: _isLoading
           ? _buildLoadingWidget()
           : _quote != null
@@ -122,10 +112,21 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: themeProvider.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: themeProvider.surfaceColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: themeProvider.isDarkMode 
+                        ? Colors.black.withValues(alpha: 0.2) 
+                        : Colors.grey.withValues(alpha: 0.1),
+                    offset: const Offset(1, 1),
+                    blurRadius: 2,
+                    spreadRadius: 0,
+                    blurStyle: BlurStyle.inner,
+                  ),
+                ],
               ),
               child: Icon(
                 LucideIcons.quote,

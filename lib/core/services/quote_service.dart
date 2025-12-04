@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class Quote {
@@ -31,7 +32,7 @@ class QuoteService {
       }
       return null;
     } catch (e) {
-      print('Quote API Error: $e');
+      debugPrint('Quote API Error: $e');
       return null;
     }
   }
@@ -52,7 +53,7 @@ class QuoteService {
       }
       return null;
     } catch (e) {
-      print('Quote API Error: $e');
+      debugPrint('Quote API Error: $e');
       return null;
     }
   }

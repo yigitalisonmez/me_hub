@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CompletionTrackerService {
@@ -15,7 +16,7 @@ class CompletionTrackerService {
       final dateKey = _completionKey + date.toIso8601String().split('T')[0];
       await prefs.setString(dateKey, '$totalTodos:$completedTodos');
     } catch (e) {
-      print('Completion save error: $e');
+      debugPrint('Completion save error: $e');
     }
   }
 
@@ -37,7 +38,7 @@ class CompletionTrackerService {
       }
       return null;
     } catch (e) {
-      print('Completion get error: $e');
+      debugPrint('Completion get error: $e');
       return null;
     }
   }
@@ -50,7 +51,7 @@ class CompletionTrackerService {
           _celebrationShownKey + date.toIso8601String().split('T')[0];
       return prefs.getBool(celebrationKey) ?? false;
     } catch (e) {
-      print('Celebration check error: $e');
+      debugPrint('Celebration check error: $e');
       return false;
     }
   }
@@ -63,7 +64,7 @@ class CompletionTrackerService {
           _celebrationShownKey + date.toIso8601String().split('T')[0];
       await prefs.setBool(celebrationKey, true);
     } catch (e) {
-      print('Celebration mark error: $e');
+      debugPrint('Celebration mark error: $e');
     }
   }
 

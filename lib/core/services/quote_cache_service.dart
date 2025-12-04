@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'quote_service.dart';
 
@@ -32,7 +33,7 @@ class QuoteCacheService {
 
       return quote;
     } catch (e) {
-      print('Quote cache error: $e');
+      debugPrint('Quote cache error: $e');
       return null;
     }
   }
@@ -47,7 +48,7 @@ class QuoteCacheService {
       );
       await prefs.setString(_dateKey, date);
     } catch (e) {
-      print('Quote cache save error: $e');
+      debugPrint('Quote cache save error: $e');
     }
   }
 
@@ -58,7 +59,7 @@ class QuoteCacheService {
       await prefs.remove(_quoteKey);
       await prefs.remove(_dateKey);
     } catch (e) {
-      print('Quote cache clear error: $e');
+      debugPrint('Quote cache clear error: $e');
     }
   }
 }

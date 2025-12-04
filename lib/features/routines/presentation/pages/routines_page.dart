@@ -8,6 +8,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/streak_badge.dart';
@@ -240,42 +241,9 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
     final completionRate = totalItems == 0 ? 0.0 : completedToday / totalItems;
 
     // Monochromatic Base Color (using primary color as accent on surface)
-    final baseColor = themeProvider.cardColor;
-    final isDark = themeProvider.isDarkMode;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: baseColor,
-        borderRadius: BorderRadius.circular(24), // Slightly more rounded
-        border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.05) 
-              : Colors.white.withValues(alpha: 0.6), 
-          width: 1,
-        ),
-        boxShadow: [
-          // Shadow 1 (Top - Light Source)
-          BoxShadow(
-            color: isDark 
-                ? Colors.white.withValues(alpha: 0.02) 
-                : Colors.white,
-            offset: const Offset(0, -2),
-            blurRadius: 4,
-            spreadRadius: 0,
-          ),
-          // Shadow 2 (Bottom - Ground Separation)
-          BoxShadow(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.3) 
-                : themeProvider.primaryColor.withValues(alpha: 0.15),
-            offset: const Offset(0, 6),
-            blurRadius: 12,
-            spreadRadius: -2,
-          ),
-        ],
-      ),
+
+    return ElevatedCard(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -495,50 +463,18 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
     final total = routine.items.length;
     final pct = total == 0 ? 0.0 : done / total;
-    final isDark = themeProvider.isDarkMode;
+
 
     return Selector<RoutinesProvider, bool>(
       selector: (_, p) => p.isRoutineExpanded(routine.id),
       builder: (context, isExpanded, _) {
-      return Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isInactive 
-              ? themeProvider.cardColor.withValues(alpha: 0.6) 
-              : themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark 
-                ? Colors.white.withValues(alpha: 0.05) 
-                : Colors.white.withValues(alpha: 0.6), 
-            width: 1,
-          ),
-          boxShadow: [
-            // Shadow 1 (Top - Light Source)
-            BoxShadow(
-              color: isDark 
-                  ? Colors.white.withValues(alpha: 0.02) 
-                  : Colors.white,
-              offset: const Offset(0, -2),
-              blurRadius: 4,
-              spreadRadius: 0,
-            ),
-            // Shadow 2 (Bottom - Ground Separation)
-            BoxShadow(
-              color: isDark 
-                  ? Colors.black.withValues(alpha: 0.3) 
-                  : themeProvider.primaryColor.withValues(alpha: 0.1),
-              offset: const Offset(0, 8),
-              blurRadius: 16,
-              spreadRadius: -4,
-            ),
-          ],
-        ),
+      return ElevatedCard(
+      margin: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+          // The rest of the original Column content from the old Container's child
           // Header with icon, name, time and actions
           IntrinsicHeight(
             child: Row(

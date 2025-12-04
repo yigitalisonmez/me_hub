@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/widgets/elevated_card.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -35,22 +36,9 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
   Widget _buildSettingsCard() {
     final themeProvider = context.watch<ThemeProvider>();
     final theme = Theme.of(context);
+    final isDark = themeProvider.isDarkMode;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+    return ElevatedCard(
       child: Column(
         children: [
           Row(
@@ -110,8 +98,31 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: themeProvider.borderColor, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.05) 
+                    : Colors.white.withValues(alpha: 0.5),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.02) 
+                      : Colors.white,
+                  offset: const Offset(0, -1),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.2) 
+                      : themeProvider.primaryColor.withValues(alpha: 0.05),
+                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  spreadRadius: -1,
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,8 +172,31 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: themeProvider.borderColor, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.05) 
+                    : Colors.white.withValues(alpha: 0.5),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.02) 
+                      : Colors.white,
+                  offset: const Offset(0, -1),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.2) 
+                      : themeProvider.primaryColor.withValues(alpha: 0.05),
+                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  spreadRadius: -1,
+                ),
+              ],
             ),
             child: InkWell(
               onTap: () async {

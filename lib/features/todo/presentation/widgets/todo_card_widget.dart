@@ -4,6 +4,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:lottie/lottie.dart';
 import '../providers/todo_provider.dart';
 import 'add_todo_dialog.dart';
+import '../../../../core/widgets/elevated_card.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 
@@ -25,24 +27,10 @@ class TodoCardWidget extends StatelessWidget {
           });
         }
 
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: themeProvider.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: themeProvider.borderColor, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: themeProvider.primaryColor.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
+          return ElevatedCard(
+            child: Column(
+              children: [
+                Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
@@ -159,42 +147,54 @@ class TodoCardWidget extends StatelessWidget {
   }) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    final isDark = themeProvider.isDarkMode;
+
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style:
-            ElevatedButton.styleFrom(
-              backgroundColor: isPrimary ? null : themeProvider.cardColor,
-              foregroundColor: isPrimary
-                  ? AppColors.white
-                  : themeProvider.primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: isPrimary
-                    ? BorderSide.none
-                    : BorderSide(
-                        color: themeProvider.primaryColor.withValues(
-                          alpha: 0.3,
-                        ),
-                      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isPrimary
+              ? [
+                  BoxShadow(
+                    color: themeProvider.primaryColor.withValues(alpha: 0.3),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                    spreadRadius: -2,
+                  ),
+                ]
+              : null,
+        ),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isPrimary ? themeProvider.primaryColor : themeProvider.surfaceColor,
+            foregroundColor: isPrimary ? AppColors.white : themeProvider.primaryColor,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: isPrimary
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: isDark 
+                          ? Colors.white.withValues(alpha: 0.05) 
+                          : themeProvider.primaryColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
-            ).copyWith(
-              backgroundColor: isPrimary
-                  ? MaterialStateProperty.all<Color>(themeProvider.primaryColor)
-                  : MaterialStateProperty.all<Color>(themeProvider.cardColor),
-            ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -203,18 +203,37 @@ class TodoCardWidget extends StatelessWidget {
   Widget _buildTodoItem(BuildContext context, todo, TodoProvider provider) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : Colors.white.withValues(alpha: 0.5),
+          width: 1,
+        ),
         boxShadow: [
+          // Bevel Effect for Items (Subtle)
           BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.02) 
+                : Colors.white,
+            offset: const Offset(0, -1),
+            blurRadius: 2,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withValues(alpha: 0.2) 
+                : themeProvider.primaryColor.withValues(alpha: 0.05),
+            offset: const Offset(0, 3),
+            blurRadius: 6,
+            spreadRadius: -1,
           ),
         ],
       ),

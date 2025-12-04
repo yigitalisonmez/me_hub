@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import 'routines_provider.dart';
@@ -122,9 +122,6 @@ class EditRoutineProvider with ChangeNotifier {
     await _routinesProvider.reorderItems(routineId, oldIndex, newIndex);
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+
 }
 

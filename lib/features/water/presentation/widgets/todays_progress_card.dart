@@ -1,4 +1,6 @@
 part of '../pages/water_page.dart';
+// Note: ElevatedCard is imported in water_page.dart part file or needs to be available.
+// Since this is a part file, imports are in water_page.dart.
 
 class TodaysProgressCard extends StatefulWidget {
   final WaterProvider provider;
@@ -29,13 +31,7 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
     final glassCount = widget.provider.todayIntake?.logs.length ?? 0;
     final remaining = widget.dailyGoal - widget.provider.todayAmount;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-      ),
+    return ElevatedCard(
       child: AnimationLimiter(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

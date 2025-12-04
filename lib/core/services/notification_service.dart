@@ -277,7 +277,7 @@ class NotificationService {
       await _notifications.zonedSchedule(
         notificationId,
         'Rutin Hatırlatıcı',
-        '$randomQuote',
+        randomQuote,
         scheduledDate,
         notificationDetails,
         androidScheduleMode: canScheduleExact

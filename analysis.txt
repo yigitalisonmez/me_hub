@@ -1,0 +1,41 @@
+Analyzing me_hub...                                             
+
+   info • Don't invoke 'print' in production code • lib/core/services/completion_tracker_service.dart:18:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/completion_tracker_service.dart:40:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/completion_tracker_service.dart:53:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/completion_tracker_service.dart:66:7 • avoid_print
+   info • Unnecessary use of string interpolation • lib/core/services/notification_service.dart:280:9 • unnecessary_string_interpolations
+   info • Don't invoke 'print' in production code • lib/core/services/quote_cache_service.dart:35:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/quote_cache_service.dart:50:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/quote_cache_service.dart:61:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/quote_service.dart:34:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/quote_service.dart:55:7 • avoid_print
+warning • Unused import: 'package:lucide_icons_flutter/lucide_icons.dart' • lib/features/home/presentation/pages/home_content_page.dart:2:8 • unused_import
+warning • Unused import: 'package:provider/provider.dart' • lib/features/home/presentation/pages/home_content_page.dart:3:8 • unused_import
+warning • Unused import: '../../../../core/providers/theme_provider.dart' • lib/features/home/presentation/pages/home_content_page.dart:4:8 • unused_import
+warning • The value of the local variable 'isDark' isn't used • lib/features/quote/presentation/widgets/daily_quote_widget.dart:54:11 • unused_local_variable
+   info • Statements in an if should be enclosed in a block • lib/features/routines/domain/entities/routine.dart:160:7 • curly_braces_in_flow_control_structures
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/routines/presentation/pages/edit_routine_page.dart:501:21 • use_build_context_synchronously
+warning • The value of the local variable 'baseColor' isn't used • lib/features/routines/presentation/pages/routines_page.dart:244:11 • unused_local_variable
+warning • The value of the local variable 'isDark' isn't used • lib/features/routines/presentation/pages/routines_page.dart:245:11 • unused_local_variable
+warning • The value of the local variable 'isDark' isn't used • lib/features/routines/presentation/pages/routines_page.dart:467:11 • unused_local_variable
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/features/routines/presentation/providers/edit_routine_provider.dart:1:8 • unnecessary_import
+   info • Unnecessary override • lib/features/routines/presentation/providers/edit_routine_provider.dart:126:8 • unnecessary_overrides
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/features/routines/presentation/providers/routines_provider.dart:1:8 • unnecessary_import
+   info • Don't use 'BuildContext's across async gaps • lib/features/routines/presentation/utils/routine_dialogs.dart:54:24 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/settings/presentation/pages/settings_page.dart:206:42 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/settings/presentation/pages/settings_page.dart:216:42 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/settings/presentation/pages/settings_page.dart:272:42 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/settings/presentation/pages/settings_page.dart:282:42 • use_build_context_synchronously
+   info • Don't invoke 'print' in production code • lib/features/todo/presentation/providers/todo_provider.dart:278:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/todo/presentation/providers/todo_provider.dart:288:7 • avoid_print
+warning • Unused import: '../../../../core/widgets/page_header.dart' • lib/features/todo/presentation/widgets/todo_card_widget.dart:8:8 • unused_import
+warning • Unused import: '../../../../core/providers/theme_provider.dart' • lib/features/todo/presentation/widgets/todo_header_widget.dart:5:8 • unused_import
+warning • The value of the local variable 'isDark' isn't used • lib/features/water/presentation/widgets/water_amount_button.dart:84:17 • unused_local_variable
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/main.dart:1:8 • unnecessary_import
+warning • Unused import: 'package:shared_preferences/shared_preferences.dart' • lib/main.dart:5:8 • unused_import
+   info • The prefix 'RoutinesRepo' isn't a lower_case_with_underscores identifier • lib/main.dart:26:8 • library_prefixes
+   info • The prefix 'RoutinesUsecases' isn't a lower_case_with_underscores identifier • lib/main.dart:27:61 • library_prefixes
+   info • The prefix 'RoutineEntities' isn't a lower_case_with_underscores identifier • lib/main.dart:28:60 • library_prefixes
+   info • The prefix 'WaterUsecases' isn't a lower_case_with_underscores identifier • lib/main.dart:37:58 • library_prefixes
+

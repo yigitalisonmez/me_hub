@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:provider/provider.dart';
-import '../../../../core/providers/theme_provider.dart';
+
 import '../../../../features/quote/presentation/widgets/daily_quote_widget.dart';
 import '../../../../features/todo/presentation/widgets/todo_header_widget.dart';
 import '../../../../features/todo/presentation/widgets/todo_card_widget.dart';

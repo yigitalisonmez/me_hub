@@ -15,13 +15,7 @@ class TodaysLogSection extends StatelessWidget {
     final themeProvider = context.watch<ThemeProvider>();
     final logs = provider.todayIntake?.logs ?? [];
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
-      ),
+    return ElevatedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

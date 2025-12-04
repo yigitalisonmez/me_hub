@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../providers/todo_provider.dart';
-import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/page_header.dart';
 
 /// Todo header widget'ı - HomePage ve TodoPage'de kullanılabilir

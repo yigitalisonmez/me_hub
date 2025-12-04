@@ -9,6 +9,7 @@ import '../utils/mood_utils.dart';
 import '../widgets/weekly_mood_trend.dart';
 import '../widgets/mood_history_list.dart';
 import '../../../analytics/presentation/widgets/analysis_card.dart';
+import '../../../../core/widgets/elevated_card.dart';
 
 enum _MoodStep { score, note }
 
@@ -109,21 +110,9 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
     final icon = MoodUtils.getIconForScore(_currentScore.toInt());
     final label = MoodUtils.getLabelForScore(_currentScore.toInt());
 
-    return Container(
+    return ElevatedCard(
       key: const ValueKey('score_step'),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: themeProvider.borderColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      borderRadius: 32,
       child: Column(
         children: [
           // Animated Icon and Score
@@ -250,22 +239,11 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
   ) {
     final color = MoodUtils.getColorForScore(_currentScore.toInt());
     final icon = MoodUtils.getIconForScore(_currentScore.toInt());
+    final isDark = themeProvider.isDarkMode;
 
-    return Container(
+    return ElevatedCard(
       key: const ValueKey('note_step'),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: themeProvider.borderColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      borderRadius: 32,
       child: Column(
         children: [
           // Selected Icon
@@ -303,20 +281,37 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
           ),
           const SizedBox(height: 32),
           // Note Input
-          TextField(
-            controller: _noteController,
-            maxLines: 4,
-            style: TextStyle(color: themeProvider.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Type your thoughts...',
-              hintStyle: TextStyle(color: themeProvider.textSecondary),
-              filled: true,
-              fillColor: themeProvider.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
+          Container(
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.2) 
+                      : Colors.grey.withValues(alpha: 0.1),
+                  offset: const Offset(2, 2),
+                  blurRadius: 4,
+                  spreadRadius: 0,
+                  blurStyle: BlurStyle.inner,
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _noteController,
+              maxLines: 4,
+              style: TextStyle(color: themeProvider.textPrimary),
+              decoration: InputDecoration(
+                hintText: 'Type your thoughts...',
+                hintStyle: TextStyle(color: themeProvider.textSecondary),
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.all(20),
               ),
-              contentPadding: const EdgeInsets.all(20),
             ),
           ),
           const SizedBox(height: 32),
@@ -403,21 +398,9 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
     final icon = MoodUtils.getIconForScore(todayMood.score);
     final label = MoodUtils.getLabelForScore(todayMood.score);
 
-    return Container(
-      width: double.infinity,
+    return ElevatedCard(
+      borderRadius: 32,
       padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: themeProvider.borderColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
       child: Column(
         children: [
           Text(

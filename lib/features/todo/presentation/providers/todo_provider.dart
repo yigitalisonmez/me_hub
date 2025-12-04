@@ -275,7 +275,7 @@ class TodoProvider with ChangeNotifier {
         completedTodos,
       );
     } catch (e) {
-      print('Completion check error: $e');
+      debugPrint('Completion check error: $e');
     }
   }
 
@@ -285,7 +285,7 @@ class TodoProvider with ChangeNotifier {
       final today = DateTime.now();
       await CompletionTrackerService.markCelebrationShownToday(today);
     } catch (e) {
-      print('Celebration mark error: $e');
+      debugPrint('Celebration mark error: $e');
     }
   }
 }

@@ -47,11 +47,35 @@ class PageHeader extends StatelessWidget {
           GestureDetector(
             onTap: onActionTap,
             child: Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                border: Border.all(color: themeProvider.borderColor, width: 1.5),
+                color: themeProvider.surfaceColor,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: themeProvider.isDarkMode 
+                      ? Colors.white.withValues(alpha: 0.05) 
+                      : Colors.white.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: themeProvider.isDarkMode 
+                        ? Colors.white.withValues(alpha: 0.02) 
+                        : Colors.white,
+                    offset: const Offset(0, -1),
+                    blurRadius: 2,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: themeProvider.isDarkMode 
+                        ? Colors.black.withValues(alpha: 0.2) 
+                        : themeProvider.primaryColor.withValues(alpha: 0.05),
+                    offset: const Offset(0, 3),
+                    blurRadius: 6,
+                    spreadRadius: -1,
+                  ),
+                ],
               ),
               child: Icon(
                 actionIcon,

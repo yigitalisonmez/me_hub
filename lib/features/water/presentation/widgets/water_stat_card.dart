@@ -70,15 +70,24 @@ class _WaterStatCardState extends State<WaterStatCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.themeProvider.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: widget.themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: widget.themeProvider.borderColor,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withValues(alpha: 0.2) 
+                : Colors.grey.withValues(alpha: 0.1),
+            offset: const Offset(1, 1),
+            blurRadius: 2,
+            spreadRadius: 0,
+            blurStyle: BlurStyle.inner,
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -129,15 +138,24 @@ class WaterStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: themeProvider.borderColor,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withValues(alpha: 0.2) 
+                : Colors.grey.withValues(alpha: 0.1),
+            offset: const Offset(1, 1),
+            blurRadius: 2,
+            spreadRadius: 0,
+            blurStyle: BlurStyle.inner,
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

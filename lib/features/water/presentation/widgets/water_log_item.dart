@@ -109,30 +109,64 @@ class _WaterLogItemState extends State<WaterLogItem>
     final timeFormat = DateFormat('HH:mm');
     final timeString = timeFormat.format(widget.log.timestamp);
 
+    final isDark = themeProvider.isDarkMode;
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
         position: _slideAnimation,
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: themeProvider.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: themeProvider.borderColor,
-              width: 2,
+              color: isDark 
+                  ? Colors.white.withValues(alpha: 0.05) 
+                  : Colors.white.withValues(alpha: 0.5),
+              width: 1,
             ),
+            boxShadow: [
+              // Bevel Effect for Items (Subtle)
+              BoxShadow(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.02) 
+                    : Colors.white,
+                offset: const Offset(0, -1),
+                blurRadius: 2,
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: isDark 
+                    ? Colors.black.withValues(alpha: 0.2) 
+                    : themeProvider.primaryColor.withValues(alpha: 0.05),
+                offset: const Offset(0, 3),
+                blurRadius: 6,
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Row(
             children: [
               // Icon
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
+                  color: themeProvider.surfaceColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark 
+                          ? Colors.black.withValues(alpha: 0.2) 
+                          : Colors.grey.withValues(alpha: 0.1),
+                      offset: const Offset(1, 1),
+                      blurRadius: 2,
+                      spreadRadius: 0,
+                      blurStyle: BlurStyle.inner,
+                    ),
+                  ],
                 ),
                 child: Icon(
                   LucideIcons.droplet,

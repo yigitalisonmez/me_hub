@@ -81,20 +81,33 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
+          
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
               decoration: BoxDecoration(
                 color: widget.themeProvider.primaryColor,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
                 boxShadow: [
+                  // Top Highlight
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    offset: const Offset(0, -2),
+                    blurRadius: 2,
+                  ),
+                  // Bottom Shadow
                   BoxShadow(
                     color: widget.themeProvider.primaryColor.withValues(
-                      alpha: 0.3 * _glowAnimation.value,
+                      alpha: 0.4 * _glowAnimation.value + 0.2,
                     ),
-                    blurRadius: 20 * _glowAnimation.value,
-                    spreadRadius: 5 * _glowAnimation.value,
+                    blurRadius: 12 * _glowAnimation.value + 8,
+                    offset: const Offset(0, 6),
+                    spreadRadius: -2,
                   ),
                 ],
               ),

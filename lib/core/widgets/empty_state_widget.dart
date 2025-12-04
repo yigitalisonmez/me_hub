@@ -31,8 +31,19 @@ class EmptyStateWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                color: themeProvider.surfaceColor,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: themeProvider.isDarkMode 
+                        ? Colors.black.withValues(alpha: 0.2) 
+                        : Colors.grey.withValues(alpha: 0.1),
+                    offset: const Offset(2, 2),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                    blurStyle: BlurStyle.inner,
+                  ),
+                ],
               ),
               child: Icon(
                 icon,
@@ -64,18 +75,37 @@ class EmptyStateWidget extends StatelessWidget {
             ],
             if (onAction != null && actionLabel != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: onAction,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: themeProvider.surfaceColor,
-                  foregroundColor: themeProvider.primaryColor,
-                  elevation: 0,
-                  side: BorderSide(color: themeProvider.primaryColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                      spreadRadius: -2,
+                    ),
+                  ],
                 ),
-                child: Text(actionLabel!),
+                child: ElevatedButton(
+                  onPressed: onAction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeProvider.surfaceColor,
+                    foregroundColor: themeProvider.primaryColor,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: themeProvider.isDarkMode 
+                            ? Colors.white.withValues(alpha: 0.05) 
+                            : themeProvider.primaryColor.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Text(actionLabel!),
+                ),
               ),
             ],
           ],
