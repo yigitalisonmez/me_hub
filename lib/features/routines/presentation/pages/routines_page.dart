@@ -239,18 +239,40 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
     final totalRoutines = activeRoutines.length;
     final completionRate = totalItems == 0 ? 0.0 : completedToday / totalItems;
 
+    // Monochromatic Base Color (using primary color as accent on surface)
+    final baseColor = themeProvider.cardColor;
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
+        color: baseColor,
+        borderRadius: BorderRadius.circular(24), // Slightly more rounded
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : Colors.white.withValues(alpha: 0.6), 
+          width: 1,
+        ),
         boxShadow: [
+          // Shadow 1 (Top - Light Source)
           BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.02) 
+                : Colors.white,
+            offset: const Offset(0, -2),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+          // Shadow 2 (Bottom - Ground Separation)
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withValues(alpha: 0.3) 
+                : themeProvider.primaryColor.withValues(alpha: 0.15),
+            offset: const Offset(0, 6),
+            blurRadius: 12,
+            spreadRadius: -2,
           ),
         ],
       ),
@@ -264,34 +286,20 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
               Icon(
                 LucideIcons.repeat,
                 color: themeProvider.primaryColor,
-                size: 24,
+                size: 20,
               ),
               const SizedBox(width: 8),
               Text(
-                'ROUTINES',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                'DAILY OVERVIEW',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: themeProvider.primaryColor,
-                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                LucideIcons.repeat,
-                color: themeProvider.primaryColor,
-                size: 24,
               ),
             ],
           ),
-          Container(
-            height: 2,
-            width: 100,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: themeProvider.primaryColor,
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           // Circular Progress with stats
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -316,14 +324,14 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                     '$totalRoutines',
                     'Routines',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _buildStatItem(
                     context,
                     LucideIcons.circleCheck,
                     '$completedToday',
                     'Completed',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _buildStatItem(
                     context,
                     LucideIcons.clock,
@@ -336,11 +344,22 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
           ),
           const SizedBox(height: 20),
           // Date
-          Text(
-            '${today.day}.${today.month}.${today.year}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: themeProvider.textSecondary),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Text(
+              '${today.day}.${today.month}.${today.year}',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: themeProvider.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
@@ -476,33 +495,47 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
     final done = routine.items.where((i) => i.isCheckedToday(today)).length;
     final total = routine.items.length;
     final pct = total == 0 ? 0.0 : done / total;
+    final isDark = themeProvider.isDarkMode;
 
     return Selector<RoutinesProvider, bool>(
       selector: (_, p) => p.isRoutineExpanded(routine.id),
       builder: (context, isExpanded, _) {
       return Container(
         width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isInactive 
-              ? themeProvider.cardColor.withValues(alpha: 0.5) 
+              ? themeProvider.cardColor.withValues(alpha: 0.6) 
               : themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isInactive 
-                ? themeProvider.borderColor.withValues(alpha: 0.5) 
-                : themeProvider.borderColor, 
-            width: 1.5,
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.05) 
+                : Colors.white.withValues(alpha: 0.6), 
+            width: 1,
           ),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+          boxShadow: [
+            // Shadow 1 (Top - Light Source)
+            BoxShadow(
+              color: isDark 
+                  ? Colors.white.withValues(alpha: 0.02) 
+                  : Colors.white,
+              offset: const Offset(0, -2),
+              blurRadius: 4,
+              spreadRadius: 0,
+            ),
+            // Shadow 2 (Bottom - Ground Separation)
+            BoxShadow(
+              color: isDark 
+                  ? Colors.black.withValues(alpha: 0.3) 
+                  : themeProvider.primaryColor.withValues(alpha: 0.1),
+              offset: const Offset(0, 8),
+              blurRadius: 16,
+              spreadRadius: -4,
+            ),
+          ],
+        ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -514,21 +547,29 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                 // Icon
                 if (routine.iconCodePoint != null)
                   Container(
-                    width: 56,
-                    margin: const EdgeInsets.only(right: 12),
+                    width: 52,
+                    height: 52,
+                    margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
                       color: isInactive 
-                          ? themeProvider.primaryColor.withValues(alpha: 0.3)
-                          : themeProvider.primaryColor,
+                          ? themeProvider.surfaceColor
+                          : themeProvider.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isInactive
+                            ? Colors.transparent
+                            : themeProvider.primaryColor.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Icon(
                       RoutineIcons.getIconFromCodePoint(
                             routine.iconCodePoint!,
                           ) ??
                           LucideIcons.circle,
-                      color: Colors.white,
-                      size: 28,
+                      color: isInactive 
+                          ? themeProvider.textSecondary 
+                          : themeProvider.primaryColor,
+                      size: 24,
                     ),
                   ),
                 // Name and time
@@ -572,14 +613,12 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                 Row(
                   children: [
                     StreakBadge(count: routine.streakCount),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     PopupMenuButton<String>(
                       icon: Icon(
                         LucideIcons.ellipsisVertical,
-                        color: themeProvider.primaryColor.withValues(
-                          alpha: 0.7,
-                        ),
-                        size: 24,
+                        color: themeProvider.textSecondary,
+                        size: 20,
                       ),
                       onSelected: (v) async {
                         if (v == 'edit') {
@@ -595,7 +634,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                             children: [
                               Icon(
                                 LucideIcons.pencil,
-                                size: 20,
+                                size: 18,
                                 color: themeProvider.textPrimary,
                               ),
                               const SizedBox(width: 8),
@@ -614,7 +653,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                             children: [
                               const Icon(
                                 LucideIcons.trash2,
-                                size: 20,
+                                size: 18,
                                 color: AppColors.error,
                               ),
                               const SizedBox(width: 8),
@@ -640,10 +679,8 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                             duration: const Duration(milliseconds: 300),
                             child: Icon(
                               LucideIcons.chevronDown,
-                              color: themeProvider.primaryColor.withValues(
-                                alpha: 0.7,
-                              ),
-                              size: 24,
+                              color: themeProvider.textSecondary,
+                              size: 20,
                             ),
                           ),
                         ),
@@ -656,11 +693,11 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
           // Days selector
           if (routine.selectedDays != null &&
               routine.selectedDays!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildDaysIndicator(routine.selectedDays!, themeProvider),
           ],
           if (!isInactive) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             // Progress bar always visible
             WaveProgressBar(
               progress: pct,
@@ -676,7 +713,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 ...routine.items.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
@@ -701,7 +738,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                     isEnabled: isEnabled,
                   );
                 }),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 AddItemButton(
                   onPressed: () =>
                       RoutineDialogs.showAddItem(context, routine),
@@ -724,6 +761,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
     const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     // Get today's index (0=Monday, 6=Sunday)
     final todayIndex = (DateTime.now().weekday - 1) % 7;
+    final isDark = themeProvider.isDarkMode;
 
     return Row(
       children: List.generate(7, (index) {
@@ -731,16 +769,31 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
         final isToday = index == todayIndex;
         return Expanded(
           child: Container(
-            margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
-            height: 32,
+            margin: EdgeInsets.only(right: index < 6 ? 6 : 0),
+            height: 36,
             decoration: BoxDecoration(
               color: isSelected
-                  ? themeProvider.surfaceColor
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-              border: isToday && isSelected
-                  ? Border.all(color: themeProvider.primaryColor, width: 1.5)
-                  : null,
+                  ? themeProvider.primaryColor.withValues(alpha: 0.1)
+                  : themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isToday && isSelected
+                    ? themeProvider.primaryColor
+                    : (isSelected 
+                        ? themeProvider.primaryColor.withValues(alpha: 0.2)
+                        : Colors.transparent),
+                width: isToday ? 2 : 1,
+              ),
+              // Inset effect for unselected days
+              boxShadow: isSelected ? null : [
+                BoxShadow(
+                  color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
+                  offset: const Offset(1, 1),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                  blurStyle: BlurStyle.inner,
+                ),
+              ],
             ),
             child: Center(
               child: Text(
@@ -748,7 +801,7 @@ class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClie
                 style: TextStyle(
                   color: isSelected
                       ? themeProvider.primaryColor
-                      : themeProvider.textSecondary,
+                      : themeProvider.textSecondary.withValues(alpha: 0.5),
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),

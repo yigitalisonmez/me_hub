@@ -32,6 +32,7 @@ class RoutineItemWidget extends StatelessWidget {
     final isToday = item.isCheckedToday(
       DateTime(today.year, today.month, today.day),
     );
+    final isDark = themeProvider.isDarkMode;
 
     return TimelineTile(
       isFirst: isFirst,
@@ -46,31 +47,39 @@ class RoutineItemWidget extends StatelessWidget {
           onTap: isEnabled
               ? () => provider.toggleItemCheckedToday(routine.id, item.id)
               : null,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: isToday
                   ? themeProvider.primaryColor
-                  : (isEnabled
-                      ? themeProvider.cardColor
-                      : themeProvider.primaryColor.withValues(alpha: 0.1)),
+                  : themeProvider.surfaceColor,
+              shape: BoxShape.circle,
               border: Border.all(
                 color: isToday
                     ? themeProvider.primaryColor
                     : (isEnabled
-                        ? themeProvider.borderColor.withValues(alpha: 0.4)
-                        : themeProvider.borderColor.withValues(alpha: 0.2)),
+                        ? themeProvider.primaryColor.withValues(alpha: 0.3)
+                        : themeProvider.borderColor.withValues(alpha: 0.3)),
                 width: 2,
               ),
-              shape: BoxShape.circle,
+              boxShadow: isToday
+                  ? [
+                      BoxShadow(
+                        color: themeProvider.primaryColor.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      )
+                    ]
+                  : null,
             ),
             child: Center(
               child: isToday
-                  ? Icon(LucideIcons.check, color: themeProvider.textPrimary, size: 16)
+                  ? const Icon(LucideIcons.check, color: Colors.white, size: 16)
                   : (isEnabled
                       ? null
                       : Icon(
                           LucideIcons.lock,
-                          color: themeProvider.primaryColor.withValues(alpha: 0.3),
+                          color: themeProvider.textSecondary.withValues(alpha: 0.3),
                           size: 14,
                         )),
             ),
@@ -80,66 +89,96 @@ class RoutineItemWidget extends StatelessWidget {
       beforeLineStyle: LineStyle(
         color: isToday
             ? themeProvider.primaryColor
-            : themeProvider.primaryColor.withValues(alpha: 0.2),
+            : themeProvider.primaryColor.withValues(alpha: 0.15),
         thickness: 2,
       ),
       afterLineStyle: LineStyle(
         color: isToday
             ? themeProvider.primaryColor
-            : themeProvider.primaryColor.withValues(alpha: 0.2),
+            : themeProvider.primaryColor.withValues(alpha: 0.15),
         thickness: 2,
       ),
       endChild: Container(
         margin: const EdgeInsets.only(left: 16, bottom: 12, top: 4),
         child: Opacity(
-          opacity: isEnabled ? 1.0 : 0.5,
+          opacity: isEnabled ? 1.0 : 0.6,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: themeProvider.cardColor,
-              borderRadius: BorderRadius.circular(10),
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.05) 
+                    : Colors.white.withValues(alpha: 0.5),
+                width: 1,
+              ),
               boxShadow: [
+                // Bevel Effect for Items (Subtle)
                 BoxShadow(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.06),
-                  blurRadius: 8,
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.02) 
+                      : Colors.white,
+                  offset: const Offset(0, -1),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.2) 
+                      : themeProvider.primaryColor.withValues(alpha: 0.05),
                   offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  spreadRadius: -1,
                 ),
               ],
             ),
             child: Row(
               children: [
                 if (item.iconCodePoint != null) ...[
-                  Icon(
-                    RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
-                        LucideIcons.circle,
-                    color: isEnabled
-                        ? themeProvider.primaryColor
-                        : themeProvider.primaryColor.withValues(alpha: 0.3),
-                    size: 20,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isEnabled
+                          ? themeProvider.primaryColor.withValues(alpha: 0.1)
+                          : themeProvider.surfaceColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
+                          LucideIcons.circle,
+                      color: isEnabled
+                          ? themeProvider.primaryColor
+                          : themeProvider.textSecondary,
+                      size: 20,
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                 ],
                 Expanded(
-                  child: Text(
-                    item.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isEnabled
-                          ? themeProvider.textPrimary
-                          : themeProvider.textPrimary.withValues(alpha: 0.4),
-                      decoration: isToday ? TextDecoration.lineThrough : null,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isEnabled
+                              ? themeProvider.textPrimary
+                              : themeProvider.textSecondary,
+                          decoration: isToday ? TextDecoration.lineThrough : null,
+                          decorationColor: themeProvider.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (!isEnabled)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Icon(
-                      LucideIcons.lock,
-                      color: themeProvider.primaryColor.withValues(alpha: 0.4),
-                      size: 16,
-                    ),
+                  Icon(
+                    LucideIcons.lock,
+                    color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                    size: 16,
                   ),
               ],
             ),
