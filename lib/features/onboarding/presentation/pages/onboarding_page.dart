@@ -52,6 +52,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           autoScrollDuration: null,
           pages: [
             _buildWelcomePage(themeProvider),
+            _buildIntroPage(themeProvider),
             _buildNamePage(themeProvider),
             _buildFocusPage(themeProvider),
           ],
@@ -117,43 +118,83 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
+  PageViewModel _buildIntroPage(ThemeProvider themeProvider) {
+    return PageViewModel(
+      title: "Track Your Progress",
+      body: "Monitor your daily habits, water intake, and mood trends all in one place.",
+      image: Center(
+        child: Image.asset(
+          'assets/images/intro_new.png',
+          height: 250,
+        ),
+      ),
+      decoration: PageDecoration(
+        titleTextStyle: TextStyle(
+          fontSize: 28.0, 
+          fontWeight: FontWeight.w700,
+          color: themeProvider.textPrimary,
+        ),
+        bodyTextStyle: TextStyle(
+          fontSize: 18.0,
+          color: themeProvider.textSecondary,
+        ),
+        pageColor: themeProvider.backgroundColor,
+        imagePadding: const EdgeInsets.all(24),
+      ),
+    );
+  }
+
   PageViewModel _buildNamePage(ThemeProvider themeProvider) {
     return PageViewModel(
       title: "Let's get to know you",
+      image: Center(
+        child: Image.asset(
+          'assets/images/get_you_know_person.png',
+          height: 250,
+        ),
+      ),
       bodyWidget: Column(
         children: [
           Text(
             "What should we call you?",
             style: TextStyle(
-              fontSize: 18.0,
+              fontSize: 20.0,
+              fontWeight: FontWeight.w500,
               color: themeProvider.textSecondary,
+              letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           TextField(
             controller: _nameController,
-            autofocus: true,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 24,
               color: themeProvider.textPrimary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
             ),
             decoration: InputDecoration(
               hintText: 'Your Name',
               hintStyle: TextStyle(
-                color: themeProvider.textSecondary.withValues(alpha: 0.5),
+                color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                fontWeight: FontWeight.w500,
               ),
-              border: UnderlineInputBorder(
-                borderSide: BorderSide(color: themeProvider.primaryColor),
+              filled: true,
+              fillColor: themeProvider.cardColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: themeProvider.borderColor),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: themeProvider.primaryColor, width: 2),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide(color: themeProvider.primaryColor.withValues(alpha: 0.5), width: 2),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
             ),
             onChanged: (_) => setState(() {}),
           ),
