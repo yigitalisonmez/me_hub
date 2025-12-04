@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
@@ -39,6 +40,7 @@ import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
 import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
+import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,12 +70,17 @@ void main() async {
   // Notification service'i başlat
   await NotificationService().initialize();
 
+  // Check onboarding status
+  // final prefs = await SharedPreferences.getInstance();
+  final showOnboarding = true; // !prefs.containsKey('onboarding_completed'); // Forced true for testing
+
   runApp(
     MeHubApp(
       todoDataSource: todoDataSource,
       routinesDataSource: routinesDataSource,
       waterDataSource: waterDataSource,
       moodDataSource: moodDataSource,
+      showOnboarding: showOnboarding,
     ),
   );
 }
@@ -83,6 +90,7 @@ class MeHubApp extends StatelessWidget {
   final RoutineLocalDataSource routinesDataSource;
   final WaterLocalDataSource waterDataSource;
   final MoodLocalDataSource moodDataSource;
+  final bool showOnboarding;
 
   const MeHubApp({
     super.key,
@@ -90,6 +98,7 @@ class MeHubApp extends StatelessWidget {
     required this.routinesDataSource,
     required this.waterDataSource,
     required this.moodDataSource,
+    required this.showOnboarding,
   });
 
   @override
@@ -169,7 +178,7 @@ class MeHubApp extends StatelessWidget {
             themeMode: themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: const HomePage(),
+            home: showOnboarding ? const OnboardingPage() : const HomePage(),
           );
         },
       ),

@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';

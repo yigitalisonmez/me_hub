@@ -259,10 +259,25 @@ class NotificationService {
         debugPrint('   🆔 ID: $notificationId');
       }
 
+      // Random motivational quote
+      final quotes = [
+        'Five minutes to go—show up for yourself today.',
+        'Your future self is thanking you already. Time to begin.',
+        'Small actions shape big destinies. Ready? ${routine.name} will start in 5 minutes.',
+        'Consistency beats motivation. Start now. ${routine.name} will start in 5 minutes.',
+        'You’re one step away from progress—take it. ${routine.name} will start in 5 minutes.',
+        'Discipline is choosing what you want most. It’s time. ${routine.name} will start in 5 minutes.',
+        'A better day begins with a small habit. Let’s go. ${routine.name} will start in 5 minutes.',
+        'Do it today, so tomorrow feels lighter. ${routine.name} will start in 5 minutes.',
+        'Growth happens in quiet moments like this. Begin. ${routine.name} will start in 5 minutes.',
+        'You don’t need perfection—just the next five minutes. ${routine.name} will start in 5 minutes.',
+      ];
+      final randomQuote = (quotes..shuffle()).first;
+
       await _notifications.zonedSchedule(
         notificationId,
         'Rutin Hatırlatıcı',
-        '${routine.name} rutini 5 dakika sonra başlayacak!',
+        '$randomQuote',
         scheduledDate,
         notificationDetails,
         androidScheduleMode: canScheduleExact

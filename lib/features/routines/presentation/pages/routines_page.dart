@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../../../core/widgets/page_header.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/streak_badge.dart';
@@ -154,7 +155,14 @@ class _RoutinesPageState extends State<RoutinesPage> {
                           _buildHeroHeader(context, provider, activeRoutines),
                           const SizedBox(height: 24),
                           // Routine Cards - Filter by active days
-                          ...activeRoutines.map((r) => _buildRoutineCard(context, r, provider)),
+                          if (activeRoutines.isEmpty)
+                            const EmptyStateWidget(
+                              message: 'No routines for today',
+                              icon: LucideIcons.coffee,
+                              subMessage: 'Enjoy your free time or add a new routine to stay productive!',
+                            )
+                          else
+                            ...activeRoutines.map((r) => _buildRoutineCard(context, r, provider)),
                           const SizedBox(height: 24),
                           const SizedBox(height: 24),
                           // Add Routine Button

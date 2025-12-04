@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../domain/usecases/usecases.dart';
+import '../../../home_widget/data/home_widget_service.dart';
 
 class WaterProvider with ChangeNotifier {
   final GetTodayWaterIntake _getTodayWaterIntake;
@@ -63,6 +64,13 @@ class WaterProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      // Update widget
+      if (_todayIntake != null) {
+        HomeWidgetService().updateWidget(
+          waterIntake: _todayIntake!.amountMl,
+          waterGoal: _dailyGoalMl,
+        );
+      }
     }
   }
 
@@ -76,7 +84,16 @@ class WaterProvider with ChangeNotifier {
       // Check if goal was just reached
       if (!wasGoalReached && isGoalReached) {
         _justReachedGoal = true;
+
         notifyListeners(); // Notify to trigger celebration in UI
+      }
+      
+      // Update widget
+      if (_todayIntake != null) {
+        HomeWidgetService().updateWidget(
+          waterIntake: _todayIntake!.amountMl,
+          waterGoal: _dailyGoalMl,
+        );
       }
     } catch (e) {
       _error = 'Failed to add water';
@@ -95,6 +112,14 @@ class WaterProvider with ChangeNotifier {
       _error = 'Failed to undo';
       notifyListeners();
     }
+    
+    // Update widget
+    if (_todayIntake != null) {
+      HomeWidgetService().updateWidget(
+        waterIntake: _todayIntake!.amountMl,
+        waterGoal: _dailyGoalMl,
+      );
+    }
   }
 
   /// Update water intake (for deleting specific logs)
@@ -105,6 +130,14 @@ class WaterProvider with ChangeNotifier {
     } catch (e) {
       _error = 'Failed to update water intake';
       notifyListeners();
+    }
+    
+    // Update widget
+    if (_todayIntake != null) {
+      HomeWidgetService().updateWidget(
+        waterIntake: _todayIntake!.amountMl,
+        waterGoal: _dailyGoalMl,
+      );
     }
   }
 

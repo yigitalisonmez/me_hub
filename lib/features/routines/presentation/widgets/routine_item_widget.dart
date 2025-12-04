@@ -41,6 +41,7 @@ class RoutineItemWidget extends StatelessWidget {
       indicatorStyle: IndicatorStyle(
         width: 28,
         height: 28,
+        drawGap: true,
         indicator: GestureDetector(
           onTap: isEnabled
               ? () => provider.toggleItemCheckedToday(routine.id, item.id)

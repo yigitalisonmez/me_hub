@@ -1,5 +1,6 @@
 part of '../pages/water_page.dart';
 
+
 class TodaysLogSection extends StatelessWidget {
   final WaterProvider provider;
 
@@ -68,15 +69,12 @@ class TodaysLogSection extends StatelessWidget {
           const SizedBox(height: 20),
           // Log Items
           if (logs.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'No entries yet',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: themeProvider.textSecondary,
-                  ),
-                ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: EmptyStateWidget(
+                message: 'No water logs yet',
+                icon: LucideIcons.droplet,
+                subMessage: 'Drink water to reach your daily goal!',
               ),
             )
           else

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/mood_entry.dart';
 import '../../data/datasources/mood_local_datasource.dart';
+import '../utils/mood_utils.dart';
+import '../../../home_widget/data/home_widget_service.dart';
 
 class MoodProvider with ChangeNotifier {
   final MoodLocalDataSource _dataSource;
@@ -70,6 +72,12 @@ class MoodProvider with ChangeNotifier {
       // Reload all moods to update heatmap
       await loadAllMoods();
       notifyListeners();
+      
+      // Update widget
+      HomeWidgetService().updateWidget(
+        moodEmoji: MoodUtils.getEmojiForScore(score),
+        moodLabel: MoodUtils.getLabelForScore(score),
+      );
     } catch (e) {
       debugPrint('Error saving mood: $e');
       rethrow;
@@ -89,6 +97,14 @@ class MoodProvider with ChangeNotifier {
       
       await loadAllMoods();
       notifyListeners();
+
+      // Update widget if today's mood was deleted
+      if (date.year == now.year && date.month == now.month && date.day == now.day) {
+        HomeWidgetService().updateWidget(
+          moodEmoji: '😐',
+          moodLabel: 'Track Mood',
+        );
+      }
     } catch (e) {
       debugPrint('Error deleting mood: $e');
       rethrow;

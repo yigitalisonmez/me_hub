@@ -8,6 +8,7 @@ import '../../../../core/widgets/page_header.dart';
 import '../utils/mood_utils.dart';
 import '../widgets/weekly_mood_trend.dart';
 import '../widgets/mood_history_list.dart';
+import '../../../analytics/presentation/widgets/analysis_card.dart';
 
 enum _MoodStep { score, note }
 
@@ -60,6 +61,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
               else
                 _buildTodayMoodCard(context, themeProvider, moodProvider),
               const SizedBox(height: 32),
+              const AnalysisCard(),
               const WeeklyMoodTrend(),
               const SizedBox(height: 32),
               const MoodHistoryList(),

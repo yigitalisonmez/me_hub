@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../providers/mood_provider.dart';
 import '../utils/mood_utils.dart';
 import '../../domain/entities/mood_entry.dart';
@@ -21,14 +22,10 @@ class MoodHistoryList extends StatelessWidget {
       ..sort((a, b) => b.dateTimestamp.compareTo(a.dateTimestamp));
 
     if (sortedMoods.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Text(
-            'No mood entries yet',
-            style: TextStyle(color: themeProvider.textSecondary),
-          ),
-        ),
+      return const EmptyStateWidget(
+        message: 'No mood entries yet',
+        icon: LucideIcons.heart,
+        subMessage: 'Track your mood to see patterns over time.',
       );
     }
 
@@ -48,13 +45,12 @@ class MoodHistoryList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         if (sortedMoods.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                'No mood entries yet',
-                style: TextStyle(color: themeProvider.textSecondary),
-              ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: EmptyStateWidget(
+              message: 'No recent entries',
+              icon: LucideIcons.history,
+              subMessage: 'Your mood history will appear here.',
             ),
           )
         else
