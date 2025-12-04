@@ -25,7 +25,10 @@ class RoutinesPage extends StatefulWidget {
   State<RoutinesPage> createState() => _RoutinesPageState();
 }
 
-class _RoutinesPageState extends State<RoutinesPage> {
+class _RoutinesPageState extends State<RoutinesPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +39,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
 
     return Container(

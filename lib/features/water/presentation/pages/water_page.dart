@@ -29,10 +29,13 @@ class WaterPage extends StatefulWidget {
   State<WaterPage> createState() => _WaterPageState();
 }
 
-class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
+class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _celebrationController;
   List<QuickAddAmount> _quickAddAmounts = [];
   int _dailyGoal = 2000;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -77,6 +80,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
     
     return Container(

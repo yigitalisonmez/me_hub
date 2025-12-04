@@ -19,11 +19,14 @@ class MoodPage extends StatefulWidget {
   State<MoodPage> createState() => _MoodPageState();
 }
 
-class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin {
+class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   double _currentScore = 5.0;
   _MoodStep _currentStep = _MoodStep.score;
   final TextEditingController _noteController = TextEditingController();
   
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +45,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
     final moodProvider = context.watch<MoodProvider>();
 
