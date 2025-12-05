@@ -14,7 +14,7 @@ import '../widgets/add_item_dialog.dart';
 import '../widgets/routine_icon_picker.dart';
 import '../widgets/routine_time_picker.dart';
 import '../utils/routine_dialogs.dart';
-import '../../../../core/widgets/clay_container.dart';
+import '../../../../core/widgets/elevated_card.dart';
 
 class EditRoutinePage extends StatefulWidget {
   final Routine routine;
@@ -189,10 +189,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         SizedBox(
           width: 40,
           height: 40,
-          child: ClayContainer(
+          child: ElevatedCard(
             padding: EdgeInsets.zero,
             borderRadius: 20,
-            color: themeProvider.surfaceColor,
+            backgroundColor: themeProvider.cardColor,
             onTap: () => Navigator.pop(context),
             child: Center(
               child: Icon(
@@ -207,10 +207,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         SizedBox(
           width: 40,
           height: 40,
-          child: ClayContainer(
+          child: ElevatedCard(
             padding: EdgeInsets.zero,
             borderRadius: 20,
-            color: themeProvider.primaryColor,
+            backgroundColor: themeProvider.primaryColor,
             onTap: _saveRoutine,
             child: Center(
               child: Icon(
@@ -236,12 +236,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       child: SizedBox(
         width: 80,
         height: 80,
-        child: ClayContainer(
+        child: ElevatedCard(
           padding: EdgeInsets.zero,
           borderRadius: 20,
-          color: editProvider.selectedIconCodePoint != null
+          backgroundColor: editProvider.selectedIconCodePoint != null
               ? themeProvider.primaryColor
-              : themeProvider.surfaceColor,
+              : themeProvider.cardColor,
           child: Center(
             child: Icon(
               icon ?? LucideIcons.circle,
@@ -352,7 +352,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: themeProvider.surfaceColor,
+          color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -385,7 +385,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   ) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return ClayContainer(
+    return ElevatedCard(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       borderRadius: 20,
@@ -457,9 +457,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     EditRoutineProvider editProvider,
   ) {
     final themeProvider = context.watch<ThemeProvider>();
-    return ClayContainer(
+    return ElevatedCard(
       onTap: () => _showDeleteRoutineDialog(context, editProvider),
-      color: themeProvider.surfaceColor,
+      backgroundColor: themeProvider.surfaceColor,
       borderRadius: 12,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
@@ -511,7 +511,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ).textTheme.titleLarge?.copyWith(color: themeProvider.textPrimary),
           ),
           const SizedBox(height: 12),
-          ClayContainer(
+          ElevatedCard(
             padding: EdgeInsets.zero,
             borderRadius: 20,
             child: Container(
@@ -569,9 +569,11 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                       proxyDecorator: (child, index, animation) {
                         final themeProvider = context.watch<ThemeProvider>();
                         final item = routine.items[index];
-                        return ClayContainer(
-                          color: themeProvider.surfaceColor,
-                          borderRadius: 16,
+                        return Material(
+                          color: themeProvider.cardColor,
+                          elevation: 8,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
                           child: HabitListItem(
                             item: item,
                             index: index,
@@ -609,22 +611,56 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   ) {
     final themeProvider = context.watch<ThemeProvider>();
     const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
+    // Get today's index (0=Monday, 6=Sunday)
+    final todayIndex = (DateTime.now().weekday - 1) % 7;
     return Row(
       children: List.generate(7, (index) {
         final isSelected = editProvider.selectedDays.contains(index);
+        final isToday = index == todayIndex;
 
         return Expanded(
           child: GestureDetector(
             onTap: () => editProvider.toggleDay(index),
-            child: ClayContainer(
+            child: Container(
               margin: EdgeInsets.only(right: index < 6 ? 6 : 0),
               height: 44,
-              borderRadius: 12,
-              color: isSelected
-                  ? themeProvider.primaryColor
-                  : themeProvider.surfaceColor,
-              emboss: isSelected, // Pressed effect for selected
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: themeProvider.primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          offset: const Offset(0, -2),
+                          blurRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          offset: const Offset(0, 4),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    )
+                  : BoxDecoration(
+                      color: themeProvider.backgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isToday
+                            ? themeProvider.textPrimary.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                        width: isToday ? 1.5 : 0,
+                      ),
+                      boxShadow: [
+                        // Inset effect for unselected
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          offset: const Offset(0, 2),
+                          blurRadius: 2,
+                          spreadRadius: 0,
+                          // inset: true - simulated by drawing over? No, just subtle shadow
+                        ),
+                      ],
+                    ),
               child: Center(
                 child: Text(
                   dayAbbreviations[index],
@@ -646,11 +682,29 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _buildInsetContainer(BuildContext context, {required Widget child}) {
     final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
 
-    return ClayContainer(
-      emboss: true, // Inner shadow for input field
-      borderRadius: 12,
-      color: themeProvider.surfaceColor,
+    return Container(
+      decoration: BoxDecoration(
+        color: themeProvider.backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          // Top inner shadow (simulated with dark border/gradient)
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.grey.withValues(alpha: 0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
+          // Bottom highlight (simulated with light border)
+          BoxShadow(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+            offset: const Offset(0, -1),
+            blurRadius: 0,
+          ),
+        ],
+      ),
       child: child,
     );
   }
@@ -665,9 +719,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         decoration: BoxDecoration(color: themeProvider.backgroundColor),
         child: SizedBox(
           width: double.infinity,
-          child: ClayContainer(
+          child: ElevatedCard(
             onTap: () => _addItem(context),
-            color: themeProvider.surfaceColor,
+            backgroundColor: themeProvider.cardColor,
             borderRadius: 12,
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(

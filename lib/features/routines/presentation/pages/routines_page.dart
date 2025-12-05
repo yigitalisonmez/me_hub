@@ -8,7 +8,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
-import '../../../../core/widgets/clay_container.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/streak_badge.dart';
@@ -263,8 +263,7 @@ class _RoutinesPageState extends State<RoutinesPage>
 
     // Monochromatic Base Color (using primary color as accent on surface)
 
-    return ClayContainer(
-      borderRadius: 20,
+    return ElevatedCard(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -333,11 +332,15 @@ class _RoutinesPageState extends State<RoutinesPage>
           ),
           const SizedBox(height: 20),
           // Date
-          ClayContainer(
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            borderRadius: 20,
-            color: themeProvider.surfaceColor,
-            emboss: true,
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.5),
+              ),
+            ),
             child: Text(
               '${today.day}.${today.month}.${today.year}',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -436,11 +439,12 @@ class _RoutinesPageState extends State<RoutinesPage>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClayContainer(
+        Container(
           padding: const EdgeInsets.all(8),
-          borderRadius: 8,
-          color: themeProvider.surfaceColor,
-          emboss: true,
+          decoration: BoxDecoration(
+            border: Border.all(color: themeProvider.borderColor, width: 1.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Icon(icon, color: themeProvider.primaryColor, size: 18),
         ),
         const SizedBox(width: 10),
@@ -483,9 +487,8 @@ class _RoutinesPageState extends State<RoutinesPage>
     return Selector<RoutinesProvider, bool>(
       selector: (_, p) => p.isRoutineExpanded(routine.id),
       builder: (context, isExpanded, _) {
-        return ClayContainer(
+        return ElevatedCard(
           margin: const EdgeInsets.only(bottom: 24),
-          borderRadius: 20,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -496,17 +499,26 @@ class _RoutinesPageState extends State<RoutinesPage>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Icon
-                    // Icon
                     if (routine.iconCodePoint != null)
-                      ClayContainer(
+                      Container(
                         width: 52,
                         height: 52,
                         margin: const EdgeInsets.only(right: 16),
-                        borderRadius: 16,
-                        color: isInactive
-                            ? themeProvider.surfaceColor
-                            : themeProvider.primaryColor.withValues(alpha: 0.1),
-                        emboss: !isInactive, // Inset for active
+                        decoration: BoxDecoration(
+                          color: isInactive
+                              ? themeProvider.surfaceColor
+                              : themeProvider.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isInactive
+                                ? Colors.transparent
+                                : themeProvider.primaryColor.withValues(
+                                    alpha: 0.2,
+                                  ),
+                          ),
+                        ),
                         child: Icon(
                           RoutineIcons.getIconFromCodePoint(
                                 routine.iconCodePoint!,
@@ -711,25 +723,45 @@ class _RoutinesPageState extends State<RoutinesPage>
     ThemeProvider themeProvider,
   ) {
     const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
+    // Get today's index (0=Monday, 6=Sunday)
+    final todayIndex = (DateTime.now().weekday - 1) % 7;
+    final isDark = themeProvider.isDarkMode;
     return Row(
       children: List.generate(7, (index) {
         final isSelected = selectedDays.contains(index);
+        final isToday = index == todayIndex;
         return Expanded(
-          child: ClayContainer(
+          child: Container(
             margin: EdgeInsets.only(right: index < 6 ? 6 : 0),
             height: 36,
-            borderRadius: 10,
-            color: isSelected
-                ? themeProvider.primaryColor.withValues(alpha: 0.1)
-                : themeProvider.surfaceColor,
-            emboss:
-                !isSelected, // Unselected are elevated (or inset? User said unpressed = floating bubbles)
-            // Actually, user said: Unpressed = floating bubbles (outer shadow). Pressed = inner shadow.
-            // Here, "Selected" means active/checked? No, it means the routine is active on this day.
-            // Let's make Selected = Pressed (Inset), Unselected = Elevated (Floating).
-            // Wait, usually "Selected" means "Active".
-            // Let's stick to: Selected = Pressed (Emboss/Inset), Unselected = Elevated.
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? themeProvider.primaryColor.withValues(alpha: 0.1)
+                  : themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isToday && isSelected
+                    ? themeProvider.primaryColor
+                    : (isSelected
+                          ? themeProvider.primaryColor.withValues(alpha: 0.2)
+                          : Colors.transparent),
+                width: isToday ? 2 : 1,
+              ),
+              // Inset effect for unselected days
+              boxShadow: isSelected
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.2)
+                            : Colors.grey.withValues(alpha: 0.1),
+                        offset: const Offset(1, 1),
+                        blurRadius: 2,
+                        spreadRadius: 0,
+                        blurStyle: BlurStyle.inner,
+                      ),
+                    ],
+            ),
             child: Center(
               child: Text(
                 dayAbbreviations[index],

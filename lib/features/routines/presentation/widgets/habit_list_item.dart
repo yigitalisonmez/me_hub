@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
 
 import '../../../../core/constants/routine_icons.dart';
-import '../../../../core/widgets/clay_container.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../domain/entities/routine.dart';
 
 class HabitListItem extends StatelessWidget {
@@ -25,9 +25,10 @@ class HabitListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Container(
+    return ElevatedCard(
       key: key,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      borderRadius: 16,
       child: Row(
         children: [
           // Drag handle icon (visual indicator)
@@ -38,27 +39,71 @@ class HabitListItem extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           // Icon with background
-          GestureDetector(
-            onTap: onEdit,
-            child: ClayContainer(
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              color: themeProvider.surfaceColor,
-              child: Center(
+          if (item.iconCodePoint != null)
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: themeProvider.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.black.withValues(alpha: 0.5)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white,
+                      offset: const Offset(0, -1),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
                 child: Icon(
-                  item.iconCodePoint != null
-                      ? RoutineIcons.getIconFromCodePoint(
-                              item.iconCodePoint!,
-                            ) ??
-                            LucideIcons.circle
-                      : LucideIcons.circle,
+                  RoutineIcons.getIconFromCodePoint(item.iconCodePoint!) ??
+                      LucideIcons.circle,
+                  color: themeProvider.primaryColor,
+                  size: 24,
+                ),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: themeProvider.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.black.withValues(alpha: 0.5)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white,
+                      offset: const Offset(0, -1),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  LucideIcons.circle,
                   color: themeProvider.primaryColor,
                   size: 24,
                 ),
               ),
             ),
-          ),
           const SizedBox(width: 16),
           // Title
           Expanded(
@@ -68,7 +113,7 @@ class HabitListItem extends StatelessWidget {
                 item.title,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: themeProvider.textPrimary,
                 ),
               ),
@@ -78,18 +123,10 @@ class HabitListItem extends StatelessWidget {
           // Delete button
           GestureDetector(
             onTap: onDelete,
-            child: ClayContainer(
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              color: themeProvider.surfaceColor,
-              child: Center(
-                child: Icon(
-                  LucideIcons.trash2,
-                  color: const Color(0xFFF44336).withValues(alpha: 0.8),
-                  size: 20,
-                ),
-              ),
+            child: Icon(
+              LucideIcons.trash2,
+              color: const Color(0xFFF44336).withValues(alpha: 0.8),
+              size: 24,
             ),
           ),
         ],
