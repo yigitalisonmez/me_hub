@@ -27,7 +27,7 @@ class TodoItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -80,11 +80,11 @@ class TodoItem extends StatelessWidget {
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: todo.isCompleted ? AppColors.primaryOrange : Colors.transparent,
+        color: todo.isCompleted ? AppColors.primary : Colors.transparent,
         border: Border.all(
           color: todo.isCompleted
-              ? AppColors.primaryOrange
-              : AppColors.primaryOrange.withValues(alpha: 0.3),
+              ? AppColors.primary
+              : AppColors.primary.withValues(alpha: 0.3),
           width: 2,
         ),
         borderRadius: BorderRadius.circular(6),
@@ -101,13 +101,13 @@ class TodoItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             todo.priorityText,
             style: const TextStyle(
-              color: AppColors.primaryOrange,
+              color: AppColors.primary,
               fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
@@ -146,7 +146,7 @@ class TodoItem extends StatelessWidget {
                   Icon(
                     todo.isCompleted ? LucideIcons.undo2 : LucideIcons.check,
                     size: 16,
-                    color: AppColors.primaryOrange,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(width: 8),
                   Text(todo.isCompleted ? 'Geri Al' : 'Tamamla'),

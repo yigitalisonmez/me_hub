@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../providers/mood_provider.dart';
 import '../utils/mood_utils.dart';
@@ -21,54 +22,60 @@ class MoodHistoryList extends StatelessWidget {
     final sortedMoods = List<MoodEntry>.from(moods)
       ..sort((a, b) => b.dateTimestamp.compareTo(a.dateTimestamp));
 
-    if (sortedMoods.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'No mood entries yet',
-        icon: LucideIcons.heart,
-        subMessage: 'Track your mood to see patterns over time.',
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(
-            'Recent Entries',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: themeProvider.textPrimary,
-            ),
+    return ElevatedCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                LucideIcons.history,
+                size: 20,
+                color: themeProvider.primaryColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Recent Entries',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: themeProvider.textPrimary,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 16),
-        if (sortedMoods.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: EmptyStateWidget(
-              message: 'No recent entries',
-              icon: LucideIcons.history,
-              subMessage: 'Your mood history will appear here.',
+          const SizedBox(height: 20),
+          if (sortedMoods.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: EmptyStateWidget(
+                message: 'No mood entries yet',
+                icon: LucideIcons.heart,
+                subMessage: 'Track your mood to see patterns over time.',
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: sortedMoods.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 32,
+                thickness: 1,
+                color: themeProvider.borderColor.withValues(alpha: 0.1),
+              ),
+              itemBuilder: (context, index) {
+                final mood = sortedMoods[index];
+                return _MoodHistoryItem(
+                  mood: mood,
+                  themeProvider: themeProvider,
+                  moodProvider: moodProvider,
+                );
+              },
             ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: sortedMoods.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final mood = sortedMoods[index];
-              return _MoodHistoryItem(
-                mood: mood,
-                themeProvider: themeProvider,
-                moodProvider: moodProvider,
-              );
-            },
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -93,122 +100,101 @@ class _MoodHistoryItem extends StatelessWidget {
     final timeStr = DateFormat('h:mm a').format(date);
     final dateStr = DateFormat('MMM d, y').format(date);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Mood Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    icon,
-                    size: 24,
-                    color: color,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                          ),
-                        ),
-                        Text(
-                          '$dateStr • $timeStr',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: themeProvider.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Score: ${mood.score}/10',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: themeProvider.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (mood.note != null && mood.note!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            // Mood Icon
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: themeProvider.surfaceColor,
-                borderRadius: BorderRadius.circular(12),
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              child: Text(
-                mood.note!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: themeProvider.textPrimary,
-                  fontStyle: FontStyle.italic,
-                ),
+              child: Center(child: Icon(icon, size: 24, color: color)),
+            ),
+            const SizedBox(width: 16),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                      Text(
+                        '$dateStr • $timeStr',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: themeProvider.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Score: ${mood.score}/10',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: themeProvider.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildActionButton(
-                context,
-                icon: LucideIcons.pencil,
-                label: 'Edit',
-                onTap: () => _showEditDialog(context),
+        ),
+        if (mood.note != null && mood.note!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              mood.note!,
+              style: TextStyle(
+                fontSize: 14,
+                color: themeProvider.textPrimary,
+                fontStyle: FontStyle.italic,
               ),
-              const SizedBox(width: 12),
-              _buildActionButton(
-                context,
-                icon: LucideIcons.trash2,
-                label: 'Delete',
-                isDestructive: true,
-                onTap: () => _showDeleteDialog(context),
-              ),
-            ],
+            ),
           ),
         ],
-      ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildActionButton(
+              context,
+              icon: LucideIcons.pencil,
+              label: 'Edit',
+              onTap: () => _showEditDialog(context),
+            ),
+            const SizedBox(width: 12),
+            _buildActionButton(
+              context,
+              icon: LucideIcons.trash2,
+              label: 'Delete',
+              isDestructive: true,
+              onTap: () => _showDeleteDialog(context),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -248,7 +234,10 @@ class _MoodHistoryItem extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: themeProvider.cardColor,
-        title: Text('Delete Entry', style: TextStyle(color: themeProvider.textPrimary)),
+        title: Text(
+          'Delete Entry',
+          style: TextStyle(color: themeProvider.textPrimary),
+        ),
         content: Text(
           'Are you sure you want to delete this mood entry?',
           style: TextStyle(color: themeProvider.textSecondary),
@@ -256,11 +245,16 @@ class _MoodHistoryItem extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: themeProvider.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: themeProvider.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
-              moodProvider.deleteMood(DateTime.fromMillisecondsSinceEpoch(mood.dateTimestamp));
+              moodProvider.deleteMood(
+                DateTime.fromMillisecondsSinceEpoch(mood.dateTimestamp),
+              );
               Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -284,7 +278,10 @@ class _MoodHistoryItem extends StatelessWidget {
 
           return AlertDialog(
             backgroundColor: themeProvider.cardColor,
-            title: Text('Edit Mood', style: TextStyle(color: themeProvider.textPrimary)),
+            title: Text(
+              'Edit Mood',
+              style: TextStyle(color: themeProvider.textPrimary),
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -297,9 +294,7 @@ class _MoodHistoryItem extends StatelessWidget {
                       color: color.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child: Icon(icon, color: color, size: 30),
-                    ),
+                    child: Center(child: Icon(icon, color: color, size: 30)),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -320,7 +315,9 @@ class _MoodHistoryItem extends StatelessWidget {
                       overlayColor: color.withValues(alpha: 0.2),
                       trackHeight: 4,
                       thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 20,
+                      ),
                     ),
                     child: Slider(
                       value: currentScore,
@@ -355,18 +352,28 @@ class _MoodHistoryItem extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel', style: TextStyle(color: themeProvider.textSecondary)),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: themeProvider.textSecondary),
+                ),
               ),
               TextButton(
                 onPressed: () {
                   moodProvider.saveMood(
                     score: currentScore.toInt(),
-                    note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
-                    date: DateTime.fromMillisecondsSinceEpoch(mood.dateTimestamp),
+                    note: noteController.text.trim().isEmpty
+                        ? null
+                        : noteController.text.trim(),
+                    date: DateTime.fromMillisecondsSinceEpoch(
+                      mood.dateTimestamp,
+                    ),
                   );
                   Navigator.pop(context);
                 },
-                child: Text('Save', style: TextStyle(color: themeProvider.primaryColor)),
+                child: Text(
+                  'Save',
+                  style: TextStyle(color: themeProvider.primaryColor),
+                ),
               ),
             ],
           );

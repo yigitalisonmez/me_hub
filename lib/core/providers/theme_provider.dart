@@ -15,18 +15,17 @@ class ThemeProvider with ChangeNotifier {
 
   /// Get background color based on current theme
   Color get backgroundColor =>
-      _isDarkMode ? AppColors.darkBackground : AppColors.backgroundCream;
+      _isDarkMode ? AppColors.darkBackground : AppColors.background;
 
   /// Get card background color
-  Color get cardColor =>
-      _isDarkMode ? AppColors.darkCard : AppColors.white;
+  Color get cardColor => _isDarkMode ? AppColors.darkCard : AppColors.white;
 
   /// Get surface color (for stat cards, log items, etc.)
   Color get surfaceColor =>
-      _isDarkMode ? AppColors.darkSurface : AppColors.secondaryCream;
+      _isDarkMode ? AppColors.darkSurface : AppColors.surface;
 
   /// Get primary color (orange) - same for both light and dark mode
-  Color get primaryColor => AppColors.primaryOrange;
+  Color get primaryColor => AppColors.primary;
 
   /// Get primary gradient - same for both light and dark mode
   LinearGradient get primaryGradient => AppColors.primaryGradient;
@@ -39,8 +38,8 @@ class ThemeProvider with ChangeNotifier {
   Color get textSecondary =>
       _isDarkMode ? AppColors.darkTextSecondary : AppColors.grey;
 
-  /// Get border color - same primaryOrange for both modes
-  Color get borderColor => AppColors.primaryOrange;
+  /// Get border color - same primary for both modes
+  Color get borderColor => AppColors.primary;
 
   /// Toggle theme mode
   Future<void> toggleTheme() async {
@@ -80,4 +79,3 @@ class ThemeProvider with ChangeNotifier {
     }
   }
 }
-

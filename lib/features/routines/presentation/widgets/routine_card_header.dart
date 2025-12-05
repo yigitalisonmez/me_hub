@@ -7,10 +7,7 @@ import '../providers/routines_provider.dart';
 class RoutineCardHeader extends StatelessWidget {
   final RoutinesProvider provider;
 
-  const RoutineCardHeader({
-    super.key,
-    required this.provider,
-  });
+  const RoutineCardHeader({super.key, required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +37,7 @@ class RoutineCardHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -57,7 +54,7 @@ class RoutineCardHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primaryOrange,
+                  color: AppColors.primary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -84,7 +81,7 @@ class RoutineCardHeader extends StatelessWidget {
               Container(
                 width: 1,
                 height: 40,
-                color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildStatItem(
@@ -103,7 +100,7 @@ class RoutineCardHeader extends StatelessWidget {
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.primaryOrange, size: 24),
+        Icon(icon, color: AppColors.primary, size: 24),
         const SizedBox(height: 8),
         Text(
           value,
@@ -125,4 +122,3 @@ class RoutineCardHeader extends StatelessWidget {
     );
   }
 }
-

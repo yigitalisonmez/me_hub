@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/routine_icons.dart';
@@ -24,11 +25,11 @@ class RoutineIconPicker extends StatelessWidget {
         builder: (context, constraints) {
           const crossAxisCount = 4;
           const crossAxisSpacing = 12.0;
-          
+
           final totalSpacing = (crossAxisCount - 1) * crossAxisSpacing;
           final cardWidth =
               (constraints.maxWidth - totalSpacing) / crossAxisCount;
-          
+
           return GridView.builder(
             padding: const EdgeInsets.only(top: 20),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -49,24 +50,15 @@ class RoutineIconPicker extends StatelessWidget {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Container(
+                    SizedBox(
                       width: cardWidth,
-                      decoration: BoxDecoration(
-                        color: isSelected
+                      height: cardWidth * 1.2,
+                      child: ElevatedCard(
+                        padding: const EdgeInsets.all(12),
+                        borderRadius: 12,
+                        backgroundColor: isSelected
                             ? themeProvider.primaryColor
                             : themeProvider.cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: themeProvider.isDarkMode
-                              ? themeProvider.textSecondary.withValues(
-                                  alpha: 0.3,
-                                )
-                              : themeProvider.primaryColor,
-                          width: isSelected ? 2 : 1.5,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,

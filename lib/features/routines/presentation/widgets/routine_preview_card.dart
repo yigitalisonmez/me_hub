@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/routine_icons.dart';
@@ -27,17 +28,9 @@ class RoutinePreviewCard extends StatelessWidget {
         ? RoutineIcons.getIconFromCodePoint(iconCodePoint!)
         : null;
 
-    return Container(
-      width: double.infinity,
+    return ElevatedCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: themeProvider.borderColor,
-          width: 1.5,
-        ),
-      ),
+      borderRadius: 16,
       child: Column(
         children: [
           // Icon
@@ -47,10 +40,7 @@ class RoutinePreviewCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: themeProvider.primaryColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: themeProvider.primaryColor,
-                width: 2,
-              ),
+              border: Border.all(color: themeProvider.primaryColor, width: 2),
             ),
             child: Icon(
               icon ?? LucideIcons.circle,
@@ -62,9 +52,9 @@ class RoutinePreviewCard extends StatelessWidget {
           // Name
           Text(
             name.isEmpty ? 'Routine Name' : name,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: themeProvider.textPrimary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: themeProvider.textPrimary),
           ),
           // Time
           if (time != null) ...[
@@ -82,4 +72,3 @@ class RoutinePreviewCard extends StatelessWidget {
     );
   }
 }
-

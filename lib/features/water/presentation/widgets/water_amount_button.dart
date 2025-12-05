@@ -24,7 +24,6 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _glowAnimation;
 
   @override
   void initState() {
@@ -33,18 +32,10 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
-      ),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -56,13 +47,13 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
   Future<void> _handleTap() async {
     // Press animation
     _controller.forward();
-    
+
     // Call the onTap callback
     widget.onTap();
-    
+
     // Wait a bit then reverse
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     if (mounted) {
       _controller.reverse();
     }
@@ -81,7 +72,6 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
@@ -93,28 +83,16 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
                   color: Colors.white.withValues(alpha: 0.2),
                   width: 1,
                 ),
-                boxShadow: [
-                  // Top Highlight
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    offset: const Offset(0, -2),
-                    blurRadius: 2,
-                  ),
-                  // Bottom Shadow
-                  BoxShadow(
-                    color: widget.themeProvider.primaryColor.withValues(
-                      alpha: 0.4 * _glowAnimation.value + 0.2,
-                    ),
-                    blurRadius: 12 * _glowAnimation.value + 8,
-                    offset: const Offset(0, 6),
-                    spreadRadius: -2,
-                  ),
-                ],
+                boxShadow: null,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
+                  const Icon(
+                    LucideIcons.droplet,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     '${widget.amount}ml',

@@ -13,18 +13,18 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: GoogleFonts.inter().fontFamily,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryOrange,
+        seedColor: AppColors.primary,
         brightness: Brightness.light,
-        primary: AppColors.primaryOrange,
-        secondary: AppColors.secondaryCream,
+        primary: AppColors.primary,
+        secondary: AppColors.surface,
         tertiary: AppColors.accentGrey,
-        surface: AppColors.backgroundCream,
+        surface: AppColors.background,
         error: AppColors.error,
       ),
 
       // AppBar teması
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primaryOrange,
+        backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 0,
         centerTitle: true,
@@ -39,7 +39,7 @@ class AppTheme {
       cardTheme: const CardThemeData(
         color: AppColors.white,
         elevation: 2,
-        shadowColor: AppColors.primaryOrange,
+        shadowColor: AppColors.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
@@ -48,7 +48,7 @@ class AppTheme {
       // ElevatedButton teması
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryOrange,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -59,7 +59,7 @@ class AppTheme {
       // TextButton teması
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryOrange,
+          foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
@@ -71,21 +71,18 @@ class AppTheme {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primaryOrange,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -99,15 +96,15 @@ class AppTheme {
 
       // FloatingActionButton teması
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.secondaryCream,
-        foregroundColor: AppColors.primaryOrange,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.primary,
         elevation: 4,
       ),
 
       // BottomNavigationBar teması
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryOrange,
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.grey,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -116,66 +113,66 @@ class AppTheme {
       // Text teması
       textTheme: GoogleFonts.interTextTheme(
         const TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.darkGrey,
-        ),
-        displayMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: AppColors.darkGrey,
-        ),
-        displaySmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: AppColors.darkGrey,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: AppColors.darkGrey,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.darkGrey,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.darkGrey,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppColors.darkGrey,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: AppColors.darkGrey,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: AppColors.grey,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: AppColors.darkGrey,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: AppColors.darkGrey,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.normal,
-          color: AppColors.grey,
-        ),
+          displayLarge: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkGrey,
+          ),
+          displayMedium: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkGrey,
+          ),
+          displaySmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkGrey,
+          ),
+          headlineLarge: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkGrey,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkGrey,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkGrey,
+          ),
+          titleLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkGrey,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.darkGrey,
+          ),
+          titleSmall: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grey,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.normal,
+            color: AppColors.darkGrey,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: AppColors.darkGrey,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+            color: AppColors.grey,
+          ),
         ),
       ),
     );
@@ -188,9 +185,9 @@ class AppTheme {
       fontFamily: GoogleFonts.inter().fontFamily,
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.darkOrange,
+        seedColor: AppColors.primaryDark,
         brightness: Brightness.dark,
-        primary: AppColors.darkOrange,
+        primary: AppColors.primaryDark,
         secondary: AppColors.darkCard,
         tertiary: AppColors.darkSurface,
         surface: AppColors.darkCard,
@@ -227,7 +224,7 @@ class AppTheme {
       // ElevatedButton teması
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.darkOrange,
+          backgroundColor: AppColors.primaryDark,
           foregroundColor: AppColors.darkTextPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -238,7 +235,7 @@ class AppTheme {
       // TextButton teması
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.darkOrange,
+          foregroundColor: AppColors.primaryDark,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
@@ -261,10 +258,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.darkBorder,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.darkBorder, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -279,14 +273,14 @@ class AppTheme {
       // FloatingActionButton teması
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.darkSurface,
-        foregroundColor: AppColors.darkOrange,
+        foregroundColor: AppColors.primaryDark,
         elevation: 4,
       ),
 
       // BottomNavigationBar teması
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkCard,
-        selectedItemColor: AppColors.darkOrange,
+        selectedItemColor: AppColors.primaryDark,
         unselectedItemColor: AppColors.darkTextSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,

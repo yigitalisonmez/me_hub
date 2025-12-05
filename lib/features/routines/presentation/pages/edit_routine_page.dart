@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/constants/routine_icons.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
+
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../providers/edit_routine_provider.dart';
@@ -14,6 +14,7 @@ import '../widgets/add_item_dialog.dart';
 import '../widgets/routine_icon_picker.dart';
 import '../widgets/routine_time_picker.dart';
 import '../utils/routine_dialogs.dart';
+import '../../../../core/widgets/clay_container.dart';
 
 class EditRoutinePage extends StatefulWidget {
   final Routine routine;
@@ -184,48 +185,40 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Back button (circular, white background)
-        Container(
-          decoration: BoxDecoration(
-            color: themeProvider.cardColor.withValues(alpha: 0.9),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: themeProvider.primaryColor.withValues(alpha: 0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+        // Back button (circular)
+        SizedBox(
+          width: 40,
+          height: 40,
+          child: ClayContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: 20,
+            color: themeProvider.surfaceColor,
+            onTap: () => Navigator.pop(context),
+            child: Center(
+              child: Icon(
+                LucideIcons.arrowLeft,
+                color: themeProvider.primaryColor,
+                size: 20,
               ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              LucideIcons.arrowLeft,
-              color: themeProvider.primaryColor,
-              size: 20,
             ),
-            onPressed: () => Navigator.pop(context),
           ),
         ),
-        // Save button (circular, orange background)
-        Container(
-          decoration: BoxDecoration(
+        // Save button (circular)
+        SizedBox(
+          width: 40,
+          height: 40,
+          child: ClayContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: 20,
             color: themeProvider.primaryColor,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: themeProvider.primaryColor.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
+            onTap: _saveRoutine,
+            child: Center(
+              child: Icon(
+                LucideIcons.check,
+                color: themeProvider.textPrimary,
+                size: 20,
               ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              LucideIcons.check,
-              color: themeProvider.textPrimary,
-              size: 20,
             ),
-            onPressed: _saveRoutine,
           ),
         ),
       ],
@@ -240,30 +233,24 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
     return GestureDetector(
       onTap: () => _pickRoutineIcon(context, editProvider),
-      child: Container(
+      child: SizedBox(
         width: 80,
         height: 80,
-        decoration: BoxDecoration(
+        child: ClayContainer(
+          padding: EdgeInsets.zero,
+          borderRadius: 20,
           color: editProvider.selectedIconCodePoint != null
               ? themeProvider.primaryColor
-              : themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: themeProvider.primaryColor, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: themeProvider.primaryColor.withValues(alpha: 0.3),
-              blurRadius: 12,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
+              : themeProvider.surfaceColor,
+          child: Center(
+            child: Icon(
+              icon ?? LucideIcons.circle,
+              color: editProvider.selectedIconCodePoint != null
+                  ? Colors.white
+                  : themeProvider.primaryColor,
+              size: 40,
             ),
-          ],
-        ),
-        child: Icon(
-          icon ?? LucideIcons.circle,
-          color: editProvider.selectedIconCodePoint != null
-              ? Colors.white
-              : themeProvider.primaryColor,
-          size: 40,
+          ),
         ),
       ),
     );
@@ -365,7 +352,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: themeProvider.cardColor,
+          color: themeProvider.surfaceColor,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -398,14 +385,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   ) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Container(
+    return ClayContainer(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 1.5),
-      ),
+      borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -417,12 +400,26 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ).textTheme.titleMedium?.copyWith(color: themeProvider.textPrimary),
           ),
           const SizedBox(height: 12),
-          CustomTextField(
-            hint: 'Enter routine name...',
-            controller: _nameController,
-            textCapitalization: TextCapitalization.words,
+          _buildInsetContainer(
+            context,
+            child: TextField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              style: TextStyle(color: themeProvider.textPrimary),
+              decoration: InputDecoration(
+                hintText: 'Enter routine name...',
+                hintStyle: TextStyle(
+                  color: themeProvider.textSecondary.withValues(alpha: 0.5),
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           // Time picker
           Text(
             'Time',
@@ -437,7 +434,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
               editProvider.updateTime(time);
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           // Days selector
           Text(
             'Active Days',
@@ -459,33 +456,25 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     BuildContext context,
     EditRoutineProvider editProvider,
   ) {
-    return GestureDetector(
+    final themeProvider = context.watch<ThemeProvider>();
+    return ClayContainer(
       onTap: () => _showDeleteRoutineDialog(context, editProvider),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.red.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.trash2, color: Colors.red, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              'Delete Routine',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.red,
-                fontWeight: FontWeight.w600,
-              ),
+      color: themeProvider.surfaceColor,
+      borderRadius: 12,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(LucideIcons.trash2, color: Colors.red, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'Delete Routine',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Colors.red,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -522,56 +511,91 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ).textTheme.titleLarge?.copyWith(color: themeProvider.textPrimary),
           ),
           const SizedBox(height: 12),
-          Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.4,
-            ),
-            decoration: BoxDecoration(
-              color: themeProvider.cardColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: themeProvider.borderColor, width: 1.5),
-            ),
-            child: ReorderableListView.builder(
-              key: ValueKey(
-                'habits_list_${routine.id}_${routine.items.length}',
+          ClayContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: 20,
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
+                minHeight: 120,
               ),
-              padding: const EdgeInsets.all(16),
-              itemCount: routine.items.length,
-              onReorder: (oldIndex, newIndex) {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                editProvider.reorderItems(oldIndex, newIndex);
-              },
-              proxyDecorator: (child, index, animation) {
-                final themeProvider = context.watch<ThemeProvider>();
-                final item = routine.items[index];
-                return Material(
-                  color: themeProvider.cardColor,
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(16),
-                  clipBehavior: Clip.antiAlias,
-                  child: HabitListItem(
-                    item: item,
-                    index: index,
-                    onDelete: () => _confirmDeleteItem(context, item),
-                    onEdit: () => _editHabit(context, item, editProvider),
-                  ),
-                );
-              },
-              itemBuilder: (context, index) {
-                final item = routine.items[index];
-                return Padding(
-                  key: ValueKey(item.id),
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: HabitListItem(
-                    item: item,
-                    index: index,
-                    onDelete: () => _confirmDeleteItem(context, item),
-                    onEdit: () => _editHabit(context, item, editProvider),
-                  ),
-                );
-              },
+              child: routine.items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.listTodo,
+                            size: 48,
+                            color: themeProvider.textSecondary.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No habits yet',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: themeProvider.textSecondary.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Add your first habit below',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: themeProvider.textSecondary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ReorderableListView.builder(
+                      key: ValueKey(
+                        'habits_list_${routine.id}_${routine.items.length}',
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: routine.items.length,
+                      onReorder: (oldIndex, newIndex) {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        editProvider.reorderItems(oldIndex, newIndex);
+                      },
+                      proxyDecorator: (child, index, animation) {
+                        final themeProvider = context.watch<ThemeProvider>();
+                        final item = routine.items[index];
+                        return ClayContainer(
+                          color: themeProvider.surfaceColor,
+                          borderRadius: 16,
+                          child: HabitListItem(
+                            item: item,
+                            index: index,
+                            onDelete: () => _confirmDeleteItem(context, item),
+                            onEdit: () =>
+                                _editHabit(context, item, editProvider),
+                          ),
+                        );
+                      },
+                      itemBuilder: (context, index) {
+                        final item = routine.items[index];
+                        return Padding(
+                          key: ValueKey(item.id),
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: HabitListItem(
+                            item: item,
+                            index: index,
+                            onDelete: () => _confirmDeleteItem(context, item),
+                            onEdit: () =>
+                                _editHabit(context, item, editProvider),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -585,46 +609,31 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   ) {
     final themeProvider = context.watch<ThemeProvider>();
     const List<String> dayAbbreviations = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    // Get today's index (0=Monday, 6=Sunday)
-    final todayIndex = (DateTime.now().weekday - 1) % 7;
 
     return Row(
       children: List.generate(7, (index) {
         final isSelected = editProvider.selectedDays.contains(index);
-        final isToday = index == todayIndex;
+
         return Expanded(
           child: GestureDetector(
-            onTap: () {
-              editProvider.toggleDay(index);
-            },
-            child: Container(
-              margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? themeProvider.surfaceColor
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: isToday && isSelected
-                    ? Border.all(color: themeProvider.primaryColor, width: 1.5)
-                    : Border.all(
-                        color: themeProvider.isDarkMode
-                            ? themeProvider.textSecondary.withValues(alpha: 0.3)
-                            : themeProvider.primaryColor,
-                        width: 1.5,
-                      ),
-              ),
+            onTap: () => editProvider.toggleDay(index),
+            child: ClayContainer(
+              margin: EdgeInsets.only(right: index < 6 ? 6 : 0),
+              height: 44,
+              borderRadius: 12,
+              color: isSelected
+                  ? themeProvider.primaryColor
+                  : themeProvider.surfaceColor,
+              emboss: isSelected, // Pressed effect for selected
               child: Center(
                 child: Text(
                   dayAbbreviations[index],
                   style: TextStyle(
                     color: isSelected
-                        ? themeProvider.primaryColor
+                        ? themeProvider.textPrimary
                         : themeProvider.textSecondary,
-                    fontSize: 12,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   ),
                 ),
               ),
@@ -632,6 +641,17 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildInsetContainer(BuildContext context, {required Widget child}) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return ClayContainer(
+      emboss: true, // Inner shadow for input field
+      borderRadius: 12,
+      color: themeProvider.surfaceColor,
+      child: child,
     );
   }
 
@@ -645,22 +665,23 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         decoration: BoxDecoration(color: themeProvider.backgroundColor),
         child: SizedBox(
           width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _addItem(context),
-            icon: Icon(LucideIcons.plus, color: themeProvider.primaryColor),
-            label: Text(
-              'Add New Item',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: themeProvider.primaryColor,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: themeProvider.cardColor,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: themeProvider.borderColor, width: 2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+          child: ClayContainer(
+            onTap: () => _addItem(context),
+            color: themeProvider.surfaceColor,
+            borderRadius: 12,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(LucideIcons.plus, color: themeProvider.primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  'Add New Item',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: themeProvider.primaryColor,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -788,38 +809,40 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: _titleController,
-              style: TextStyle(color: themeProvider.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Enter habit name',
-                hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: themeProvider.textSecondary.withValues(alpha: 0.4),
-                ),
-                filled: true,
-                fillColor: themeProvider.surfaceColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+            Container(
+              decoration: BoxDecoration(
+                color: themeProvider.backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: themeProvider.isDarkMode
+                        ? Colors.black.withValues(alpha: 0.5)
+                        : Colors.grey.withValues(alpha: 0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
                   ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
+                  BoxShadow(
+                    color: themeProvider.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.white,
+                    offset: const Offset(0, -1),
+                    blurRadius: 0,
                   ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor,
-                    width: 2,
+                ],
+              ),
+              child: TextField(
+                controller: _titleController,
+                style: TextStyle(color: themeProvider.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Enter habit name',
+                  hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: themeProvider.textSecondary.withValues(alpha: 0.4),
                   ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
@@ -837,11 +860,24 @@ class _EditHabitBottomSheetState extends State<_EditHabitBottomSheet> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: themeProvider.surfaceColor,
+                  color: themeProvider.backgroundColor,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.black.withValues(alpha: 0.5)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                    BoxShadow(
+                      color: themeProvider.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white,
+                      offset: const Offset(0, -1),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [

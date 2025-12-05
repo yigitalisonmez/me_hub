@@ -5,10 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 class StreakBadge extends StatelessWidget {
   final int count;
 
-  const StreakBadge({
-    super.key,
-    required this.count,
-  });
+  const StreakBadge({super.key, required this.count});
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +14,8 @@ class StreakBadge extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryOrange.withValues(alpha: 0.15),
-            AppColors.primaryOrange.withValues(alpha: 0.08),
+            AppColors.primary.withValues(alpha: 0.15),
+            AppColors.primary.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
@@ -29,7 +26,7 @@ class StreakBadge extends StatelessWidget {
             tag: 'streak_fire',
             child: const Icon(
               LucideIcons.flame,
-              color: AppColors.primaryOrange,
+              color: AppColors.primary,
               size: 16,
             ),
           ),
@@ -37,7 +34,7 @@ class StreakBadge extends StatelessWidget {
           Text(
             '$count',
             style: const TextStyle(
-              color: AppColors.primaryOrange,
+              color: AppColors.primary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -46,4 +43,3 @@ class StreakBadge extends StatelessWidget {
     );
   }
 }
-

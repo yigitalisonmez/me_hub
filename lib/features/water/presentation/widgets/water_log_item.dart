@@ -4,11 +4,7 @@ class WaterLogItem extends StatefulWidget {
   final WaterLog log;
   final WaterProvider provider;
 
-  const WaterLogItem({
-    super.key,
-    required this.log,
-    required this.provider,
-  });
+  const WaterLogItem({super.key, required this.log, required this.provider});
 
   @override
   State<WaterLogItem> createState() => _WaterLogItemState();
@@ -30,21 +26,13 @@ class _WaterLogItemState extends State<WaterLogItem>
     );
 
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(-0.5, 0),
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(-0.5, 0)).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
   }
 
   @override
@@ -55,7 +43,7 @@ class _WaterLogItemState extends State<WaterLogItem>
 
   Future<void> _handleDelete() async {
     if (_isDeleting) return;
-    
+
     setState(() {
       _isDeleting = true;
     });
@@ -85,9 +73,9 @@ class _WaterLogItemState extends State<WaterLogItem>
               Text(
                 '${widget.log.amountMl}ml deleted',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: themeProvider.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: themeProvider.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -122,24 +110,24 @@ class _WaterLogItemState extends State<WaterLogItem>
             color: themeProvider.surfaceColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark 
-                  ? Colors.white.withValues(alpha: 0.05) 
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.5),
               width: 1,
             ),
             boxShadow: [
               // Bevel Effect for Items (Subtle)
               BoxShadow(
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.02) 
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.02)
                     : Colors.white,
                 offset: const Offset(0, -1),
                 blurRadius: 2,
                 spreadRadius: 0,
               ),
               BoxShadow(
-                color: isDark 
-                    ? Colors.black.withValues(alpha: 0.2) 
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.2)
                     : themeProvider.primaryColor.withValues(alpha: 0.05),
                 offset: const Offset(0, 3),
                 blurRadius: 6,
@@ -151,27 +139,18 @@ class _WaterLogItemState extends State<WaterLogItem>
             children: [
               // Icon
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: themeProvider.surfaceColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark 
-                          ? Colors.black.withValues(alpha: 0.2) 
-                          : Colors.grey.withValues(alpha: 0.1),
-                      offset: const Offset(1, 1),
-                      blurRadius: 2,
-                      spreadRadius: 0,
-                      blurStyle: BlurStyle.inner,
-                    ),
-                  ],
+                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  LucideIcons.droplet,
-                  color: themeProvider.primaryColor,
-                  size: 20,
+                child: Center(
+                  child: Icon(
+                    LucideIcons.droplet,
+                    color: themeProvider.primaryColor,
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

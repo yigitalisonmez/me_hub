@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -46,20 +47,12 @@ class RoutineDaysSelector extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
             onTap: () => _toggleDay(dayIndex),
-            child: Container(
+            child: ElevatedCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? themeProvider.primaryColor
-                    : themeProvider.cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? themeProvider.primaryColor
-                      : themeProvider.borderColor,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
+              borderRadius: 12,
+              backgroundColor: isSelected
+                  ? themeProvider.primaryColor
+                  : themeProvider.cardColor,
               child: Row(
                 children: [
                   Container(
@@ -74,12 +67,13 @@ class RoutineDaysSelector extends StatelessWidget {
                     child: Center(
                       child: Text(
                         dayData['abbr'] as String,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: isSelected
-                              ? themeProvider.textPrimary
-                              : themeProvider.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isSelected
+                                  ? themeProvider.textPrimary
+                                  : themeProvider.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ),
@@ -109,4 +103,3 @@ class RoutineDaysSelector extends StatelessWidget {
     );
   }
 }
-

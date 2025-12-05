@@ -20,11 +20,12 @@ class MoodPage extends StatefulWidget {
   State<MoodPage> createState() => _MoodPageState();
 }
 
-class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _MoodPageState extends State<MoodPage>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   double _currentScore = 5.0;
   _MoodStep _currentStep = _MoodStep.score;
   final TextEditingController _noteController = TextEditingController();
-  
+
   @override
   bool get wantKeepAlive => true;
 
@@ -102,10 +103,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildScoreStep(
-    BuildContext context,
-    ThemeProvider themeProvider,
-  ) {
+  Widget _buildScoreStep(BuildContext context, ThemeProvider themeProvider) {
     final color = MoodUtils.getColorForScore(_currentScore.toInt());
     final icon = MoodUtils.getIconForScore(_currentScore.toInt());
     final label = MoodUtils.getLabelForScore(_currentScore.toInt());
@@ -130,12 +128,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
                 transitionBuilder: (child, animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
-                child: Icon(
-                  icon,
-                  key: ValueKey(icon),
-                  size: 48,
-                  color: color,
-                ),
+                child: Icon(icon, key: ValueKey(icon), size: 48, color: color),
               ),
             ),
           ),
@@ -198,8 +191,20 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Low', style: TextStyle(color: themeProvider.textSecondary, fontSize: 12)),
-              Text('High', style: TextStyle(color: themeProvider.textSecondary, fontSize: 12)),
+              Text(
+                'Low',
+                style: TextStyle(
+                  color: themeProvider.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                'High',
+                style: TextStyle(
+                  color: themeProvider.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -239,7 +244,6 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
   ) {
     final color = MoodUtils.getColorForScore(_currentScore.toInt());
     final icon = MoodUtils.getIconForScore(_currentScore.toInt());
-    final isDark = themeProvider.isDarkMode;
 
     return ElevatedCard(
       key: const ValueKey('note_step'),
@@ -254,13 +258,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Center(
-              child: Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
-            ),
+            child: Center(child: Icon(icon, size: 32, color: color)),
           ),
           const SizedBox(height: 24),
           Text(
@@ -274,44 +272,37 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
           const SizedBox(height: 8),
           Text(
             'Add a note to remember this moment',
-            style: TextStyle(
-              fontSize: 16,
-              color: themeProvider.textSecondary,
-            ),
+            style: TextStyle(fontSize: 16, color: themeProvider.textSecondary),
           ),
           const SizedBox(height: 32),
           // Note Input
-          Container(
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withValues(alpha: 0.2) 
-                      : Colors.grey.withValues(alpha: 0.1),
-                  offset: const Offset(2, 2),
-                  blurRadius: 4,
-                  spreadRadius: 0,
-                  blurStyle: BlurStyle.inner,
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _noteController,
-              maxLines: 4,
-              style: TextStyle(color: themeProvider.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Type your thoughts...',
-                hintStyle: TextStyle(color: themeProvider.textSecondary),
-                filled: true,
-                fillColor: Colors.transparent,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(20),
+          TextField(
+            controller: _noteController,
+            maxLines: 4,
+            style: TextStyle(color: themeProvider.textPrimary, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: 'Type your thoughts...',
+              hintStyle: TextStyle(
+                color: themeProvider.textSecondary.withValues(alpha: 0.5),
               ),
+              filled: true,
+              fillColor: themeProvider.surfaceColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide(
+                  color: themeProvider.primaryColor,
+                  width: 1.5,
+                ),
+              ),
+              contentPadding: const EdgeInsets.all(20),
             ),
           ),
           const SizedBox(height: 32),
@@ -323,22 +314,24 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
                 try {
                   await moodProvider.saveMood(
                     score: _currentScore.toInt(),
-                    note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+                    note: _noteController.text.trim().isEmpty
+                        ? null
+                        : _noteController.text.trim(),
                   );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Mood saved successfully'),
-                          backgroundColor: themeProvider.primaryColor,
-                        ),
-                      );
-                      // Reset state
-                      setState(() {
-                        _currentStep = _MoodStep.score;
-                        _noteController.clear();
-                        _currentScore = 5.0;
-                      });
-                    }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Mood saved successfully'),
+                        backgroundColor: themeProvider.primaryColor,
+                      ),
+                    );
+                    // Reset state
+                    setState(() {
+                      _currentStep = _MoodStep.score;
+                      _noteController.clear();
+                      _currentScore = 5.0;
+                    });
+                  }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -419,13 +412,7 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Center(
-              child: Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
-            ),
+            child: Center(child: Icon(icon, size: 40, color: color)),
           ),
           const SizedBox(height: 24),
           Text(
@@ -453,7 +440,11 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
                 _currentScore = 5.0;
               });
             },
-            icon: Icon(LucideIcons.rotateCcw, size: 18, color: themeProvider.textSecondary),
+            icon: Icon(
+              LucideIcons.rotateCcw,
+              size: 18,
+              color: themeProvider.textSecondary,
+            ),
             label: Text(
               'Reset Entry',
               style: TextStyle(
@@ -481,8 +472,6 @@ class _MoodPageState extends State<MoodPage> with SingleTickerProviderStateMixin
       actionIcon: LucideIcons.heart,
     );
   }
-
-
 }
 
 class _RingThumbShape extends SliderComponentShape {
