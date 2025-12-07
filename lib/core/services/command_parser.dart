@@ -197,6 +197,19 @@ class WaterCommandStrategy implements CommandStrategy {
       }
     }
 
+    // "2 su bardağı" / "3 water glasses" pattern - MUST come before ML pattern
+    final suBardakMatch = RegExp(
+      '(\\d+)\\s*($_suPat\\s*$_bardakPat|water\\s*glass|water\\s*glasses)',
+      caseSensitive: false,
+    ).firstMatch(text);
+
+    if (suBardakMatch != null) {
+      final count = int.tryParse(suBardakMatch.group(1) ?? '');
+      if (count != null && count > 0 && count <= 20) {
+        return _water(count * 250, text);
+      }
+    }
+
     // ML with digits
     final mlMatch = RegExp(
       r'(\d+)\s*(ml|mili|milliliter|milliliters|emel|m\.l\.?)?',
