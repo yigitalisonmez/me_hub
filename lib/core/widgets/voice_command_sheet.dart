@@ -35,6 +35,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
   bool _isProcessing = false;
   String? _errorMessage;
   String? _successMessage;
+  String _selectedLocale = 'tr_TR'; // Default to Turkish
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -86,6 +87,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
           _executeCommand();
         }
       },
+      localeId: _selectedLocale,
     );
   }
 
@@ -191,6 +193,17 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
                 ),
               ),
               const SizedBox(height: 24),
+
+              // Language toggle
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildLanguageChip('🇹🇷 TR', 'tr_TR', themeProvider),
+                  const SizedBox(width: 12),
+                  _buildLanguageChip('🇬🇧 EN', 'en_US', themeProvider),
+                ],
+              ),
+              const SizedBox(height: 16),
 
               // Microphone button with pulse animation
               GestureDetector(
@@ -424,5 +437,41 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
       case CommandType.unknown:
         return '❓ Unknown';
     }
+  }
+
+  Widget _buildLanguageChip(
+    String label,
+    String locale,
+    ThemeProvider themeProvider,
+  ) {
+    final isSelected = _selectedLocale == locale;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedLocale = locale;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? themeProvider.primaryColor
+              : themeProvider.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? themeProvider.primaryColor
+                : themeProvider.textSecondary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : themeProvider.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
   }
 }
