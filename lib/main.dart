@@ -242,6 +242,8 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: themeProvider.backgroundColor,
       body: Stack(children: [_buildPageView(), _buildCelebrationOverlay()]),
       bottomNavigationBar: _buildBottomNavigationBar(),
+      floatingActionButton: _buildVoiceCommandButton(themeProvider),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -261,7 +263,7 @@ class _HomePageState extends State<HomePage> {
           case 0:
             return const TodoPage(showFullPage: false);
           case 1:
-            return WaterPage();
+            return const WaterPage();
           case 2:
             return const RoutinesPage();
           case 3:
@@ -289,93 +291,53 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, LucideIcons.calendar, 'Today', themeProvider),
-              _buildNavItem(1, LucideIcons.droplet, 'Water', themeProvider),
-              // Center Voice Command Button
-              _buildVoiceButton(themeProvider),
-              _buildNavItem(2, LucideIcons.repeat, 'Routines', themeProvider),
-              _buildNavItem(3, LucideIcons.heart, 'Mood', themeProvider),
-              _buildNavItem(4, LucideIcons.settings, 'Settings', themeProvider),
-            ],
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        backgroundColor: themeProvider.cardColor,
+        selectedItemColor: themeProvider.primaryColor,
+        unselectedItemColor: themeProvider.textSecondary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.calendar),
+            label: 'Today',
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    int index,
-    IconData icon,
-    String label,
-    ThemeProvider themeProvider,
-  ) {
-    // Adjust index for items after the center button
-    final actualIndex = index;
-    final isSelected = _currentIndex == actualIndex;
-
-    return GestureDetector(
-      onTap: () {
-        _pageController.animateToPage(
-          actualIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? themeProvider.primaryColor
-                : themeProvider.textSecondary,
-            size: 24,
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.droplet),
+            label: 'Water',
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isSelected
-                  ? themeProvider.primaryColor
-                  : themeProvider.textSecondary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.repeat),
+            label: 'Routines',
+          ),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.heart), label: 'Mood'),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.settings),
+            label: 'Settings',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVoiceButton(ThemeProvider themeProvider) {
-    return GestureDetector(
-      onTap: () => showVoiceCommandSheet(context),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: themeProvider.primaryGradient,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: themeProvider.primaryColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: const Icon(LucideIcons.mic, color: Colors.white, size: 28),
-      ),
-    );
-  }
-
   Widget _buildCelebrationOverlay() {
     return const SizedBox.shrink();
+  }
+
+  Widget _buildVoiceCommandButton(ThemeProvider themeProvider) {
+    return FloatingActionButton(
+      onPressed: () => showVoiceCommandSheet(context),
+      backgroundColor: themeProvider.primaryColor,
+      elevation: 4,
+      child: const Icon(LucideIcons.mic, color: Colors.white),
+    );
   }
 }

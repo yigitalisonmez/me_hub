@@ -11,6 +11,7 @@ class VoiceCommandService {
   final SpeechToText _speech = SpeechToText();
   bool _isInitialized = false;
   bool _isListening = false;
+  Function()? _onCompleteCallback;
 
   bool get isListening => _isListening;
   bool get isInitialized => _isInitialized;
@@ -24,11 +25,15 @@ class VoiceCommandService {
         onError: (error) {
           debugPrint('Speech recognition error: ${error.errorMsg}');
           _isListening = false;
+          _onCompleteCallback?.call();
         },
         onStatus: (status) {
           debugPrint('Speech recognition status: $status');
           if (status == 'done' || status == 'notListening') {
-            _isListening = false;
+            if (_isListening) {
+              _isListening = false;
+              _onCompleteCallback?.call();
+            }
           }
         },
       );
@@ -49,6 +54,7 @@ class VoiceCommandService {
       final initialized = await initialize();
       if (!initialized) {
         debugPrint('Speech recognition not available');
+        onListeningComplete();
         return;
       }
     }
@@ -56,18 +62,16 @@ class VoiceCommandService {
     if (_isListening) return;
 
     _isListening = true;
+    _onCompleteCallback = onListeningComplete;
 
     await _speech.listen(
       onResult: (SpeechRecognitionResult result) {
         onResult(result.recognizedWords);
-        if (result.finalResult) {
-          _isListening = false;
-          onListeningComplete();
-        }
+        // Note: finalResult alone is not reliable, we also use onStatus
       },
       localeId: localeId,
-      listenFor: const Duration(seconds: 10),
-      pauseFor: const Duration(seconds: 3),
+      listenFor: const Duration(seconds: 8),
+      pauseFor: const Duration(seconds: 2),
       listenOptions: SpeechListenOptions(
         partialResults: true,
         cancelOnError: true,
@@ -88,6 +92,7 @@ class VoiceCommandService {
     if (_isListening) {
       await _speech.cancel();
       _isListening = false;
+      _onCompleteCallback = null;
     }
   }
 
