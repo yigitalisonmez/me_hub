@@ -45,12 +45,30 @@ class CommandParser {
 
   /// Parse water-related commands
   static ParsedCommand? _parseWaterCommand(String text) {
+    // First check for liters: "2 litre", "2 liters", "2 liter"
+    // Must check this BEFORE ml to avoid "2" being matched alone
+    final literMatch = RegExp(
+      r'(\d+(?:[.,]\d+)?)\s*(litre|liter|liters|litres|lt)',
+      caseSensitive: false,
+    ).firstMatch(text);
+
+    if (literMatch != null) {
+      final literStr = literMatch.group(1)?.replaceAll(',', '.') ?? '';
+      final liters = double.tryParse(literStr);
+      if (liters != null && liters > 0 && liters <= 10) {
+        final amountMl = (liters * 1000).toInt();
+        return ParsedCommand(
+          type: CommandType.addWater,
+          parameters: {'amount': amountMl},
+          rawText: text,
+        );
+      }
+    }
+
     // Pattern: number + ml/milliliters/mililiter/emel
     // Examples: "500 ml", "add 500 ml", "I drank 500 ml", "500 eMeL içtim"
-
-    // Extract number from text
     final numberMatch = RegExp(
-      r'(\d+)\s*(ml|mili|milliliter|emel|m\.l\.?)?',
+      r'(\d+)\s*(ml|mili|milliliter|milliliters|emel|m\.l\.?)?',
       caseSensitive: false,
     ).firstMatch(text);
 
@@ -60,6 +78,7 @@ class CommandParser {
         'ml',
         'mili',
         'milliliter',
+        'milliliters',
         'emel',
         'water',
         'su',
