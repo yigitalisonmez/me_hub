@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/theme_provider.dart';
+import 'features/todo/presentation/pages/todo_page.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/repositories/todo_repository_impl.dart';
 import 'features/todo/domain/usecases/get_today_todos.dart';
@@ -39,7 +39,6 @@ import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
-import 'features/home/presentation/pages/home_content_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 
 void main() async {
@@ -72,7 +71,8 @@ void main() async {
 
   // Check onboarding status
   // final prefs = await SharedPreferences.getInstance();
-  final showOnboarding = true; // !prefs.containsKey('onboarding_completed'); // Forced true for testing
+  final showOnboarding =
+      true; // !prefs.containsKey('onboarding_completed'); // Forced true for testing
 
   runApp(
     MeHubApp(
@@ -254,7 +254,7 @@ class _HomePageState extends State<HomePage> {
       itemBuilder: (context, index) {
         switch (index) {
           case 0:
-            return const HomeContentPage();
+            return const TodoPage(showFullPage: false);
           case 1:
             return const WaterPage();
           case 2:
@@ -264,7 +264,7 @@ class _HomePageState extends State<HomePage> {
           case 4:
             return const SettingsPage();
           default:
-            return const HomeContentPage();
+            return const TodoPage(showFullPage: false);
         }
       },
     );

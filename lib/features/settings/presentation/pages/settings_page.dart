@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/clay_container.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -12,7 +13,8 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClientMixin {
+class _SettingsPageState extends State<SettingsPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -36,7 +38,6 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
   Widget _buildSettingsCard() {
     final themeProvider = context.watch<ThemeProvider>();
     final theme = Theme.of(context);
-    final isDark = themeProvider.isDarkMode;
 
     return ElevatedCard(
       child: Column(
@@ -94,36 +95,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
           ),
           const SizedBox(height: 24),
           // Dark Mode Toggle
-          Container(
+          ClayContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.05) 
-                    : Colors.white.withValues(alpha: 0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.02) 
-                      : Colors.white,
-                  offset: const Offset(0, -1),
-                  blurRadius: 2,
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withValues(alpha: 0.2) 
-                      : themeProvider.primaryColor.withValues(alpha: 0.05),
-                  offset: const Offset(0, 3),
-                  blurRadius: 6,
-                  spreadRadius: -1,
-                ),
-              ],
-            ),
+            borderRadius: 16,
+            emboss: false,
+            color: themeProvider.surfaceColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -168,36 +144,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
           ),
           const SizedBox(height: 16),
           // Test Notification Button
-          Container(
+          ClayContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.05) 
-                    : Colors.white.withValues(alpha: 0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.02) 
-                      : Colors.white,
-                  offset: const Offset(0, -1),
-                  blurRadius: 2,
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withValues(alpha: 0.2) 
-                      : themeProvider.primaryColor.withValues(alpha: 0.05),
-                  offset: const Offset(0, 3),
-                  blurRadius: 6,
-                  spreadRadius: -1,
-                ),
-              ],
-            ),
+            borderRadius: 16,
+            emboss: false,
+            color: themeProvider.surfaceColor,
             child: InkWell(
               onTap: () async {
                 try {
@@ -257,13 +208,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
           ),
           const SizedBox(height: 16),
           // Check Pending Notifications Button
-          Container(
+          ClayContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: themeProvider.borderColor, width: 2),
-            ),
+            borderRadius: 16,
+            emboss: false,
+            color: themeProvider.surfaceColor,
             child: InkWell(
               onTap: () async {
                 try {
@@ -271,7 +220,9 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Bildirimler kontrol edildi! Console loglarına bakın.'),
+                        content: const Text(
+                          'Bildirimler kontrol edildi! Console loglarına bakın.',
+                        ),
                         backgroundColor: Colors.blue,
                         duration: const Duration(seconds: 3),
                       ),
