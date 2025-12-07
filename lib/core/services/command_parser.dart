@@ -137,14 +137,22 @@ class CommandParser {
     // "görev ekle ..." / "yapılacak ekle ..."
 
     final todoPatterns = [
+      // English patterns
       RegExp(
         r'(?:add|new|create)\s+(?:task|todo|goal)\s*[:\s]*(.+)',
         caseSensitive: false,
       ),
+      // Turkish: "yeni görev dişlerini fırçala"
+      RegExp(
+        r'yeni\s+(?:görev|iş|yapılacak)\s*[:\s]*(.+)',
+        caseSensitive: false,
+      ),
+      // Turkish: "görev ekle dişlerini fırçala"
       RegExp(
         r'(?:görev|yapılacak|iş)\s+(?:ekle|oluştur)\s*[:\s]*(.+)',
         caseSensitive: false,
       ),
+      // Generic: "ekle dişlerini fırçala"
       RegExp(r'(?:ekle|add)\s*[:\s]+(.+)', caseSensitive: false),
     ];
 
