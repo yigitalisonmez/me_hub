@@ -41,6 +41,7 @@ import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
+import 'core/providers/voice_settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -163,6 +164,9 @@ class MeHubApp extends StatelessWidget {
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<MoodProvider>(
           create: (_) => MoodProvider(moodDataSource),
+        ),
+        ChangeNotifierProvider<VoiceSettingsProvider>(
+          create: (_) => VoiceSettingsProvider(),
         ),
       ],
       child: Consumer<ThemeProvider>(

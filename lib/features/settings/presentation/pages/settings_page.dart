@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/providers/voice_settings_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/elevated_card.dart';
 import '../../../../core/widgets/clay_container.dart';
@@ -37,6 +38,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _buildSettingsCard() {
     final themeProvider = context.watch<ThemeProvider>();
+    final voiceSettings = context.watch<VoiceSettingsProvider>();
     final theme = Theme.of(context);
 
     return ElevatedCard(
@@ -138,6 +140,91 @@ class _SettingsPageState extends State<SettingsPage>
                     themeProvider.setTheme(value);
                   },
                   activeColor: themeProvider.primaryColor,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Voice Language Selector
+          ClayContainer(
+            padding: const EdgeInsets.all(16),
+            borderRadius: 16,
+            emboss: false,
+            color: themeProvider.surfaceColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      LucideIcons.mic,
+                      color: themeProvider.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Voice Language',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: themeProvider.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Language for voice commands',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: themeProvider.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: VoiceSettingsProvider.availableLocales.map((
+                    locale,
+                  ) {
+                    final isSelected =
+                        voiceSettings.selectedLocale == locale['code'];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => voiceSettings.setLocale(locale['code']!),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? themeProvider.primaryColor
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? themeProvider.primaryColor
+                                  : themeProvider.textSecondary.withValues(
+                                      alpha: 0.3,
+                                    ),
+                            ),
+                          ),
+                          child: Text(
+                            '${locale['flag']} ${locale['name']}',
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : themeProvider.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
