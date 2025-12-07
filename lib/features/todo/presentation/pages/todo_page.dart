@@ -6,7 +6,7 @@ import '../providers/todo_provider.dart';
 
 import '../widgets/todo_card_widget.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../core/theme/app_colors.dart';
+
 import '../../../../core/services/quote_cache_service.dart';
 import '../../../../core/services/quote_service.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -90,11 +90,11 @@ class _TodoPageState extends State<TodoPage> {
       width: double.infinity,
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary, // Using primary color as requested
+        color: themeProvider.primaryColor, // Using primary color as requested
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: themeProvider.primaryColor.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -111,8 +111,8 @@ class _TodoPageState extends State<TodoPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.8),
-                    AppColors.primary,
+                    themeProvider.primaryColor.withValues(alpha: 0.8),
+                    themeProvider.primaryColor,
                   ],
                 ),
               ),

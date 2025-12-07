@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../providers/theme_provider.dart';
 
 /// Generic confirmation dialog for delete/destructive actions
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final confirmed = await showConfirmationDialog(
@@ -55,16 +55,15 @@ class ConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final confirmColor = isDangerous ? AppColors.error : themeProvider.primaryColor;
+    final confirmColor = isDangerous
+        ? AppColors.error
+        : themeProvider.primaryColor;
 
     return AlertDialog(
       backgroundColor: themeProvider.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: themeProvider.borderColor,
-          width: 2,
-        ),
+        side: BorderSide(color: themeProvider.borderColor, width: 2),
       ),
       title: Text(
         title,
@@ -75,19 +74,14 @@ class ConfirmationDialog extends StatelessWidget {
       ),
       content: Text(
         message,
-        style: TextStyle(
-          color: themeProvider.textSecondary,
-        ),
+        style: TextStyle(color: themeProvider.textSecondary),
       ),
       actions: [
         OutlinedButton(
           onPressed: () => Navigator.of(context).pop(false),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(
-              color: themeProvider.borderColor,
-              width: 1.5,
-            ),
+            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -114,13 +108,10 @@ class ConfirmationDialog extends StatelessWidget {
           ),
           child: Text(
             confirmText,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ],
     );
   }
 }
-
