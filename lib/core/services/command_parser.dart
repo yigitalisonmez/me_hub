@@ -150,6 +150,28 @@ class WaterCommandStrategy implements CommandStrategy {
       }
     }
 
+    // Check for bottles with English number words: "two bottle", "three bottles"
+    for (final entry in TurkishSuffix.englishNumbers.entries) {
+      if (entry.value > 0 &&
+          RegExp(
+            '${entry.key}\\s*(bottle|bottles)',
+            caseSensitive: false,
+          ).hasMatch(text)) {
+        return _water(entry.value * 500, text);
+      }
+    }
+
+    // Check for bottles with Turkish number words: "iki şişe", "üç şişe"
+    for (final entry in TurkishSuffix.numbers.entries) {
+      if (entry.value > 0 &&
+          RegExp(
+            '${entry.key}\\s*$_sisePat',
+            caseSensitive: false,
+          ).hasMatch(text)) {
+        return _water(entry.value * 500, text);
+      }
+    }
+
     // Liters with digits: "2 litre", "1.5 liter"
     final literMatch = RegExp(
       '(\\d+(?:[.,]\\d+)?)\\s*($_litrePat|liter|liters|litres|lt)',
