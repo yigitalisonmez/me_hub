@@ -40,6 +40,7 @@ import 'core/services/notification_service.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
 import 'features/settings/presentation/pages/settings_page.dart';
+import 'core/widgets/voice_command_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -237,6 +238,8 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: themeProvider.backgroundColor,
       body: Stack(children: [_buildPageView(), _buildCelebrationOverlay()]),
       bottomNavigationBar: _buildBottomNavigationBar(),
+      floatingActionButton: _buildVoiceCommandButton(themeProvider),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -323,5 +326,14 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildCelebrationOverlay() {
     return const SizedBox.shrink();
+  }
+
+  Widget _buildVoiceCommandButton(ThemeProvider themeProvider) {
+    return FloatingActionButton(
+      onPressed: () => showVoiceCommandSheet(context),
+      backgroundColor: themeProvider.primaryColor,
+      elevation: 4,
+      child: const Icon(LucideIcons.mic, color: Colors.white),
+    );
   }
 }

@@ -89,6 +89,7 @@ dependencies:
   home_widget: ^0.8.1
   introduction_screen: ^4.0.0
   glass_kit: ^4.0.2
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:
