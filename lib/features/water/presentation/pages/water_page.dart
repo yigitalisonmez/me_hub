@@ -14,6 +14,7 @@ import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/clay_container.dart';
 import 'water_settings_page.dart';
 
 part '../widgets/todays_progress_card.dart';
@@ -30,7 +31,8 @@ class WaterPage extends StatefulWidget {
   State<WaterPage> createState() => _WaterPageState();
 }
 
-class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _WaterPageState extends State<WaterPage>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _celebrationController;
   List<QuickAddAmount> _quickAddAmounts = [];
   int _dailyGoal = 2000;
@@ -83,7 +85,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin, Au
   Widget build(BuildContext context) {
     super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Container(
       decoration: BoxDecoration(color: themeProvider.backgroundColor),
       child: SafeArea(
@@ -135,9 +137,7 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin, Au
                     duration: const Duration(milliseconds: 375),
                     childAnimationBuilder: (widget) => SlideAnimation(
                       verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: widget,
-                      ),
+                      child: FadeInAnimation(child: widget),
                     ),
                     children: [
                       const SizedBox(height: 16),
@@ -175,28 +175,28 @@ class _WaterPageState extends State<WaterPage> with TickerProviderStateMixin, Au
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const WaterSettingsPage(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutCubic;
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
 
-              var tween = Tween(begin: begin, end: end).chain(
-                CurveTween(curve: curve),
-              );
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
 
-              var offsetAnimation = animation.drive(tween);
-              var fadeAnimation = Tween(begin: 0.0, end: 1.0).chain(
-                CurveTween(curve: curve),
-              ).animate(animation);
+                  var offsetAnimation = animation.drive(tween);
+                  var fadeAnimation = Tween(
+                    begin: 0.0,
+                    end: 1.0,
+                  ).chain(CurveTween(curve: curve)).animate(animation);
 
-              return SlideTransition(
-                position: offsetAnimation,
-                child: FadeTransition(
-                  opacity: fadeAnimation,
-                  child: child,
-                ),
-              );
-            },
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: FadeTransition(opacity: fadeAnimation, child: child),
+                  );
+                },
             transitionDuration: const Duration(milliseconds: 300),
             reverseTransitionDuration: const Duration(milliseconds: 250),
           ),

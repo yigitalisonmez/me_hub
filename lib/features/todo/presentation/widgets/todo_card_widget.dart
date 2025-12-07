@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../providers/todo_provider.dart';
 import 'add_todo_dialog.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/clay_container.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -27,10 +28,10 @@ class TodoCardWidget extends StatelessWidget {
           });
         }
 
-          return ElevatedCard(
-            child: Column(
-              children: [
-                Row(
+        return ElevatedCard(
+          child: Column(
+            children: [
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
@@ -78,41 +79,13 @@ class TodoCardWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: themeProvider.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Productivity',
-                    style: TextStyle(
-                      color: themeProvider.primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
+
                 _buildActionButton(
                   context: context,
                   text: 'Add New Goal',
                   icon: LucideIcons.plus,
                   isPrimary: true,
                   onPressed: () => _showAddTodoDialog(context),
-                ),
-                const SizedBox(height: 12),
-                _buildActionButton(
-                  context: context,
-                  text: 'View Progress',
-                  icon: LucideIcons.trendingUp,
-                  isPrimary: false,
-                  onPressed: () {
-                    // TODO: Navigate to progress page
-                  },
                 ),
               ] else ...[
                 // Show todos inside the card
@@ -168,8 +141,12 @@ class TodoCardWidget extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isPrimary ? themeProvider.primaryColor : themeProvider.surfaceColor,
-            foregroundColor: isPrimary ? AppColors.white : themeProvider.primaryColor,
+            backgroundColor: isPrimary
+                ? themeProvider.primaryColor
+                : themeProvider.surfaceColor,
+            foregroundColor: isPrimary
+                ? AppColors.white
+                : themeProvider.primaryColor,
             padding: const EdgeInsets.symmetric(vertical: 16),
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -177,8 +154,8 @@ class TodoCardWidget extends StatelessWidget {
               side: isPrimary
                   ? BorderSide.none
                   : BorderSide(
-                      color: isDark 
-                          ? Colors.white.withValues(alpha: 0.05) 
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
                           : themeProvider.primaryColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
@@ -191,7 +168,10 @@ class TodoCardWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 text,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -212,24 +192,22 @@ class TodoCardWidget extends StatelessWidget {
         color: themeProvider.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.05) 
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
               : Colors.white.withValues(alpha: 0.5),
           width: 1,
         ),
         boxShadow: [
           // Bevel Effect for Items (Subtle)
           BoxShadow(
-            color: isDark 
-                ? Colors.white.withValues(alpha: 0.02) 
-                : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white,
             offset: const Offset(0, -1),
             blurRadius: 2,
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.2) 
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
                 : themeProvider.primaryColor.withValues(alpha: 0.05),
             offset: const Offset(0, 3),
             blurRadius: 6,
@@ -286,17 +264,14 @@ class TodoCardWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Container(
+                    ClayContainer(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 2,
                       ),
-                      decoration: BoxDecoration(
-                        color: themeProvider.primaryColor.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      borderRadius: 8,
+                      emboss: true,
+                      color: themeProvider.primaryColor.withValues(alpha: 0.1),
                       child: Text(
                         todo.priorityText,
                         style: TextStyle(

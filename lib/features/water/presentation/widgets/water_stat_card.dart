@@ -1,4 +1,5 @@
 part of '../pages/water_page.dart';
+// ClayContainer is imported in water_page.dart
 
 class WaterStatCard extends StatefulWidget {
   final String value;
@@ -38,15 +39,13 @@ class _WaterStatCardState extends State<WaterStatCard>
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+          ),
+        );
     _previousValue = widget.value;
     // Start animation on first render
     _controller.forward();
@@ -70,25 +69,11 @@ class _WaterStatCardState extends State<WaterStatCard>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = widget.themeProvider.isDarkMode;
-
-    return Container(
+    return ClayContainer(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: widget.themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.2) 
-                : Colors.grey.withValues(alpha: 0.1),
-            offset: const Offset(1, 1),
-            blurRadius: 2,
-            spreadRadius: 0,
-            blurStyle: BlurStyle.inner,
-          ),
-        ],
-      ),
+      borderRadius: 16,
+      emboss: true,
+      color: widget.themeProvider.surfaceColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -138,33 +123,15 @@ class WaterStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = themeProvider.isDarkMode;
-
-    return Container(
+    return ClayContainer(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.2) 
-                : Colors.grey.withValues(alpha: 0.1),
-            offset: const Offset(1, 1),
-            blurRadius: 2,
-            spreadRadius: 0,
-            blurStyle: BlurStyle.inner,
-          ),
-        ],
-      ),
+      borderRadius: 16,
+      emboss: true,
+      color: themeProvider.surfaceColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            LucideIcons.flame,
-            color: themeProvider.primaryColor,
-            size: 24,
-          ),
+          Icon(LucideIcons.flame, color: themeProvider.primaryColor, size: 24),
           const SizedBox(height: 4),
           Text(
             label,
