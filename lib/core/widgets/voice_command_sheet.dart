@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../services/voice_command_service.dart';
 import '../services/command_parser.dart';
+import '../services/nlp_intent_service.dart';
 import '../providers/theme_provider.dart';
 import '../providers/voice_settings_provider.dart';
 import '../../features/water/presentation/providers/water_provider.dart';
 import '../../features/todo/presentation/providers/todo_provider.dart';
 import '../../features/mood_tracker/presentation/providers/mood_provider.dart';
+import '../../features/water/data/services/daily_goal_service.dart';
 
 /// Show voice command bottom sheet
 Future<void> showVoiceCommandSheet(BuildContext context) {
@@ -74,27 +76,84 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
       onResult: (text) {
         setState(() {
           _recognizedText = text;
-          _parsedCommand = CommandParser.parse(text);
         });
+        // Show preview using fast regex (for UI feedback only)
+        _showPreview(text);
       },
-      onListeningComplete: () {
+      onListeningComplete: () async {
         _pulseController.stop();
         _pulseController.reset();
         setState(() {
           _isListening = false;
         });
+
+        // Process final text with NLP (this is the authoritative result)
         if (_recognizedText.isNotEmpty) {
-          _executeCommand();
+          await _processWithNlp(_recognizedText);
+
+          if (_parsedCommand != null) {
+            _executeCommand();
+          } else {
+            setState(() {
+              _errorMessage = 'Could not process the command. Try again.';
+            });
+          }
         }
       },
       localeId: context.read<VoiceSettingsProvider>().selectedLocale,
     );
   }
 
+  /// Show preview label (fast regex, for UI feedback while speaking)
+  void _showPreview(String text) {
+    // Use regex parser for quick preview (not authoritative)
+    final preview = CommandParser.parse(text);
+    if (preview.type != CommandType.unknown) {
+      setState(() {
+        _parsedCommand = preview;
+      });
+    }
+  }
+
+  /// Process final text with NLP model (authoritative result)
+  Future<void> _processWithNlp(String text) async {
+    try {
+      final command = await NlpIntentService.instance.processCommand(text);
+      if (mounted) {
+        setState(() {
+          _parsedCommand = command;
+        });
+        print('🧠 Final NLP result: ${command.type} - ${command.parameters}');
+      }
+    } catch (e) {
+      print('NLP processing error: $e');
+      // Fallback to regex parser
+      if (mounted) {
+        setState(() {
+          _parsedCommand = CommandParser.parse(text);
+        });
+      }
+    }
+  }
+
   Future<void> _executeCommand() async {
-    if (_parsedCommand == null || _parsedCommand!.type == CommandType.unknown) {
+    print('🔍 _executeCommand called');
+    print('🔍 _parsedCommand: $_parsedCommand');
+    print('🔍 type: ${_parsedCommand?.type}');
+    print('🔍 parameters: ${_parsedCommand?.parameters}');
+
+    if (_parsedCommand == null) {
       setState(() {
         _errorMessage = 'Could not understand the command. Try again.';
+      });
+      return;
+    }
+
+    // For "other" and "unknown" types, show appropriate message
+    if (_parsedCommand!.type == CommandType.unknown ||
+        _parsedCommand!.type == CommandType.other) {
+      setState(() {
+        _errorMessage = 'This command is not supported yet.';
       });
       return;
     }
@@ -129,9 +188,64 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
           });
           break;
 
+        case CommandType.startTimer:
+          final minutes = _parsedCommand!.parameters['minutes'] as int? ?? 25;
+          setState(() {
+            _successMessage = 'Timer started for $minutes min! ⏱️';
+          });
+          // TODO: Integrate with timer feature
+          break;
+
+        case CommandType.setWaterTarget:
+          final target = _parsedCommand!.parameters['target'] as int? ?? 2000;
+          await DailyGoalService.setDailyGoal(target);
+          context.read<WaterProvider>().setDailyGoal(target);
+          setState(() {
+            _successMessage = 'Water target set to $target ml! 🎯';
+          });
+          break;
+
+        case CommandType.completeTodo:
+          final title = _parsedCommand!.parameters['title'] as String;
+          final todoProvider = context.read<TodoProvider>();
+          final todos = todoProvider.todos;
+
+          // Find todo by title (fuzzy match - contains)
+          final matchingTodo = todos.where((todo) {
+            final todoTitle = todo.title.toLowerCase();
+            final searchTitle = title.toLowerCase();
+            return todoTitle.contains(searchTitle) ||
+                searchTitle.contains(todoTitle) ||
+                _fuzzyMatch(todoTitle, searchTitle);
+          }).toList();
+
+          if (matchingTodo.isNotEmpty) {
+            // Complete the first matching todo
+            final todo = matchingTodo.first;
+            if (!todo.isCompleted) {
+              await todoProvider.toggleTodoCompletion(todo.id);
+              setState(() {
+                _successMessage = 'Completed: "${todo.title}" ✅';
+              });
+            } else {
+              setState(() {
+                _successMessage = '"${todo.title}" is already completed! ✅';
+              });
+            }
+          } else {
+            setState(() {
+              _errorMessage = 'Could not find task: "$title"';
+            });
+          }
+          break;
+
+        case CommandType.navigate:
+        case CommandType.queryStatus:
+        case CommandType.undoLast:
+        case CommandType.other:
         case CommandType.unknown:
           setState(() {
-            _errorMessage = 'Command not recognized';
+            _errorMessage = 'Command not yet implemented';
           });
           break;
       }
@@ -419,12 +533,35 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
     switch (command.type) {
       case CommandType.addWater:
         return '💧 Add ${command.parameters['amount']} ml';
+      case CommandType.setWaterTarget:
+        return '🎯 Set target: ${command.parameters['target']} ml';
       case CommandType.addTodo:
         return '✅ Add task: ${command.parameters['title']}';
+      case CommandType.completeTodo:
+        return '✓ Complete task';
       case CommandType.setMood:
         return '😊 Set mood: ${command.parameters['score']}';
+      case CommandType.startTimer:
+        return '⏱️ Timer: ${command.parameters['minutes']} min';
+      case CommandType.navigate:
+        return '🧭 Navigate to ${command.parameters['target']}';
+      case CommandType.queryStatus:
+        return '❓ Check status';
+      case CommandType.undoLast:
+        return '↩️ Undo last action';
+      case CommandType.other:
+        return '📝 Other command';
       case CommandType.unknown:
         return '❓ Unknown';
     }
+  }
+
+  /// Simple fuzzy match - checks if words overlap significantly
+  bool _fuzzyMatch(String a, String b) {
+    final wordsA = a.split(' ').where((w) => w.length > 2).toSet();
+    final wordsB = b.split(' ').where((w) => w.length > 2).toSet();
+    if (wordsA.isEmpty || wordsB.isEmpty) return false;
+    final intersection = wordsA.intersection(wordsB);
+    return intersection.isNotEmpty;
   }
 }

@@ -28,20 +28,31 @@ class WaterProvider with ChangeNotifier {
   WaterIntake? get todayIntake => _todayIntake;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get dailyGoalMl => _dailyGoalMl;
 
   /// Get today's water intake amount
   int get todayAmount => _todayIntake?.amountMl ?? 0;
 
   /// Get today's progress (0.0 to 1.0)
-  double get todayProgress => _todayIntake?.getProgress(dailyGoalMl: _dailyGoalMl) ?? 0.0;
+  double get todayProgress =>
+      _todayIntake?.getProgress(dailyGoalMl: _dailyGoalMl) ?? 0.0;
 
   /// Check if today's goal is reached
-  bool get isGoalReached => _todayIntake?.isGoalReached(dailyGoalMl: _dailyGoalMl) ?? false;
+  bool get isGoalReached =>
+      _todayIntake?.isGoalReached(dailyGoalMl: _dailyGoalMl) ?? false;
 
   /// Set daily goal (called from WaterPage)
   void setDailyGoal(int dailyGoalMl) {
     _dailyGoalMl = dailyGoalMl;
     notifyListeners();
+
+    // Update widget
+    if (_todayIntake != null) {
+      HomeWidgetService().updateWidget(
+        waterIntake: _todayIntake!.amountMl,
+        waterGoal: _dailyGoalMl,
+      );
+    }
   }
 
   /// Check if goal was just reached (for celebration)
@@ -87,7 +98,7 @@ class WaterProvider with ChangeNotifier {
 
         notifyListeners(); // Notify to trigger celebration in UI
       }
-      
+
       // Update widget
       if (_todayIntake != null) {
         HomeWidgetService().updateWidget(
@@ -112,7 +123,7 @@ class WaterProvider with ChangeNotifier {
       _error = 'Failed to undo';
       notifyListeners();
     }
-    
+
     // Update widget
     if (_todayIntake != null) {
       HomeWidgetService().updateWidget(
@@ -131,7 +142,7 @@ class WaterProvider with ChangeNotifier {
       _error = 'Failed to update water intake';
       notifyListeners();
     }
-    
+
     // Update widget
     if (_todayIntake != null) {
       HomeWidgetService().updateWidget(

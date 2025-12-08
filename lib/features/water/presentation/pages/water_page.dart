@@ -35,7 +35,6 @@ class _WaterPageState extends State<WaterPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _celebrationController;
   List<QuickAddAmount> _quickAddAmounts = [];
-  int _dailyGoal = 2000;
 
   @override
   bool get wantKeepAlive => true;
@@ -67,9 +66,6 @@ class _WaterPageState extends State<WaterPage>
   Future<void> _loadDailyGoal() async {
     final goal = await DailyGoalService.getDailyGoal();
     if (mounted) {
-      setState(() {
-        _dailyGoal = goal;
-      });
       // Update WaterProvider with the daily goal
       context.read<WaterProvider>().setDailyGoal(goal);
     }
@@ -147,7 +143,7 @@ class _WaterPageState extends State<WaterPage>
                       // Today's Progress Section
                       TodaysProgressCard(
                         provider: provider,
-                        dailyGoal: _dailyGoal,
+                        dailyGoal: provider.dailyGoalMl,
                         quickAddAmounts: _quickAddAmounts,
                       ),
                       const SizedBox(height: 24),

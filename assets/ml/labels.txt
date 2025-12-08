@@ -1,0 +1,10 @@
+mood_set
+navigation
+other
+query_status
+timer_start
+todo_add
+todo_complete
+undo_last
+water_add
+water_target

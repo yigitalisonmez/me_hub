@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'core/theme/app_theme.dart';
@@ -72,9 +73,8 @@ void main() async {
   await NotificationService().initialize();
 
   // Check onboarding status
-  // final prefs = await SharedPreferences.getInstance();
-  final showOnboarding =
-      true; // !prefs.containsKey('onboarding_completed'); // Forced true for testing
+  final prefs = await SharedPreferences.getInstance();
+  final showOnboarding = !prefs.containsKey('onboarding_completed');
 
   runApp(
     MeHubApp(
