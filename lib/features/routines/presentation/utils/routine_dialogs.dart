@@ -53,7 +53,7 @@ class RoutineDialogs {
     if (confirmed == true) {
       final provider = context.read<RoutinesProvider>();
       try {
-      await provider.deleteRoutine(routine.id);
+        await provider.deleteRoutine(routine.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -82,9 +82,7 @@ class RoutineDialogs {
   static Future<void> showAddRoutine(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CreateRoutinePage(),
-      ),
+      MaterialPageRoute(builder: (context) => const CreateRoutinePage()),
     );
   }
 }
@@ -94,9 +92,63 @@ class _DeleteRoutineDialog extends StatelessWidget {
 
   const _DeleteRoutineDialog({required this.routine});
 
+  /// Elevated element color - lighter than card
+  Color _getElevatedColor(bool isDark) {
+    return isDark ? const Color(0xFF454545) : Colors.white;
+  }
+
+  /// Bevel shadow for raised elements
+  List<BoxShadow> _getRaisedShadow(bool isDark) {
+    return [
+      // Top highlight
+      BoxShadow(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.9),
+        offset: const Offset(0, -1),
+        blurRadius: 2,
+      ),
+      // Bottom shadow
+      BoxShadow(
+        color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
+        offset: const Offset(0, 3),
+        blurRadius: 6,
+        spreadRadius: 1,
+      ),
+    ];
+  }
+
+  /// Active element shadow with color glow
+  List<BoxShadow> _getActiveShadow(Color color, bool isDark) {
+    return [
+      // Color glow
+      BoxShadow(
+        color: color.withValues(alpha: isDark ? 0.4 : 0.3),
+        offset: Offset.zero,
+        blurRadius: 10,
+      ),
+      // Top highlight
+      BoxShadow(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.9),
+        offset: const Offset(0, -1),
+        blurRadius: 2,
+      ),
+      // Bottom shadow
+      BoxShadow(
+        color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
+        offset: const Offset(0, 4),
+        blurRadius: 8,
+        spreadRadius: 1,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -106,30 +158,38 @@ class _DeleteRoutineDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: themeProvider.borderColor,
-            width: 2,
-          ),
+          // Bevel shadow for dialog
           boxShadow: [
+            // Top highlight
             BoxShadow(
-              color: Colors.red.withValues(alpha: 0.2),
-              blurRadius: 20,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.7),
+              offset: const Offset(0, -2),
+              blurRadius: 4,
+            ),
+            // Bottom shadow
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.25),
               offset: const Offset(0, 8),
+              blurRadius: 16,
+              spreadRadius: 2,
             ),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
+            // Icon - with raised bevel
             Container(
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.1),
                 shape: BoxShape.circle,
+                boxShadow: _getRaisedShadow(isDark),
               ),
-              child: Icon(
+              child: const Icon(
                 LucideIcons.trash2,
                 color: Colors.red,
                 size: 32,
@@ -140,9 +200,9 @@ class _DeleteRoutineDialog extends StatelessWidget {
             Text(
               'Delete Routine',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: themeProvider.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: themeProvider.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             // Message
@@ -150,54 +210,68 @@ class _DeleteRoutineDialog extends StatelessWidget {
               'Are you sure you want to delete "${routine.name}"? This action cannot be undone.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: themeProvider.textSecondary,
-                  ),
+                color: themeProvider.textSecondary,
+              ),
             ),
             const SizedBox(height: 24),
             // Buttons
             Row(
               children: [
-                // Cancel button
+                // Cancel button - raised
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: _getElevatedColor(isDark),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: _getRaisedShadow(isDark),
                     ),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: themeProvider.textPrimary,
-                        fontWeight: FontWeight.w600,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(false),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: themeProvider.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Delete button
+                // Delete button - active glow
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: _getActiveShadow(Colors.red, isDark),
                     ),
-                    child: const Text(
-                      'Delete',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(true),
+                        borderRadius: BorderRadius.circular(12),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          child: Center(
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

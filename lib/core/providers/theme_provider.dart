@@ -24,6 +24,11 @@ class ThemeProvider with ChangeNotifier {
   Color get surfaceColor =>
       _isDarkMode ? AppColors.darkSurface : AppColors.surface;
 
+  /// Get input field fill color - elevated/lighter than card for depth
+  Color get inputFillColor => _isDarkMode
+      ? const Color(0xFF3A3A3A) // Lighter than darkCard for depth
+      : const Color(0xFFFAFAFA); // Lighter than white for subtle depth
+
   /// Get primary color (orange) - same for both light and dark mode
   Color get primaryColor => AppColors.primary;
 
