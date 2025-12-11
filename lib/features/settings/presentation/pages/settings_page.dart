@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/providers/voice_settings_provider.dart';
 import '../../../../core/services/notification_service.dart';
@@ -28,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage>
           children: [
             const SizedBox(height: 40),
             _buildSettingsCard(),
-            const SizedBox(height: 120), // Extra space for floating navbar
+            SizedBox(height: LayoutConstants.getNavbarClearance(context)),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
@@ -148,9 +149,9 @@ class _WaterPageState extends State<WaterPage>
                       const SizedBox(height: 24),
                       // Today's Log Section
                       TodaysLogSection(provider: provider),
-                      const SizedBox(
-                        height: 120,
-                      ), // Extra space for floating navbar
+                      SizedBox(
+                        height: LayoutConstants.getNavbarClearance(context),
+                      ),
                     ],
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../providers/mood_provider.dart';
 import 'package:flutter/services.dart';
@@ -71,7 +72,7 @@ class _MoodPageState extends State<MoodPage>
               const WeeklyMoodTrend(),
               const SizedBox(height: 32),
               const MoodHistoryList(),
-              const SizedBox(height: 120), // Extra space for floating navbar
+              SizedBox(height: LayoutConstants.getNavbarClearance(context)),
             ],
           ),
         ),

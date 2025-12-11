@@ -3,6 +3,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
@@ -223,9 +224,9 @@ class _RoutinesPageState extends State<RoutinesPage>
                               ),
                             ),
                           ],
-                          const SizedBox(
-                            height: 120,
-                          ), // Extra space for floating navbar
+                          SizedBox(
+                            height: LayoutConstants.getNavbarClearance(context),
+                          ),
                         ],
                       ),
                     ),

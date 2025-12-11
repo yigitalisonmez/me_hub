@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../../core/constants/layout_constants.dart';
 import '../providers/todo_provider.dart';
 
 import '../widgets/todo_card_widget.dart';
@@ -70,7 +71,7 @@ class _TodoPageState extends State<TodoPage> {
             children: [const TodoCardWidget()],
           ),
         ),
-        const SizedBox(height: 120), // Extra space for floating navbar
+        SizedBox(height: LayoutConstants.getNavbarClearance(context)),
       ],
     );
 
