@@ -148,7 +148,9 @@ class _WaterPageState extends State<WaterPage>
                       const SizedBox(height: 24),
                       // Today's Log Section
                       TodaysLogSection(provider: provider),
-                      const SizedBox(height: 24),
+                      const SizedBox(
+                        height: 120,
+                      ), // Extra space for floating navbar
                     ],
                   ),
                 ),

@@ -223,7 +223,9 @@ class _RoutinesPageState extends State<RoutinesPage>
                               ),
                             ),
                           ],
-                          const SizedBox(height: 24),
+                          const SizedBox(
+                            height: 120,
+                          ), // Extra space for floating navbar
                         ],
                       ),
                     ),

@@ -28,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage>
           children: [
             const SizedBox(height: 40),
             _buildSettingsCard(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 120), // Extra space for floating navbar
           ],
         ),
       ),

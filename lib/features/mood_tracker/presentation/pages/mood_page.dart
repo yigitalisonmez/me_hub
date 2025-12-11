@@ -71,7 +71,7 @@ class _MoodPageState extends State<MoodPage>
               const WeeklyMoodTrend(),
               const SizedBox(height: 32),
               const MoodHistoryList(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 120), // Extra space for floating navbar
             ],
           ),
         ),

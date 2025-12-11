@@ -70,7 +70,7 @@ class _TodoPageState extends State<TodoPage> {
             children: [const TodoCardWidget()],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 120), // Extra space for floating navbar
       ],
     );
 
