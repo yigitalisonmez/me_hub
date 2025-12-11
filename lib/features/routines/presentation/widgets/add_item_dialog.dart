@@ -127,21 +127,17 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 fillColor: themeProvider.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
-                  ),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
-                  ),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: themeProvider.borderColor,
-                    width: 2,
+                    color: themeProvider.primaryColor,
+                    width: 1.5,
                   ),
                 ),
                 prefixIcon: Icon(
@@ -162,21 +158,17 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 fillColor: themeProvider.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
-                  ),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.3),
-                  ),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: themeProvider.borderColor,
-                    width: 2,
+                    color: themeProvider.primaryColor,
+                    width: 1.5,
                   ),
                 ),
                 prefixIcon: Icon(
@@ -202,11 +194,11 @@ class _AddItemDialogState extends State<AddItemDialog> {
         ),
       ),
       actions: [
-        OutlinedButton(
+        TextButton(
           onPressed: () => Navigator.pop(context),
-          style: OutlinedButton.styleFrom(
+          style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
+            backgroundColor: themeProvider.surfaceColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

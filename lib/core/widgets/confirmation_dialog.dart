@@ -75,11 +75,11 @@ class ConfirmationDialog extends StatelessWidget {
         style: TextStyle(color: themeProvider.textSecondary),
       ),
       actions: [
-        OutlinedButton(
+        TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          style: OutlinedButton.styleFrom(
+          style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
+            backgroundColor: themeProvider.surfaceColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

@@ -62,11 +62,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         ),
       ),
       actions: [
-        OutlinedButton(
+        TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          style: OutlinedButton.styleFrom(
+          style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
+            backgroundColor: themeProvider.surfaceColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -139,13 +139,18 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? color.withValues(alpha: 0.1)
-                : Colors.transparent,
-            border: Border.all(
-              color: isSelected ? color : themeProvider.borderColor,
-              width: isSelected ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(8),
+                ? color.withValues(alpha: 0.15)
+                : themeProvider.surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             children: [

@@ -83,10 +83,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
+    _controller =
+        widget.controller ?? TextEditingController(text: widget.initialValue);
     _focusNode = widget.focusNode ?? FocusNode();
     _isObscured = widget.obscureText;
-    
+
     _focusNode.addListener(_onFocusChange);
   }
 
@@ -116,7 +117,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,7 +125,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
           Text(
             widget.label!,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
+              color: _isFocused
+                  ? themeProvider.primaryColor
+                  : themeProvider.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -147,7 +150,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
           textCapitalization: widget.textCapitalization,
           textAlign: widget.textAlign ?? TextAlign.start,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: widget.enabled ? themeProvider.textPrimary : themeProvider.textSecondary,
+            color: widget.enabled
+                ? themeProvider.textPrimary
+                : themeProvider.textSecondary,
           ),
           decoration: InputDecoration(
             hintText: widget.hint,
@@ -159,51 +164,41 @@ class _CustomTextFieldState extends State<CustomTextField> {
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,
-                    color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
+                    color: _isFocused
+                        ? themeProvider.primaryColor
+                        : themeProvider.textSecondary,
                   )
                 : widget.prefixWidget,
             suffixIcon: _buildSuffixIcon(themeProvider),
-            contentPadding: widget.contentPadding ?? const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            contentPadding:
+                widget.contentPadding ??
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             border: OutlineInputBorder(
-              borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: themeProvider.borderColor,
-              ),
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: themeProvider.borderColor,
-              ),
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
               borderSide: BorderSide(
                 color: themeProvider.primaryColor,
-                width: 2,
+                width: 1.5,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: AppColors.error,
-              ),
+              borderSide: const BorderSide(color: AppColors.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: AppColors.error,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: themeProvider.borderColor.withValues(alpha: 0.5),
-              ),
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
           ),
         ),
@@ -230,7 +225,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
       return IconButton(
         icon: Icon(
           widget.suffixIcon,
-          color: _isFocused ? themeProvider.primaryColor : themeProvider.textSecondary,
+          color: _isFocused
+              ? themeProvider.primaryColor
+              : themeProvider.textSecondary,
         ),
         onPressed: widget.onSuffixIconTap,
       );
