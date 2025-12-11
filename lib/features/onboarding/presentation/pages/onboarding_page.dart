@@ -30,18 +30,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (_nameController.text.isNotEmpty) {
       await prefs.setString('user_name', _nameController.text.trim());
     }
-    
+
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
       body: SafeArea(
@@ -62,7 +62,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
           showBackButton: true,
           back: const Icon(Icons.arrow_back),
           next: const Icon(Icons.arrow_forward),
-          done: const Text('Get Started', style: TextStyle(fontWeight: FontWeight.w600)),
+          done: const Text(
+            'Get Started',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           curve: Curves.fastLinearToSlowEaseIn,
           controlsMargin: const EdgeInsets.all(16),
           controlsPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
@@ -88,8 +91,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   PageViewModel _buildWelcomePage(ThemeProvider themeProvider) {
     return PageViewModel(
-      title: "Welcome to MeHub",
-      body: "Your all-in-one personal companion for habits, mood, and hydration.",
+      title: "Welcome to Kora",
+      body:
+          "Your all-in-one personal companion for habits, mood, and hydration.",
       image: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
@@ -104,7 +108,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       ),
       decoration: PageDecoration(
         titleTextStyle: TextStyle(
-          fontSize: 28.0, 
+          fontSize: 28.0,
           fontWeight: FontWeight.w700,
           color: themeProvider.textPrimary,
         ),
@@ -121,16 +125,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
   PageViewModel _buildIntroPage(ThemeProvider themeProvider) {
     return PageViewModel(
       title: "Track Your Progress",
-      body: "Monitor your daily habits, water intake, and mood trends all in one place.",
+      body:
+          "Monitor your daily habits, water intake, and mood trends all in one place.",
       image: Center(
-        child: Image.asset(
-          'assets/images/intro_new.png',
-          height: 250,
-        ),
+        child: Image.asset('assets/images/intro_new.png', height: 500),
       ),
       decoration: PageDecoration(
         titleTextStyle: TextStyle(
-          fontSize: 28.0, 
+          fontSize: 28.0,
           fontWeight: FontWeight.w700,
           color: themeProvider.textPrimary,
         ),
@@ -148,10 +150,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return PageViewModel(
       title: "Let's get to know you",
       image: Center(
-        child: Image.asset(
-          'assets/images/get_you_know_person.png',
-          height: 250,
-        ),
+        child: Image.asset('assets/images/welcome.png', height: 250),
       ),
       bodyWidget: Column(
         children: [
@@ -192,9 +191,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: themeProvider.primaryColor.withValues(alpha: 0.5), width: 2),
+                borderSide: BorderSide(
+                  color: themeProvider.primaryColor.withValues(alpha: 0.5),
+                  width: 2,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 24,
+                horizontal: 32,
+              ),
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -202,7 +207,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       ),
       decoration: PageDecoration(
         titleTextStyle: TextStyle(
-          fontSize: 28.0, 
+          fontSize: 28.0,
           fontWeight: FontWeight.w700,
           color: themeProvider.textPrimary,
         ),
@@ -250,7 +255,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       ),
       decoration: PageDecoration(
         titleTextStyle: TextStyle(
-          fontSize: 28.0, 
+          fontSize: 28.0,
           fontWeight: FontWeight.w700,
           color: themeProvider.textPrimary,
         ),
@@ -267,19 +272,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
     String value,
   ) {
     final isSelected = _selectedFocus == value;
-    
+
     return InkWell(
       onTap: () => setState(() => _selectedFocus = value),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? themeProvider.primaryColor.withValues(alpha: 0.1)
               : themeProvider.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? themeProvider.primaryColor : themeProvider.borderColor,
+            color: isSelected
+                ? themeProvider.primaryColor
+                : themeProvider.borderColor,
             width: 2,
           ),
         ),
@@ -287,7 +294,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Icon(
               icon,
-              color: isSelected ? themeProvider.primaryColor : themeProvider.textSecondary,
+              color: isSelected
+                  ? themeProvider.primaryColor
+                  : themeProvider.textSecondary,
               size: 24,
             ),
             const SizedBox(width: 16),
@@ -296,7 +305,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? themeProvider.primaryColor : themeProvider.textPrimary,
+                color: isSelected
+                    ? themeProvider.primaryColor
+                    : themeProvider.textPrimary,
               ),
             ),
             const Spacer(),

@@ -14,7 +14,6 @@ import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
 import '../../../../core/widgets/elevated_card.dart';
-import '../../../../core/widgets/clay_container.dart';
 import 'water_settings_page.dart';
 
 part '../widgets/todays_progress_card.dart';

@@ -1,5 +1,5 @@
 part of '../pages/water_page.dart';
-// ClayContainer is imported in water_page.dart
+// Using Container instead of ClayContainer for modern flat design
 
 class WaterStatCard extends StatefulWidget {
   final String value;
@@ -69,11 +69,15 @@ class _WaterStatCardState extends State<WaterStatCard>
 
   @override
   Widget build(BuildContext context) {
-    return ClayContainer(
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      borderRadius: 16,
-      emboss: true,
-      color: widget.themeProvider.surfaceColor,
+      decoration: BoxDecoration(
+        color: widget.themeProvider.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.themeProvider.borderColor.withValues(alpha: 0.3),
+        ),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -123,11 +127,15 @@ class WaterStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClayContainer(
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      borderRadius: 16,
-      emboss: true,
-      color: themeProvider.surfaceColor,
+      decoration: BoxDecoration(
+        color: themeProvider.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: themeProvider.borderColor.withValues(alpha: 0.3),
+        ),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

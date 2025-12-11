@@ -392,6 +392,20 @@ class NlpIntentService {
 
   /// Extract number from text (e.g. "3200 ml" -> 3200)
   int? _extractNumberFromText(String text) {
+    final lower = text.toLowerCase();
+
+    // Handle "10 üzerinden X" (Turkish)
+    final trMatch = RegExp(r'10\s*üzerinden\s*(\d+)').firstMatch(lower);
+    if (trMatch != null) {
+      return int.tryParse(trMatch.group(1)!);
+    }
+
+    // Handle "X out of 10" (English)
+    final enMatch = RegExp(r'(\d+)\s*out\s*of\s*10').firstMatch(lower);
+    if (enMatch != null) {
+      return int.tryParse(enMatch.group(1)!);
+    }
+
     // Look for digits
     final match = RegExp(r'(\d+)').firstMatch(text);
     if (match != null) {
@@ -399,7 +413,6 @@ class NlpIntentService {
     }
 
     // Look for text numbers (simple ones)
-    final lower = text.toLowerCase();
     if (lower.contains('bir') || lower.contains('one')) return 1;
     if (lower.contains('iki') || lower.contains('two')) return 2;
     if (lower.contains('üç') || lower.contains('three')) return 3;

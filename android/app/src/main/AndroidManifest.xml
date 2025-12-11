@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     
     <application
-        android:label="MeHub"
+        android:label="Kora"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round">

@@ -164,24 +164,24 @@ flutter:
 
 # Native Splash Screen Configuration
 flutter_native_splash:
-  # Background color (light mode - white)
-  color: "#FFFFFF"
+  # Background color (light mode - warm beige)
+  color: "#F0EBE5"
   
-  # Dark mode background color (black)
-  color_dark: "#000000"
+  # Dark mode background color (dark grey)
+  color_dark: "#2C2C2C"
   
   # App icon as splash screen image
-  image: assets/images/app_icon.png
+  image: assets/images/app_logo.png
   
-  # Dark mode image (same logo, but will use dark background)
-  image_dark: assets/images/app_icon.png
+  # Dark mode image (same logo)
+  image_dark: assets/images/app_logo.png
   
   # Image size (will be created)
   android_12:
-    image: assets/images/app_icon.png
-    color: "#FFFFFF" # Light mode
-    image_dark: assets/images/app_icon.png
-    color_dark: "#000000" # Dark mode
+    image: assets/images/app_logo.png
+    color: "#F0EBE5" # Light mode
+    image_dark: assets/images/app_logo.png
+    color_dark: "#2C2C2C" # Dark mode
   
   # Platforms
   android: true
@@ -198,20 +198,20 @@ flutter_native_splash:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/app_logo.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   # Adaptive icon for Android (supports dark/light mode)
-  adaptive_icon_background: "#FFFFFF" # Light mode background (white)
-  adaptive_icon_foreground: "assets/images/app_icon.png"
+  adaptive_icon_background: "#F0EBE5" # Light mode background
+  adaptive_icon_foreground: "assets/images/app_logo.png"
   web:
     generate: true
-    image_path: "assets/images/app_icon.png"
-    background_color: "#F5F0E8"
-    theme_color: "#D97D45"
+    image_path: "assets/images/app_logo.png"
+    background_color: "#F0EBE5"
+    theme_color: "#E08E6D"
   windows:
     generate: true
-    image_path: "assets/images/app_icon.png"
+    image_path: "assets/images/app_logo.png"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/images/app_icon.png"
+    image_path: "assets/images/app_logo.png"

@@ -5,7 +5,6 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/providers/voice_settings_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/elevated_card.dart';
-import '../../../../core/widgets/clay_container.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -97,11 +96,15 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           const SizedBox(height: 24),
           // Dark Mode Toggle
-          ClayContainer(
+          Container(
             padding: const EdgeInsets.all(16),
-            borderRadius: 16,
-            emboss: false,
-            color: themeProvider.surfaceColor,
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.3),
+              ),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -146,11 +149,15 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           const SizedBox(height: 16),
           // Voice Language Selector
-          ClayContainer(
+          Container(
             padding: const EdgeInsets.all(16),
-            borderRadius: 16,
-            emboss: false,
-            color: themeProvider.surfaceColor,
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.3),
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -231,11 +238,15 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           const SizedBox(height: 16),
           // Test Notification Button
-          ClayContainer(
+          Container(
             padding: const EdgeInsets.all(16),
-            borderRadius: 16,
-            emboss: false,
-            color: themeProvider.surfaceColor,
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.3),
+              ),
+            ),
             child: InkWell(
               onTap: () async {
                 try {
@@ -295,11 +306,15 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           const SizedBox(height: 16),
           // Check Pending Notifications Button
-          ClayContainer(
+          Container(
             padding: const EdgeInsets.all(16),
-            borderRadius: 16,
-            emboss: false,
-            color: themeProvider.surfaceColor,
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.3),
+              ),
+            ),
             child: InkWell(
               onTap: () async {
                 try {

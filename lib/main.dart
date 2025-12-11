@@ -43,6 +43,7 @@ import 'features/onboarding/presentation/pages/onboarding_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
 import 'core/providers/voice_settings_provider.dart';
+import 'core/widgets/glass_nav_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,7 +75,8 @@ void main() async {
 
   // Check onboarding status
   final prefs = await SharedPreferences.getInstance();
-  final showOnboarding = !prefs.containsKey('onboarding_completed');
+  final showOnboarding =
+      true; // TEMP: Always show for testing // !prefs.containsKey('onboarding_completed');
 
   runApp(
     MeHubApp(
@@ -240,8 +242,20 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
-      body: Stack(children: [_buildPageView(), _buildCelebrationOverlay()]),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      extendBody: true,
+      body: Stack(
+        children: [
+          _buildPageView(),
+          _buildCelebrationOverlay(),
+          // Navbar positioned at the bottom of the Stack
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildBottomNavigationBar(),
+          ),
+        ],
+      ),
       floatingActionButton: _buildVoiceCommandButton(themeProvider),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -278,53 +292,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNavigationBar() {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        },
-        backgroundColor: themeProvider.cardColor,
-        selectedItemColor: themeProvider.primaryColor,
-        unselectedItemColor: themeProvider.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.calendar),
-            label: 'Today',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.droplet),
-            label: 'Water',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.repeat),
-            label: 'Routines',
-          ),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.heart), label: 'Mood'),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
+    return GlassNavBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
     );
   }
 

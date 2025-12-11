@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import '../providers/todo_provider.dart';
 import 'add_todo_dialog.dart';
 import '../../../../core/widgets/elevated_card.dart';
-import '../../../../core/widgets/clay_container.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -264,14 +263,17 @@ class TodoCardWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    ClayContainer(
+                    Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      borderRadius: 8,
-                      emboss: true,
-                      color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                      decoration: BoxDecoration(
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.12,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Text(
                         todo.priorityText,
                         style: TextStyle(
