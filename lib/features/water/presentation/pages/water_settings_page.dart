@@ -204,8 +204,15 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              border: Border.all(color: themeProvider.borderColor, width: 1.5),
+              color: themeProvider.surfaceColor,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               LucideIcons.chevronLeft,
@@ -226,7 +233,13 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
       decoration: BoxDecoration(
         color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,10 +434,17 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                             ? themeProvider.primaryColor
                             : themeProvider.surfaceColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: themeProvider.borderColor,
-                          width: 2,
-                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: themeProvider.primaryColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Text(
                         '${preset}ml',
@@ -455,7 +475,13 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
       decoration: BoxDecoration(
         color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,23 +550,17 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                     fillColor: themeProvider.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
+                        color: themeProvider.primaryColor,
+                        width: 1.5,
                       ),
                     ),
                   ),
@@ -560,23 +580,17 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                     fillColor: themeProvider.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: themeProvider.borderColor,
-                        width: 2,
+                        color: themeProvider.primaryColor,
+                        width: 1.5,
                       ),
                     ),
                   ),
