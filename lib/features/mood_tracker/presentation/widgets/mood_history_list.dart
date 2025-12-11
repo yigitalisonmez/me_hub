@@ -234,6 +234,8 @@ class _MoodHistoryItem extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: themeProvider.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 8,
         title: Text(
           'Delete Entry',
           style: TextStyle(color: themeProvider.textPrimary),
@@ -278,6 +280,10 @@ class _MoodHistoryItem extends StatelessWidget {
 
           return AlertDialog(
             backgroundColor: themeProvider.cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
             title: Text(
               'Edit Mood',
               style: TextStyle(color: themeProvider.textPrimary),

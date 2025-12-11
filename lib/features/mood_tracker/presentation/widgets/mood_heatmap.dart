@@ -31,12 +31,11 @@ class MoodHeatMap extends StatelessWidget {
       decoration: BoxDecoration(
         color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: themeProvider.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: themeProvider.primaryColor.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -160,10 +159,8 @@ class MoodHeatMap extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: themeProvider.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: themeProvider.borderColor, width: 2),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 8,
         title: Text(
           'Mood Entry',
           style: TextStyle(

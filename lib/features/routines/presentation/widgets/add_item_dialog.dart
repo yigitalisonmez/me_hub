@@ -7,10 +7,7 @@ import '../../../../core/providers/theme_provider.dart';
 class AddItemDialog extends StatefulWidget {
   final Function(String title, int? iconCodePoint) onAdd;
 
-  const AddItemDialog({
-    super.key,
-    required this.onAdd,
-  });
+  const AddItemDialog({super.key, required this.onAdd});
 
   @override
   State<AddItemDialog> createState() => _AddItemDialogState();
@@ -34,10 +31,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
     }
     return RoutineIcons.allIcons
         .where(
-          (iconData) => iconData['name']
-              .toString()
-              .toLowerCase()
-              .contains(_searchController.text.toLowerCase()),
+          (iconData) => iconData['name'].toString().toLowerCase().contains(
+            _searchController.text.toLowerCase(),
+          ),
         )
         .toList();
   }
@@ -50,7 +46,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
       itemCount: pageCount,
       itemBuilder: (context, pageIndex) {
         final startIndex = pageIndex * iconsPerPage;
-        final endIndex = (startIndex + iconsPerPage).clamp(0, _filteredIcons.length);
+        final endIndex = (startIndex + iconsPerPage).clamp(
+          0,
+          _filteredIcons.length,
+        );
         final pageIcons = _filteredIcons.sublist(startIndex, endIndex);
 
         return GridView.builder(
@@ -81,16 +80,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                           color: themeProvider.primaryColor,
                           width: 2.5,
                         )
-                      : Border.all(
-                          color: Colors.transparent,
-                          width: 2.5,
-                        ),
+                      : Border.all(color: Colors.transparent, width: 2.5),
                 ),
-                child: Icon(
-                  icon,
-                  color: themeProvider.primaryColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: themeProvider.primaryColor, size: 24),
               ),
             );
           },
@@ -102,16 +94,11 @@ class _AddItemDialogState extends State<AddItemDialog> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return AlertDialog(
       backgroundColor: themeProvider.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: themeProvider.borderColor,
-          width: 2,
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
       title: Center(
         child: Text(
           'Add New Habit',
@@ -135,9 +122,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               style: TextStyle(color: themeProvider.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Habit name',
-                hintStyle: TextStyle(
-                  color: themeProvider.textSecondary,
-                ),
+                hintStyle: TextStyle(color: themeProvider.textSecondary),
                 filled: true,
                 fillColor: themeProvider.surfaceColor,
                 border: OutlineInputBorder(
@@ -172,9 +157,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               style: TextStyle(color: themeProvider.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Search icons...',
-                hintStyle: TextStyle(
-                  color: themeProvider.textSecondary,
-                ),
+                hintStyle: TextStyle(color: themeProvider.textSecondary),
                 filled: true,
                 fillColor: themeProvider.surfaceColor,
                 border: OutlineInputBorder(
@@ -223,10 +206,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
           onPressed: () => Navigator.pop(context),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(
-              color: themeProvider.borderColor,
-              width: 1.5,
-            ),
+            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -243,7 +223,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
         ElevatedButton(
           onPressed: () {
             if (_titleController.text.trim().isNotEmpty) {
-              widget.onAdd(_titleController.text.trim(), _selectedIconCodePoint);
+              widget.onAdd(
+                _titleController.text.trim(),
+                _selectedIconCodePoint,
+              );
               Navigator.pop(context);
             }
           },
@@ -258,13 +241,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
           ),
           child: const Text(
             'Add',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ],
     );
   }
 }
-

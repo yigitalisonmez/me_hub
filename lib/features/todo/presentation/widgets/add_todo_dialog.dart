@@ -32,13 +32,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
     return AlertDialog(
       backgroundColor: themeProvider.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: themeProvider.borderColor,
-          width: 2,
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
       title: Text(
         'Add New Todo',
         style: TextStyle(
@@ -71,10 +66,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           onPressed: () => Navigator.of(context).pop(),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            side: BorderSide(
-              color: themeProvider.borderColor,
-              width: 1.5,
-            ),
+            side: BorderSide(color: themeProvider.borderColor, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -101,9 +93,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           ),
           child: const Text(
             'Add',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ],

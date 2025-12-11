@@ -61,10 +61,8 @@ class ConfirmationDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: themeProvider.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: themeProvider.borderColor, width: 2),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
       title: Text(
         title,
         style: TextStyle(
