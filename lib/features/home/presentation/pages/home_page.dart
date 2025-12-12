@@ -12,6 +12,9 @@ import '../../../todo/presentation/providers/todo_provider.dart';
 import '../../../water/presentation/providers/water_provider.dart';
 import '../../../mood_tracker/presentation/providers/mood_provider.dart';
 import '../../../routines/presentation/providers/routines_provider.dart';
+import '../../../routines/presentation/pages/routines_page.dart';
+import '../../../mood_tracker/presentation/pages/mood_page.dart';
+import '../../../timer/presentation/pages/timer_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -114,14 +117,32 @@ class _HomePageState extends State<HomePage> {
             const DailyProgressSection(),
             const SizedBox(height: 24),
 
-            // Quick Access
-            QuickActionsSection(
-              onAddWater: () => widget.onNavigateToPage?.call(2), // Water page
-              onAddTask: () => widget.onNavigateToPage?.call(1), // Tasks page
-              onLogMood: () => widget.onNavigateToPage?.call(4), // Mood page
-              onStartRoutine: () =>
-                  widget.onNavigateToPage?.call(3), // Routines page
+            // Productivity Section
+            ProductivitySection(
+              onTasksTap: () => widget.onNavigateToPage?.call(1), // Tasks page
+              onRoutinesTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RoutinesPage()),
+              ),
+              onPomodoroTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TimerPage()),
+              ),
             ),
+            const SizedBox(height: 20),
+
+            // Wellness Section
+            WellnessSection(
+              onWaterTap: () => widget.onNavigateToPage?.call(2), // Water page
+              onMoodTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MoodPage()),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Mindfulness Section
+            const MindfulnessSection(),
             const SizedBox(height: 24),
 
             // AI Insights Card
@@ -234,27 +255,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
-          // Greeting Badge
-          Positioned(
-            top: 16,
-            left: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                _getGreeting(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -262,12 +262,14 @@ class _HomePageState extends State<HomePage> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return '☀️ Good Morning';
+    if (hour >= 21 || hour < 3) {
+      return 'Good Night';
+    } else if (hour < 12) {
+      return 'Good Morning';
     } else if (hour < 17) {
-      return '🌤️ Good Afternoon';
+      return 'Good Afternoon';
     } else {
-      return '🌙 Good Evening';
+      return 'Good Evening';
     }
   }
 }

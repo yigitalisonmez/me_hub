@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../../water/presentation/providers/water_provider.dart';
 import '../../../mood_tracker/presentation/providers/mood_provider.dart';
 import '../../../routines/presentation/providers/routines_provider.dart';
@@ -19,15 +20,30 @@ class DailyProgressSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Today\'s Progress',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: themeProvider.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Today\'s Progress',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: themeProvider.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                height: 3,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
           height: 130,
           child: ListView(
@@ -35,9 +51,9 @@ class DailyProgressSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               _WaterProgressCard(),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               _MoodProgressCard(),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               _RoutinesProgressCard(),
             ],
           ),
@@ -149,20 +165,10 @@ class _ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ElevatedCard(
       width: 140,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,7 +177,7 @@ class _ProgressCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -202,7 +208,6 @@ class _ProgressCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          // Progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
@@ -218,19 +223,16 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-/// Quick access horizontal scroll section for navigation
-class QuickActionsSection extends StatelessWidget {
-  final VoidCallback? onAddWater;
-  final VoidCallback? onAddTask;
-  final VoidCallback? onLogMood;
-  final VoidCallback? onStartRoutine;
+/// Base category section widget with horizontal scrollable cards
+class _CategorySection extends StatelessWidget {
+  final String title;
+  final Color titleColor;
+  final List<_CategoryCard> cards;
 
-  const QuickActionsSection({
-    super.key,
-    this.onAddWater,
-    this.onAddTask,
-    this.onLogMood,
-    this.onStartRoutine,
+  const _CategorySection({
+    required this.title,
+    required this.titleColor,
+    required this.cards,
   });
 
   @override
@@ -242,54 +244,38 @@ class QuickActionsSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Quick Access',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: themeProvider.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _QuickAccessCard(
-                imagePath: 'assets/images/todo_tracker.png',
-                label: 'Tasks',
-                color: themeProvider.primaryColor,
-                onTap: onAddTask,
-                themeProvider: themeProvider,
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: themeProvider.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
               ),
-              _QuickAccessCard(
-                imagePath: 'assets/images/water_tracker.png',
-                label: 'Water',
-                color: const Color(0xFF4FC3F7),
-                onTap: onAddWater,
-                themeProvider: themeProvider,
-              ),
-              _QuickAccessCard(
-                imagePath: 'assets/images/mood_tracker.png',
-                label: 'Mood',
-                color: const Color(0xFFFFB74D),
-                onTap: onLogMood,
-                themeProvider: themeProvider,
-              ),
-              _QuickAccessCard(
-                icon: LucideIcons.repeat,
-                label: 'Routines',
-                color: const Color(0xFF81C784),
-                onTap: onStartRoutine,
-                themeProvider: themeProvider,
+              const SizedBox(height: 6),
+              Container(
+                height: 3,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 110,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: cards.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) => cards[index],
           ),
         ),
       ],
@@ -297,70 +283,214 @@ class QuickActionsSection extends StatelessWidget {
   }
 }
 
-class _QuickAccessCard extends StatelessWidget {
+/// Individual category card
+class _CategoryCard extends StatelessWidget {
   final IconData? icon;
   final String? imagePath;
   final String label;
   final Color color;
   final VoidCallback? onTap;
-  final ThemeProvider themeProvider;
+  final bool isComingSoon;
 
-  const _QuickAccessCard({
+  const _CategoryCard({
     this.icon,
     this.imagePath,
     required this.label,
     required this.color,
-    required this.themeProvider,
     this.onTap,
+    this.isComingSoon = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        // width: 130, // Removed fixed width for grid layout
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: imagePath != null
-                  ? Image.asset(imagePath!, fit: BoxFit.contain)
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(14),
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return ElevatedCard(
+      width: 100,
+      height: 100,
+      padding: const EdgeInsets.all(8),
+      borderRadius: 16,
+      onTap: isComingSoon ? null : onTap,
+      child: Stack(
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: imagePath != null
+                    ? Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(imagePath!, fit: BoxFit.contain),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Icon(icon, color: color, size: 28),
+                        ),
                       ),
-                      child: Center(child: Icon(icon, color: color, size: 32)),
-                    ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: themeProvider.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: themeProvider.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          if (isComingSoon)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: themeProvider.primaryColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Soon',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Productivity section: Tasks, Routines, Pomodoro, Habits
+class ProductivitySection extends StatelessWidget {
+  final VoidCallback? onTasksTap;
+  final VoidCallback? onRoutinesTap;
+  final VoidCallback? onPomodoroTap;
+
+  const ProductivitySection({
+    super.key,
+    this.onTasksTap,
+    this.onRoutinesTap,
+    this.onPomodoroTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return _CategorySection(
+      title: 'Productivity',
+      titleColor: themeProvider.primaryColor,
+      cards: [
+        _CategoryCard(
+          imagePath: 'assets/images/tasks_card_1.png',
+          label: 'Tasks',
+          color: themeProvider.primaryColor,
+          onTap: onTasksTap,
+        ),
+        _CategoryCard(
+          imagePath: 'assets/images/routine_circle.png',
+          label: 'Routines',
+          color: const Color(0xFF81C784),
+          onTap: onRoutinesTap,
+        ),
+        _CategoryCard(
+          imagePath: 'assets/images/pomodoro_timer.png',
+          icon: LucideIcons.timer,
+          label: 'Timer',
+          color: const Color(0xFFE57373),
+          onTap: onPomodoroTap,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.flame,
+          label: 'Habits',
+          color: const Color(0xFFFF8A65),
+          isComingSoon: true,
+        ),
+      ],
+    );
+  }
+}
+
+/// Wellness section: Water, Mood, Weekly Insights
+class WellnessSection extends StatelessWidget {
+  final VoidCallback? onWaterTap;
+  final VoidCallback? onMoodTap;
+
+  const WellnessSection({super.key, this.onWaterTap, this.onMoodTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CategorySection(
+      title: 'Wellness',
+      titleColor: const Color(0xFFE91E63),
+      cards: [
+        _CategoryCard(
+          imagePath: 'assets/images/water_glass_check.png',
+          label: 'Water',
+          color: const Color(0xFF4FC3F7),
+          onTap: onWaterTap,
+        ),
+        _CategoryCard(
+          imagePath: 'assets/images/mood_circle.png',
+          label: 'Mood',
+          color: const Color(0xFFFFB74D),
+          onTap: onMoodTap,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.chartLine,
+          imagePath: 'assets/images/analytics.png',
+          label: 'Insights',
+          color: const Color(0xFF9575CD),
+          isComingSoon: true,
+        ),
+      ],
+    );
+  }
+}
+
+/// Mindfulness section: Breathing, Meditate, Journal
+class MindfulnessSection extends StatelessWidget {
+  const MindfulnessSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CategorySection(
+      title: 'Mindfulness',
+      titleColor: const Color(0xFF26A69A),
+      cards: [
+        _CategoryCard(
+          icon: LucideIcons.wind,
+          label: 'Breathing',
+          color: const Color(0xFF4DB6AC),
+          isComingSoon: true,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.brain,
+          label: 'Meditate',
+          color: const Color(0xFF7E57C2),
+          isComingSoon: true,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.bookOpen,
+          label: 'Journal',
+          color: const Color(0xFF5C6BC0),
+          isComingSoon: true,
+        ),
+      ],
     );
   }
 }

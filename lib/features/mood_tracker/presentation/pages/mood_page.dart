@@ -52,9 +52,9 @@ class _MoodPageState extends State<MoodPage>
     final themeProvider = context.watch<ThemeProvider>();
     final moodProvider = context.watch<MoodProvider>();
 
-    return Container(
-      decoration: BoxDecoration(color: themeProvider.backgroundColor),
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: themeProvider.backgroundColor,
+      body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(

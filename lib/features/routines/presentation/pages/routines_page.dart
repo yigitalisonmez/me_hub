@@ -45,9 +45,9 @@ class _RoutinesPageState extends State<RoutinesPage>
     super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Container(
-      decoration: BoxDecoration(color: themeProvider.backgroundColor),
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: themeProvider.backgroundColor,
+      body: SafeArea(
         child:
             Selector<
               RoutinesProvider,

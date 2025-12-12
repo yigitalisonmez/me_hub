@@ -5,14 +5,17 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 
 /// A beautiful glassmorphism navigation bar with frosted glass effect
+/// and center mic FAB for voice commands
 class GlassNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final VoidCallback? onMicTap;
 
   const GlassNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.onMicTap,
   });
 
   @override
@@ -24,92 +27,126 @@ class GlassNavBar extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, bottom: bottomPadding + 12),
       height: 70,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
-            // Blur layer - this blurs what's behind
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(color: Colors.transparent),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Glass navbar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Stack(
+              children: [
+                // Blur layer
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(color: Colors.transparent),
+                ),
+                // Glass overlay
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [
+                              Colors.white.withValues(alpha: 0.08),
+                              Colors.white.withValues(alpha: 0.04),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.25),
+                              Colors.white.withValues(alpha: 0.15),
+                            ],
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.white.withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                // Nav items: Home, Tasks, [space for mic], Water, Settings
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.house,
+                        label: 'Home',
+                        index: 0,
+                        themeProvider: themeProvider,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.listTodo,
+                        label: 'Tasks',
+                        index: 1,
+                        themeProvider: themeProvider,
+                      ),
+                      // Spacer for center mic FAB
+                      const SizedBox(width: 56),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.droplet,
+                        label: 'Water',
+                        index: 2,
+                        themeProvider: themeProvider,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.settings,
+                        label: 'Settings',
+                        index: 3,
+                        themeProvider: themeProvider,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            // Glass overlay - much more transparent to show blur
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [
-                          Colors.white.withValues(alpha: 0.08),
-                          Colors.white.withValues(alpha: 0.04),
-                        ]
-                      : [
-                          Colors.white.withValues(alpha: 0.25),
-                          Colors.white.withValues(alpha: 0.15),
-                        ],
+          ),
+          // Center elevated mic FAB
+          Positioned(
+            left: 0,
+            right: 0,
+            top: -12,
+            child: Center(
+              child: GestureDetector(
+                onTap: onMicTap,
+                child: Container(
+                  height: 56,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: themeProvider.primaryColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.4,
+                        ),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                      BoxShadow(
+                        color: themeProvider.primaryColor.withValues(
+                          alpha: 0.2,
+                        ),
+                        blurRadius: 24,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    LucideIcons.mic,
+                    color: Colors.white,
+                    size: 26,
+                  ),
                 ),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.4),
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(28),
               ),
             ),
-            // Nav items
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.house,
-                    label: 'Home',
-                    index: 0,
-                    themeProvider: themeProvider,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.listTodo,
-                    label: 'Tasks',
-                    index: 1,
-                    themeProvider: themeProvider,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.droplet,
-                    label: 'Water',
-                    index: 2,
-                    themeProvider: themeProvider,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.repeat,
-                    label: 'Routines',
-                    index: 3,
-                    themeProvider: themeProvider,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.heart,
-                    label: 'Mood',
-                    index: 4,
-                    themeProvider: themeProvider,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.settings,
-                    label: 'Settings',
-                    index: 5,
-                    themeProvider: themeProvider,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

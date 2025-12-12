@@ -10,6 +10,8 @@ class ElevatedCard extends StatelessWidget {
   final Color? backgroundColor;
   final VoidCallback? onTap;
   final bool isSurface; // If true, uses surfaceColor default, else cardColor
+  final double? width;
+  final double? height;
 
   const ElevatedCard({
     super.key,
@@ -20,6 +22,8 @@ class ElevatedCard extends StatelessWidget {
     this.backgroundColor,
     this.onTap,
     this.isSurface = false,
+    this.width,
+    this.height,
   });
 
   @override
@@ -32,7 +36,8 @@ class ElevatedCard extends StatelessWidget {
         (isSurface ? themeProvider.surfaceColor : themeProvider.cardColor);
 
     final Widget content = Container(
-      width: double.infinity,
+      width: width,
+      height: height,
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(

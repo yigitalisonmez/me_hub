@@ -4,7 +4,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
 import 'core/constants/app_constants.dart';
@@ -22,7 +21,6 @@ import 'features/todo/domain/usecases/toggle_todo_completion.dart';
 import 'features/todo/presentation/providers/todo_provider.dart';
 import 'features/todo/domain/entities/daily_todo.dart';
 import 'features/todo/data/models/daily_todo_model.dart';
-import 'features/routines/presentation/pages/routines_page.dart';
 import 'features/routines/presentation/providers/routines_provider.dart';
 import 'features/routines/data/datasources/routine_local_datasource.dart';
 import 'features/routines/data/repositories/routine_repository_impl.dart'
@@ -31,7 +29,6 @@ import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
 import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
 import 'features/water/presentation/pages/water_page.dart';
 import 'features/water/presentation/providers/water_provider.dart';
-import 'features/mood_tracker/presentation/pages/mood_page.dart';
 import 'features/mood_tracker/presentation/providers/mood_provider.dart';
 import 'features/mood_tracker/data/datasources/mood_local_datasource.dart';
 import 'features/mood_tracker/domain/entities/mood_entry.dart';
@@ -259,13 +256,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      floatingActionButton: _buildVoiceCommandButton(themeProvider),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      // FAB removed - mic is now in navbar
     );
   }
 
   Widget _buildPageView() {
-    // Use PageView.builder for true lazy loading - pages are only built when needed
+    // 4 pages: Home, Tasks, Water, Settings
     return PageView.builder(
       controller: _pageController,
       physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
@@ -274,7 +270,7 @@ class _MainScreenState extends State<MainScreen> {
           _currentIndex = index;
         });
       },
-      itemCount: 6, // Total number of pages
+      itemCount: 4, // Reduced to 4 pages
       itemBuilder: (context, index) {
         switch (index) {
           case 0:
@@ -292,10 +288,6 @@ class _MainScreenState extends State<MainScreen> {
           case 2:
             return const WaterPage();
           case 3:
-            return const RoutinesPage();
-          case 4:
-            return const MoodPage();
-          case 5:
             return const SettingsPage();
           default:
             return const HomePage();
@@ -314,19 +306,11 @@ class _MainScreenState extends State<MainScreen> {
           curve: Curves.easeInOut,
         );
       },
+      onMicTap: () => showVoiceCommandSheet(context),
     );
   }
 
   Widget _buildCelebrationOverlay() {
     return const SizedBox.shrink();
-  }
-
-  Widget _buildVoiceCommandButton(ThemeProvider themeProvider) {
-    return FloatingActionButton(
-      onPressed: () => showVoiceCommandSheet(context),
-      backgroundColor: themeProvider.primaryColor,
-      elevation: 4,
-      child: const Icon(LucideIcons.mic, color: Colors.white),
-    );
   }
 }
