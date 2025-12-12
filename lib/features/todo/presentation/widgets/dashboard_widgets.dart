@@ -29,7 +29,7 @@ class DailyProgressSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 120,
+          height: 130,
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -218,7 +218,7 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-/// Quick actions horizontal scroll section
+/// Quick access horizontal scroll section for navigation
 class QuickActionsSection extends StatelessWidget {
   final VoidCallback? onAddWater;
   final VoidCallback? onAddTask;
@@ -243,7 +243,7 @@ class QuickActionsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Quick Actions',
+            'Quick Access',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: themeProvider.textPrimary,
               fontWeight: FontWeight.bold,
@@ -251,38 +251,39 @@ class QuickActionsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 100,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.1,
             children: [
-              _QuickActionCard(
-                icon: LucideIcons.droplet,
-                label: 'Add Water',
-                color: const Color(0xFF4FC3F7),
-                onTap: onAddWater,
-                themeProvider: themeProvider,
-              ),
-              const SizedBox(width: 12),
-              _QuickActionCard(
-                icon: LucideIcons.plus,
-                label: 'New Task',
+              _QuickAccessCard(
+                imagePath: 'assets/images/todo_tracker.png',
+                label: 'Tasks',
                 color: themeProvider.primaryColor,
                 onTap: onAddTask,
                 themeProvider: themeProvider,
               ),
-              const SizedBox(width: 12),
-              _QuickActionCard(
-                icon: LucideIcons.smile,
-                label: 'Log Mood',
+              _QuickAccessCard(
+                imagePath: 'assets/images/water_tracker.png',
+                label: 'Water',
+                color: const Color(0xFF4FC3F7),
+                onTap: onAddWater,
+                themeProvider: themeProvider,
+              ),
+              _QuickAccessCard(
+                imagePath: 'assets/images/mood_tracker.png',
+                label: 'Mood',
                 color: const Color(0xFFFFB74D),
                 onTap: onLogMood,
                 themeProvider: themeProvider,
               ),
-              const SizedBox(width: 12),
-              _QuickActionCard(
-                icon: LucideIcons.play,
+              _QuickAccessCard(
+                icon: LucideIcons.repeat,
                 label: 'Routines',
                 color: const Color(0xFF81C784),
                 onTap: onStartRoutine,
@@ -296,15 +297,17 @@ class QuickActionsSection extends StatelessWidget {
   }
 }
 
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
+class _QuickAccessCard extends StatelessWidget {
+  final IconData? icon;
+  final String? imagePath;
   final String label;
   final Color color;
   final VoidCallback? onTap;
   final ThemeProvider themeProvider;
 
-  const _QuickActionCard({
-    required this.icon,
+  const _QuickAccessCard({
+    this.icon,
+    this.imagePath,
     required this.label,
     required this.color,
     required this.themeProvider,
@@ -316,8 +319,8 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 85,
-        padding: const EdgeInsets.all(12),
+        // width: 130, // Removed fixed width for grid layout
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(16),
@@ -332,21 +335,24 @@ class _QuickActionCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
+            Expanded(
+              child: imagePath != null
+                  ? Image.asset(imagePath!, fit: BoxFit.contain)
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(child: Icon(icon, color: color, size: 32)),
+                    ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               label,
               style: TextStyle(
                 color: themeProvider.textPrimary,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,

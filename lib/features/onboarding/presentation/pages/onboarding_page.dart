@@ -3,8 +3,9 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../main.dart'; // For HomePage navigation
+import '../../../../main.dart'; // For MainScreen navigation
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -27,14 +28,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
+
     if (_nameController.text.isNotEmpty) {
-      await prefs.setString('user_name', _nameController.text.trim());
+      // Securely store user name
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.write(
+        key: 'user_name',
+        value: _nameController.text.trim(),
+      );
     }
 
     if (mounted) {
       Navigator.of(
         context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
     }
   }
 
@@ -168,6 +175,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           TextField(
             controller: _nameController,
             textAlign: TextAlign.center,
+            maxLength: 50, // Security: Limit input length
             style: TextStyle(
               fontSize: 24,
               color: themeProvider.textPrimary,

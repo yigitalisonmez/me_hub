@@ -141,8 +141,34 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       ),
       child: TextFormField(
         controller: _titleController,
-        validator: (value) => Validators.required(value, fieldName: 'Title'),
+        validator: (value) {
+          final required = Validators.required(value, fieldName: 'Title');
+          if (required != null) return required;
+          return Validators.maxLength(value, 200, fieldName: 'Title');
+        },
+        maxLength: 200, // Security: Limit input length
         textCapitalization: TextCapitalization.sentences,
+        buildCounter:
+            (
+              context, {
+              required currentLength,
+              required isFocused,
+              required maxLength,
+            }) {
+              // Only show counter when focused or near limit
+              if (isFocused || currentLength > 80) {
+                return Text(
+                  '$currentLength/$maxLength',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: currentLength > 90
+                        ? Colors.red
+                        : themeProvider.textSecondary.withValues(alpha: 0.5),
+                  ),
+                );
+              }
+              return null;
+            },
         style: TextStyle(color: themeProvider.textPrimary),
         decoration: InputDecoration(
           labelText: 'Title',

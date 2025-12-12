@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_extensions.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/theme_provider.dart';
+import 'features/home/presentation/pages/home_page.dart';
 import 'features/todo/presentation/pages/todo_page.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/repositories/todo_repository_impl.dart';
@@ -75,8 +77,9 @@ void main() async {
 
   // Check onboarding status
   final prefs = await SharedPreferences.getInstance();
-  final showOnboarding =
-      true; // TEMP: Always show for testing // !prefs.containsKey('onboarding_completed');
+  final showOnboarding = kDebugMode
+      ? true
+      : !prefs.containsKey('onboarding_completed');
 
   runApp(
     MeHubApp(
@@ -193,14 +196,14 @@ class MeHubApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   late final PageController _pageController;
 
@@ -271,21 +274,31 @@ class _HomePageState extends State<HomePage> {
           _currentIndex = index;
         });
       },
-      itemCount: 5, // Total number of pages
+      itemCount: 6, // Total number of pages
       itemBuilder: (context, index) {
         switch (index) {
           case 0:
-            return const TodoPage(showFullPage: false);
+            return HomePage(
+              onNavigateToPage: (pageIndex) {
+                _pageController.animateToPage(
+                  pageIndex,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ); // Home/Dashboard
           case 1:
-            return const WaterPage();
+            return const TodoPage(showFullPage: false); // Tasks
           case 2:
-            return const RoutinesPage();
+            return const WaterPage();
           case 3:
-            return const MoodPage();
+            return const RoutinesPage();
           case 4:
+            return const MoodPage();
+          case 5:
             return const SettingsPage();
           default:
-            return const TodoPage(showFullPage: false);
+            return const HomePage();
         }
       },
     );
