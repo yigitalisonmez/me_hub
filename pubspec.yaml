@@ -95,6 +95,11 @@ dependencies:
   speech_to_text: ^7.3.0
   flutter_secure_storage: ^10.0.0
 
+  # Audio recording and playback (Olumlamalar feature)
+  record: ^6.0.0
+  just_audio: ^0.9.43
+  path_provider: ^2.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -136,6 +141,7 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/ml/
+    - assets/audio/backgrounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

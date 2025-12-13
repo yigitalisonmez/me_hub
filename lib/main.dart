@@ -43,6 +43,7 @@ import 'features/settings/presentation/pages/settings_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
 import 'core/providers/voice_settings_provider.dart';
 import 'core/widgets/glass_nav_bar.dart';
+import 'features/affirmations/presentation/providers/affirmation_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -169,6 +170,9 @@ class MeHubApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<VoiceSettingsProvider>(
           create: (_) => VoiceSettingsProvider(),
+        ),
+        ChangeNotifierProvider<AffirmationProvider>(
+          create: (_) => AffirmationProvider(),
         ),
       ],
       child: Consumer<ThemeProvider>(

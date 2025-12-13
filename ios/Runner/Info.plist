@@ -47,5 +47,8 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Microphone permission for Affirmations feature -->
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Olumlama kayıtlarınızı oluşturmak için mikrofon erişimi gereklidir.</string>
 	</dict>
 </plist>
