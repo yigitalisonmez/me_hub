@@ -32,54 +32,66 @@ class SessionCompletePage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Spacer(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight:
+                    MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    48,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
 
-                // Celebration visual
-                _buildCelebrationVisual(themeProvider),
+                  // Celebration visual
+                  _buildCelebrationVisual(themeProvider),
 
-                const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-                // Congratulations text
-                Text(
-                  'Session Complete! 🌙',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: themeProvider.textPrimary,
+                  // Congratulations text
+                  Text(
+                    'Session Complete! 🌙',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: themeProvider.textPrimary,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                Text(
-                  'Your subconscious mind has absorbed\nyour affirmations. Sweet dreams!',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: themeProvider.textSecondary,
-                    height: 1.5,
+                  Text(
+                    'Your subconscious mind has absorbed\nyour affirmations. Sweet dreams!',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: themeProvider.textSecondary,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
 
-                const SizedBox(height: 48),
+                  const SizedBox(height: 48),
 
-                // Stats
-                _buildStats(themeProvider, provider),
+                  // Stats
+                  _buildStats(themeProvider, provider),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Motivational message
-                _buildMotivationalCard(themeProvider),
+                  // Motivational message
+                  _buildMotivationalCard(themeProvider),
 
-                const Spacer(),
+                  const SizedBox(height: 48),
 
-                // Close button
-                _buildCloseButton(themeProvider),
-              ],
+                  // Close button
+                  _buildCloseButton(themeProvider),
+
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

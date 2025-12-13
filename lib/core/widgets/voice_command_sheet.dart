@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 import '../services/voice_command_service.dart';
 import '../services/command_parser.dart';
 import '../services/nlp_intent_service.dart';
@@ -40,7 +41,6 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
   String? _successMessage;
 
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -48,9 +48,6 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     _startListening();
   }
@@ -271,257 +268,248 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
 
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: isDark ? themeProvider.cardColor : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            const SizedBox(height: 12),
+            Container(
+              width: 48,
+              height: 5,
+              decoration: BoxDecoration(
+                color: themeProvider.textSecondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Animated sound wave bars (when listening)
+            if (_isListening) _SoundWaveBars(color: themeProvider.primaryColor),
+
+            // Main mic button with glow
+            GestureDetector(
+              onTap: _isListening
+                  ? _voiceService.stopListening
+                  : _startListening,
+              child: SizedBox(
+                width: 180,
+                height: 180,
+                child: Center(
+                  child: AvatarGlow(
+                    glowColor: themeProvider.primaryColor,
+                    glowShape: BoxShape.circle,
+                    animate: _isListening,
+                    glowCount: 3,
+                    glowRadiusFactor: 0.4,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: _isListening
+                              ? [
+                                  themeProvider.primaryColor,
+                                  themeProvider.primaryColor.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ]
+                              : [
+                                  themeProvider.surfaceColor,
+                                  themeProvider.cardColor,
+                                ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _isListening
+                                ? themeProvider.primaryColor.withValues(
+                                    alpha: 0.3,
+                                  )
+                                : Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        LucideIcons.mic,
+                        size: 48,
+                        color: _isListening
+                            ? Colors.white
+                            : themeProvider.primaryColor,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 24),
 
-              // Title
-              Text(
-                _isListening ? 'Listening...' : 'Voice Command',
+            // Status text
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Text(
+                _getStatusText(),
+                key: ValueKey(_getStatusText()),
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                   color: themeProvider.textPrimary,
                 ),
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 8),
 
-              // Microphone button with pulse animation
-              GestureDetector(
-                onTap: _isListening
-                    ? _voiceService.stopListening
-                    : _startListening,
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _isListening ? _pulseAnimation.value : 1.0,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: _isListening
-                              ? themeProvider.primaryColor
-                              : themeProvider.surfaceColor,
-                          shape: BoxShape.circle,
-                          boxShadow: _isListening
-                              ? [
-                                  BoxShadow(
-                                    color: themeProvider.primaryColor
-                                        .withValues(alpha: 0.4),
-                                    blurRadius: 20,
-                                    spreadRadius: 5,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Icon(
-                          _isListening ? LucideIcons.mic : LucideIcons.micOff,
-                          size: 40,
-                          color: _isListening
-                              ? Colors.white
-                              : themeProvider.textSecondary,
-                        ),
-                      ),
-                    );
-                  },
+            // Recognized text
+            if (_recognizedText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  '"$_recognizedText"',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    color: themeProvider.textSecondary,
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
 
-              // Recognized text
-              if (_recognizedText.isNotEmpty) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: themeProvider.surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'You said:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: themeProvider.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _recognizedText,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: themeProvider.textPrimary,
-                        ),
-                      ),
-                      if (_parsedCommand != null &&
-                          _parsedCommand!.type != CommandType.unknown) ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: themeProvider.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _getCommandLabel(_parsedCommand!),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: themeProvider.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+            const SizedBox(height: 16),
+
+            // Command preview chip
+            if (_parsedCommand != null &&
+                _parsedCommand!.type != CommandType.unknown)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: themeProvider.primaryColor.withValues(alpha: 0.3),
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
+                child: Text(
+                  _getCommandLabel(_parsedCommand!),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: themeProvider.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
 
-              // Processing indicator
-              if (_isProcessing)
-                Padding(
-                  padding: const EdgeInsets.all(16),
+            // Processing indicator
+            if (_isProcessing)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
                   child: CircularProgressIndicator(
+                    strokeWidth: 3,
                     color: themeProvider.primaryColor,
                   ),
                 ),
+              ),
 
-              // Success message
-              if (_successMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.circleCheck, color: Colors.green),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _successMessage!,
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+            // Success message
+            if (_successMessage != null)
+              _buildResultCard(
+                icon: LucideIcons.circleCheck,
+                message: _successMessage!,
+                color: Colors.green,
+                themeProvider: themeProvider,
+              ),
+
+            // Error message
+            if (_errorMessage != null)
+              _buildResultCard(
+                icon: LucideIcons.circleAlert,
+                message: _errorMessage!,
+                color: Colors.red,
+                themeProvider: themeProvider,
+              ),
+
+            // Hint text
+            if (!_isListening && _recognizedText.isEmpty && !_isProcessing)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'Tap the microphone and speak',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: themeProvider.textSecondary,
                   ),
                 ),
+              ),
 
-              // Error message
-              if (_errorMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.circleAlert, color: Colors.red),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
-              // Example commands
-              if (!_isListening && _recognizedText.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: themeProvider.surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Try saying:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: themeProvider.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildExampleCommand('"Add 500 ml water"', themeProvider),
-                      _buildExampleCommand(
-                        '"Add task buy groceries"',
-                        themeProvider,
-                      ),
-                      _buildExampleCommand('"Set mood 8"', themeProvider),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildExampleCommand(String text, ThemeProvider themeProvider) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+  String _getStatusText() {
+    if (_isProcessing) return 'Processing...';
+    if (_successMessage != null) return 'Done!';
+    if (_errorMessage != null) return 'Try again';
+    if (_isListening) return 'Listening...';
+    return 'Voice Command';
+  }
+
+  Widget _buildResultCard({
+    required IconData icon,
+    required String message,
+    required Color color,
+    required ThemeProvider themeProvider,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.mic, size: 14, color: themeProvider.primaryColor),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: themeProvider.textSecondary,
-              fontStyle: FontStyle.italic,
+          Icon(icon, color: color, size: 24),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
             ),
           ),
         ],
@@ -563,5 +551,65 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
     if (wordsA.isEmpty || wordsB.isEmpty) return false;
     final intersection = wordsA.intersection(wordsB);
     return intersection.isNotEmpty;
+  }
+}
+
+/// Animated sound wave bars for listening state
+class _SoundWaveBars extends StatefulWidget {
+  final Color color;
+  const _SoundWaveBars({required this.color});
+
+  @override
+  State<_SoundWaveBars> createState() => _SoundWaveBarsState();
+}
+
+class _SoundWaveBarsState extends State<_SoundWaveBars>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              final phase = (index * 0.2) % 1.0;
+              final value = (((_controller.value + phase) * 2) % 2.0 - 1.0)
+                  .abs();
+              final height = 8 + (value * 24);
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: 4,
+                height: height,
+                decoration: BoxDecoration(
+                  color: widget.color.withValues(alpha: 0.6 + (value * 0.4)),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
   }
 }

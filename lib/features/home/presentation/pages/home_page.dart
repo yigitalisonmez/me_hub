@@ -60,7 +60,10 @@ class _HomePageState extends State<HomePage> {
     super.didChangeDependencies();
     if (!_dataLoaded) {
       _dataLoaded = true;
-      _loadAllData();
+      // Defer loading to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadAllData();
+      });
     }
   }
 

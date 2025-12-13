@@ -1,31 +1,44 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/models/affirmation_session.dart';
 import '../../data/models/background_sound.dart';
-import '../../data/repositories/affirmation_repository.dart';
+import '../../data/models/recording_models.dart';
 
-enum RecordingState { idle, recording, recorded }
+enum RecordingState { idle, recording, paused, recorded }
 
 enum PlaybackState { idle, playing, paused }
 
-/// Provider for managing affirmation recording, playback, and session state
+/// Provider for managing 3-step affirmation flow
 class AffirmationProvider extends ChangeNotifier {
-  final AffirmationRepository _repository = AffirmationRepository();
+  // Audio players
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _voicePlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
-  final AudioPlayer _previewPlayer = AudioPlayer(); // For previews
+  final AudioPlayer _previewPlayer = AudioPlayer();
+
+  // Step navigation (0=welcome, 1=record, 2=session)
+  int _currentStep = 0;
 
   // Recording state
   RecordingState _recordingState = RecordingState.idle;
   String? _currentRecordingPath;
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
+  static const int maxRecordingSeconds = 60;
+
+  // Saved recordings (max 3)
+  List<SavedRecording> _savedRecordings = [];
+  int? _selectedRecordingIndex;
+  int? _previewingRecordingIndex;
+
+  // Session history
+  List<SessionLog> _sessionHistory = [];
 
   // Playback state
   PlaybackState _playbackState = PlaybackState.idle;
@@ -35,24 +48,22 @@ class AffirmationProvider extends ChangeNotifier {
   Duration _remainingDuration = const Duration(minutes: 30);
   Duration _totalDuration = const Duration(minutes: 30);
   Timer? _playbackTimer;
-  bool _isLooping = false;
 
   // Volume controls
   double _voiceVolume = 1.0;
   double _backgroundVolume = 0.5;
 
-  // Sessions
-  List<AffirmationSession> _sessions = [];
-  AffirmationSession? _currentSession;
-
-  // Preview state
-  bool _isPreviewPlaying = false;
-  String? _previewingSoundId;
-
   // Getters
+  int get currentStep => _currentStep;
   RecordingState get recordingState => _recordingState;
   String? get currentRecordingPath => _currentRecordingPath;
   Duration get recordingDuration => _recordingDuration;
+
+  List<SavedRecording> get savedRecordings => _savedRecordings;
+  int? get selectedRecordingIndex => _selectedRecordingIndex;
+  int? get previewingRecordingIndex => _previewingRecordingIndex;
+
+  List<SessionLog> get sessionHistory => _sessionHistory;
 
   PlaybackState get playbackState => _playbackState;
   BackgroundSound? get selectedBackground => _selectedBackground;
@@ -60,18 +71,16 @@ class AffirmationProvider extends ChangeNotifier {
 
   Duration get remainingDuration => _remainingDuration;
   Duration get totalDuration => _totalDuration;
-  bool get isLooping => _isLooping;
 
   double get voiceVolume => _voiceVolume;
   double get backgroundVolume => _backgroundVolume;
 
-  List<AffirmationSession> get sessions => _sessions;
-  AffirmationSession? get currentSession => _currentSession;
-  int get totalCompletedSessions => _repository.getTotalCompletedSessions();
+  AudioPlayer get previewPlayer => _previewPlayer;
 
-  bool get isPreviewPlaying => _isPreviewPlaying;
+  // Compatibility getters for background picker and session complete
   String? get previewingSoundId => _previewingSoundId;
-  AudioPlayer get previewPlayer => _previewPlayer; // For StreamBuilder access
+
+  int get totalCompletedSessions => _sessionHistory.length;
 
   double get progress {
     if (_totalDuration.inSeconds == 0) return 0;
@@ -90,10 +99,11 @@ class AffirmationProvider extends ChangeNotifier {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  /// Initialize the provider
+  // ==================== Initialization ====================
+
   Future<void> init() async {
-    await _repository.init();
-    _sessions = _repository.getAllSessions();
+    await _loadSavedRecordings();
+    await _loadSessionHistory();
 
     // Set default background
     if (BackgroundSound.presets.isNotEmpty) {
@@ -101,41 +111,70 @@ class AffirmationProvider extends ChangeNotifier {
     }
 
     // Listen to player states
-    _voicePlayer.playerStateStream.listen(_onVoicePlayerStateChanged);
     _previewPlayer.playerStateStream.listen(_onPreviewPlayerStateChanged);
+
+    // Listen to voice player for manual loop with pause
+    _voicePlayer.playerStateStream.listen(_onVoicePlayerStateChanged);
 
     notifyListeners();
   }
 
-  void _onVoicePlayerStateChanged(PlayerState state) {
-    // Handle player completion for looping
-    if (state.processingState == ProcessingState.completed && _isLooping) {
-      _voicePlayer.seek(Duration.zero);
-      _voicePlayer.play();
+  void _onPreviewPlayerStateChanged(PlayerState state) {
+    if (state.processingState == ProcessingState.completed) {
+      _previewingRecordingIndex = null;
+      notifyListeners();
     }
   }
 
-  void _onPreviewPlayerStateChanged(PlayerState state) {
-    if (state.processingState == ProcessingState.completed) {
-      _isPreviewPlaying = false;
-      _previewingSoundId = null;
+  /// Manual loop with 4-second pause between repeats
+  void _onVoicePlayerStateChanged(PlayerState state) async {
+    if (state.processingState == ProcessingState.completed &&
+        _playbackState == PlaybackState.playing) {
+      // Wait 4 seconds before replaying
+      await Future.delayed(const Duration(seconds: 4));
+
+      // Check if still playing (user might have stopped)
+      if (_playbackState == PlaybackState.playing) {
+        await _voicePlayer.seek(Duration.zero);
+        _voicePlayer.play();
+      }
+    }
+  }
+
+  // ==================== Step Navigation ====================
+
+  void goToStep(int step) {
+    if (step >= 0 && step <= 2) {
+      _currentStep = step;
+      notifyListeners();
+    }
+  }
+
+  void nextStep() {
+    if (_currentStep < 2) {
+      _currentStep++;
+      notifyListeners();
+    }
+  }
+
+  void previousStep() {
+    if (_currentStep > 0) {
+      _currentStep--;
       notifyListeners();
     }
   }
 
   // ==================== Recording ====================
 
-  /// Check if microphone permission is granted
   Future<bool> hasRecordingPermission() async {
     return await _recorder.hasPermission();
   }
 
-  /// Start recording
   Future<void> startRecording() async {
+    if (_savedRecordings.length >= 3) return; // Max 3 recordings
+
     try {
-      if (!await hasRecordingPermission()) {
-        return;
-      }
+      if (!await hasRecordingPermission()) return;
 
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -153,10 +192,14 @@ class AffirmationProvider extends ChangeNotifier {
       _recordingState = RecordingState.recording;
       _recordingDuration = Duration.zero;
 
-      // Start recording timer
+      // Timer with 60 second limit
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         _recordingDuration += const Duration(seconds: 1);
-        notifyListeners();
+        if (_recordingDuration.inSeconds >= maxRecordingSeconds) {
+          stopRecording();
+        } else {
+          notifyListeners();
+        }
       });
 
       notifyListeners();
@@ -165,7 +208,6 @@ class AffirmationProvider extends ChangeNotifier {
     }
   }
 
-  /// Stop recording
   Future<void> stopRecording() async {
     try {
       final path = await _recorder.stop();
@@ -185,7 +227,44 @@ class AffirmationProvider extends ChangeNotifier {
     }
   }
 
-  /// Cancel recording and delete file
+  /// Pause recording - can resume later
+  Future<void> pauseRecording() async {
+    if (_recordingState != RecordingState.recording) return;
+
+    try {
+      await _recorder.pause();
+      _recordingTimer?.cancel();
+      _recordingState = RecordingState.paused;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error pausing recording: $e');
+    }
+  }
+
+  /// Resume recording from where it was paused
+  Future<void> resumeRecording() async {
+    if (_recordingState != RecordingState.paused) return;
+
+    try {
+      await _recorder.resume();
+      _recordingState = RecordingState.recording;
+
+      // Resume timer
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        _recordingDuration += const Duration(seconds: 1);
+        if (_recordingDuration.inSeconds >= maxRecordingSeconds) {
+          stopRecording();
+        } else {
+          notifyListeners();
+        }
+      });
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error resuming recording: $e');
+    }
+  }
+
   Future<void> cancelRecording() async {
     await _recorder.cancel();
     _recordingTimer?.cancel();
@@ -204,52 +283,108 @@ class AffirmationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ==================== Preview ====================
+  Future<void> saveRecordingWithName(String name) async {
+    if (_currentRecordingPath == null || _savedRecordings.length >= 3) return;
 
-  /// Preview the recorded affirmation
-  Future<void> playRecordingPreview() async {
-    if (_currentRecordingPath == null) return;
+    final recording = SavedRecording(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      filePath: _currentRecordingPath!,
+      durationSeconds: _recordingDuration.inSeconds.clamp(
+        1,
+        maxRecordingSeconds,
+      ),
+    );
 
-    try {
-      if (_isPreviewPlaying && _previewingSoundId == 'recording') {
-        // Stop if already playing recording
-        await stopPreview();
-        return;
-      }
+    _savedRecordings.add(recording);
+    _selectedRecordingIndex = _savedRecordings.length - 1;
+    _recordingState = RecordingState.idle;
+    _currentRecordingPath = null;
+    _recordingDuration = Duration.zero;
 
-      await stopPreview();
-      await _previewPlayer.setFilePath(_currentRecordingPath!);
-      await _previewPlayer.setVolume(1.0);
-      _previewPlayer.play();
-      _isPreviewPlaying = true;
-      _previewingSoundId = 'recording';
+    await _saveSavedRecordings();
+    notifyListeners();
+  }
+
+  // ==================== Saved Recordings Management ====================
+
+  void selectRecording(int index) {
+    if (index >= 0 && index < _savedRecordings.length) {
+      _selectedRecordingIndex = index;
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error playing recording preview: $e');
     }
   }
 
-  /// Preview a background sound
-  Future<void> previewBackgroundSound(BackgroundSound sound) async {
+  Future<void> previewRecording(int index) async {
+    if (index < 0 || index >= _savedRecordings.length) return;
+
     try {
-      if (_isPreviewPlaying && _previewingSoundId == sound.id) {
-        // Stop if already playing this sound
-        await stopPreview();
+      if (_previewingRecordingIndex == index) {
+        await _previewPlayer.stop();
+        _previewingRecordingIndex = null;
+        notifyListeners();
         return;
       }
 
-      await stopPreview();
+      await _previewPlayer.stop();
+      await _previewPlayer.setFilePath(_savedRecordings[index].filePath);
+      _previewPlayer.play();
+      _previewingRecordingIndex = index;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error previewing recording: $e');
+    }
+  }
+
+  Future<void> deleteRecording(int index) async {
+    if (index < 0 || index >= _savedRecordings.length) return;
+
+    // Delete file
+    final file = File(_savedRecordings[index].filePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+
+    _savedRecordings.removeAt(index);
+
+    // Adjust selected index
+    if (_selectedRecordingIndex == index) {
+      _selectedRecordingIndex = _savedRecordings.isNotEmpty ? 0 : null;
+    } else if (_selectedRecordingIndex != null &&
+        _selectedRecordingIndex! > index) {
+      _selectedRecordingIndex = _selectedRecordingIndex! - 1;
+    }
+
+    await _saveSavedRecordings();
+    notifyListeners();
+  }
+
+  /// Preview a background sound
+  String? _previewingSoundId;
+  bool get isPreviewPlaying => _previewingSoundId != null;
+
+  Future<void> previewBackgroundSound(BackgroundSound sound) async {
+    try {
+      if (_previewingSoundId == sound.id) {
+        await _previewPlayer.stop();
+        _previewingSoundId = null;
+        notifyListeners();
+        return;
+      }
+
+      await _previewPlayer.stop();
       await _previewPlayer.setAsset(sound.assetPath);
       await _previewPlayer.setVolume(0.7);
       _previewPlayer.play();
-      _isPreviewPlaying = true;
       _previewingSoundId = sound.id;
       notifyListeners();
 
       // Auto-stop after 5 seconds
       Future.delayed(const Duration(seconds: 5), () {
         if (_previewingSoundId == sound.id) {
-          stopPreview();
+          _previewPlayer.stop();
+          _previewingSoundId = null;
+          notifyListeners();
         }
       });
     } catch (e) {
@@ -257,50 +392,66 @@ class AffirmationProvider extends ChangeNotifier {
     }
   }
 
-  /// Stop preview playback
-  Future<void> stopPreview() async {
-    await _previewPlayer.stop();
-    _isPreviewPlaying = false;
-    _previewingSoundId = null;
-    notifyListeners();
-  }
-
   // ==================== Playback ====================
 
-  /// Set background sound
   void setBackground(BackgroundSound? background) {
     _selectedBackground = background;
+
+    // If playing, switch background music with fade
+    if (_playbackState == PlaybackState.playing && background != null) {
+      _switchBackgroundMusic(background);
+    }
+
     notifyListeners();
   }
 
-  /// Set voice volume (0.0 - 1.0)
+  Future<void> _switchBackgroundMusic(BackgroundSound newBackground) async {
+    // Fade out current
+    for (int i = 10; i >= 0; i--) {
+      _backgroundPlayer.setVolume(_backgroundVolume * (i / 10));
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    await _backgroundPlayer.stop();
+    await _backgroundPlayer.setAsset(newBackground.assetPath);
+    await _backgroundPlayer.setLoopMode(LoopMode.all);
+    _backgroundPlayer.play();
+
+    // Fade in
+    for (int i = 0; i <= 10; i++) {
+      _backgroundPlayer.setVolume(_backgroundVolume * (i / 10));
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
   void setVoiceVolume(double volume) {
     _voiceVolume = volume.clamp(0.0, 1.0);
     _voicePlayer.setVolume(_voiceVolume);
     notifyListeners();
   }
 
-  /// Set background volume (0.0 - 1.0)
   void setBackgroundVolume(double volume) {
     _backgroundVolume = volume.clamp(0.0, 1.0);
     _backgroundPlayer.setVolume(_backgroundVolume);
     notifyListeners();
   }
 
-  /// Start playback with loop
   Future<void> startPlayback({int durationMinutes = 30}) async {
-    if (_currentRecordingPath == null) return;
+    if (_selectedRecordingIndex == null || _savedRecordings.isEmpty) return;
 
-    // Stop any preview first
-    await stopPreview();
+    final recording = _savedRecordings[_selectedRecordingIndex!];
 
     try {
+      // Stop preview
+      await _previewPlayer.stop();
+      _previewingRecordingIndex = null;
+
       // Set up voice player
-      await _voicePlayer.setFilePath(_currentRecordingPath!);
-      await _voicePlayer.setLoopMode(LoopMode.all);
+      await _voicePlayer.setFilePath(recording.filePath);
+      await _voicePlayer.setLoopMode(LoopMode.off); // Manual loop with pause
       await _voicePlayer.setVolume(_voiceVolume);
 
-      // Set up background player if selected
+      // Set up background player
       if (_selectedBackground != null) {
         await _backgroundPlayer.setAsset(_selectedBackground!.assetPath);
         await _backgroundPlayer.setLoopMode(LoopMode.all);
@@ -310,7 +461,6 @@ class AffirmationProvider extends ChangeNotifier {
       // Set timer
       _totalDuration = Duration(minutes: durationMinutes);
       _remainingDuration = _totalDuration;
-      _isLooping = true;
 
       // Start playback
       _voicePlayer.play();
@@ -320,7 +470,7 @@ class AffirmationProvider extends ChangeNotifier {
 
       _playbackState = PlaybackState.playing;
 
-      // Start countdown timer
+      // Countdown timer
       _playbackTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingDuration.inSeconds > 0) {
           _remainingDuration -= const Duration(seconds: 1);
@@ -336,7 +486,6 @@ class AffirmationProvider extends ChangeNotifier {
     }
   }
 
-  /// Pause playback
   void pausePlayback() {
     _voicePlayer.pause();
     _backgroundPlayer.pause();
@@ -345,7 +494,6 @@ class AffirmationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Resume playback
   void resumePlayback() {
     _voicePlayer.play();
     if (_selectedBackground != null) {
@@ -365,11 +513,9 @@ class AffirmationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Stop playback
   Future<void> stopPlayback() async {
     _playbackTimer?.cancel();
     _playbackTimer = null;
-    _isLooping = false;
 
     await _voicePlayer.stop();
     await _backgroundPlayer.stop();
@@ -379,112 +525,105 @@ class AffirmationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fade out and complete session
   Future<void> _onSessionComplete() async {
     _playbackTimer?.cancel();
     _playbackTimer = null;
-    _isLooping = false;
 
-    // Fade out over 5 seconds
-    const fadeSteps = 50;
-    final voiceStep = _voiceVolume / fadeSteps;
-    final bgStep = _backgroundVolume / fadeSteps;
-
-    for (int i = 0; i < fadeSteps; i++) {
+    // Fade out
+    for (int i = 10; i >= 0; i--) {
+      _voicePlayer.setVolume(_voiceVolume * (i / 10));
+      _backgroundPlayer.setVolume(_backgroundVolume * (i / 10));
       await Future.delayed(const Duration(milliseconds: 100));
-      final newVoiceVol = (_voiceVolume - (voiceStep * (i + 1))).clamp(
-        0.0,
-        1.0,
-      );
-      final newBgVol = (_backgroundVolume - (bgStep * (i + 1))).clamp(0.0, 1.0);
-      _voicePlayer.setVolume(newVoiceVol);
-      _backgroundPlayer.setVolume(newBgVol);
     }
 
     await _voicePlayer.stop();
     await _backgroundPlayer.stop();
 
-    // Restore volumes for next playback
+    // Restore volumes
     _voicePlayer.setVolume(_voiceVolume);
     _backgroundPlayer.setVolume(_backgroundVolume);
 
-    // Increment completed sessions if we have a current session
-    if (_currentSession != null) {
-      await _repository.incrementCompletedSessions(_currentSession!.id);
-      _sessions = _repository.getAllSessions();
-    }
+    // Log session
+    final log = SessionLog(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      completedAt: DateTime.now(),
+      durationMinutes: _totalDuration.inMinutes,
+      recordingName: _selectedRecordingIndex != null
+          ? _savedRecordings[_selectedRecordingIndex!].name
+          : null,
+    );
+    _sessionHistory.insert(0, log);
+    await _saveSessionHistory();
 
     _playbackState = PlaybackState.idle;
     notifyListeners();
   }
 
-  // ==================== Sessions ====================
+  // ==================== Persistence ====================
 
-  /// Save current recording as a session
-  Future<AffirmationSession?> saveSession(String name) async {
-    if (_currentRecordingPath == null) return null;
+  Future<void> _loadSavedRecordings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString('affirmation_recordings');
+      if (json != null) {
+        final list = jsonDecode(json) as List;
+        _savedRecordings = list
+            .map((e) => SavedRecording.fromJson(e as Map<String, dynamic>))
+            .toList();
 
-    final session = AffirmationSession(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      recordingPath: _currentRecordingPath!,
-      selectedBackgroundId: _selectedBackground?.id,
-      backgroundVolume: _backgroundVolume,
-      voiceVolume: _voiceVolume,
-      createdAt: DateTime.now(),
-    );
-
-    await _repository.saveSession(session);
-    _sessions = _repository.getAllSessions();
-    _currentSession = session;
-    notifyListeners();
-
-    return session;
-  }
-
-  /// Load a saved session
-  Future<void> loadSession(AffirmationSession session) async {
-    _currentSession = session;
-    _currentRecordingPath = session.recordingPath;
-    _selectedBackground = session.selectedBackgroundId != null
-        ? BackgroundSound.findById(session.selectedBackgroundId!)
-        : null;
-    _voiceVolume = session.voiceVolume;
-    _backgroundVolume = session.backgroundVolume;
-    _recordingState = RecordingState.recorded;
-    notifyListeners();
-  }
-
-  /// Delete a session
-  Future<void> deleteSession(String id) async {
-    final session = _repository.getSession(id);
-    if (session != null) {
-      // Delete the recording file
-      final file = File(session.recordingPath);
-      if (await file.exists()) {
-        await file.delete();
+        // Auto-select first if available
+        if (_savedRecordings.isNotEmpty) {
+          _selectedRecordingIndex = 0;
+        }
       }
-
-      await _repository.deleteSession(id);
-      _sessions = _repository.getAllSessions();
-
-      if (_currentSession?.id == id) {
-        _currentSession = null;
-        _currentRecordingPath = null;
-        _recordingState = RecordingState.idle;
-      }
-
-      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading recordings: $e');
     }
   }
 
-  /// Clear current recording to start fresh
-  void clearCurrentRecording() {
-    _currentRecordingPath = null;
-    _currentSession = null;
-    _recordingState = RecordingState.idle;
-    _recordingDuration = Duration.zero;
-    stopPreview();
+  Future<void> _saveSavedRecordings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonEncode(_savedRecordings.map((e) => e.toJson()).toList());
+      await prefs.setString('affirmation_recordings', json);
+    } catch (e) {
+      debugPrint('Error saving recordings: $e');
+    }
+  }
+
+  Future<void> _loadSessionHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString('affirmation_session_history');
+      if (json != null) {
+        final list = jsonDecode(json) as List;
+        _sessionHistory = list
+            .map((e) => SessionLog.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error loading session history: $e');
+    }
+  }
+
+  Future<void> _saveSessionHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Keep only last 20 sessions
+      final toSave = _sessionHistory.take(20).toList();
+      final json = jsonEncode(toSave.map((e) => e.toJson()).toList());
+      await prefs.setString('affirmation_session_history', json);
+    } catch (e) {
+      debugPrint('Error saving session history: $e');
+    }
+  }
+
+  // ==================== Reset ====================
+
+  void resetFlow() {
+    _currentStep = 0;
+    _playbackState = PlaybackState.idle;
+    _remainingDuration = _totalDuration;
     notifyListeners();
   }
 

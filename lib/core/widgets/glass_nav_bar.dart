@@ -128,13 +128,6 @@ class GlassNavBar extends StatelessWidget {
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
-                      BoxShadow(
-                        color: themeProvider.primaryColor.withValues(
-                          alpha: 0.2,
-                        ),
-                        blurRadius: 24,
-                        spreadRadius: 2,
-                      ),
                     ],
                   ),
                   child: const Icon(

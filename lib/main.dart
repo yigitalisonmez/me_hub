@@ -75,9 +75,7 @@ void main() async {
 
   // Check onboarding status
   final prefs = await SharedPreferences.getInstance();
-  final showOnboarding = kDebugMode
-      ? true
-      : !prefs.containsKey('onboarding_completed');
+  final showOnboarding = !prefs.containsKey('onboarding_completed');
 
   runApp(
     MeHubApp(
@@ -189,7 +187,7 @@ class MeHubApp extends StatelessWidget {
             themeMode: themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: showOnboarding ? const OnboardingPage() : const HomePage(),
+            home: showOnboarding ? const OnboardingPage() : const MainScreen(),
           );
         },
       ),

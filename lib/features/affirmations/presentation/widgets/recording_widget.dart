@@ -81,6 +81,12 @@ class RecordingWidget extends StatelessWidget {
         icon = LucideIcons.radio;
         color = Colors.red;
         break;
+      case RecordingState.paused:
+        text = 'Paused';
+        subtitle = 'Tap resume to continue recording';
+        icon = LucideIcons.pause;
+        color = themeProvider.primaryColor;
+        break;
       case RecordingState.recorded:
         text = 'Recording Complete';
         subtitle = 'Ready to add background sound';

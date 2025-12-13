@@ -255,15 +255,6 @@ class _CategorySection extends StatelessWidget {
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(height: 6),
-              Container(
-                height: 3,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
             ],
           ),
         ),

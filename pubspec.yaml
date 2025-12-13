@@ -99,6 +99,8 @@ dependencies:
   record: ^6.0.0
   just_audio: ^0.9.43
   path_provider: ^2.1.5
+  audio_waveforms: ^2.0.1
+  avatar_glow: ^3.0.1
 
 dev_dependencies:
   flutter_test:
