@@ -387,13 +387,13 @@ class ProductivitySection extends StatelessWidget {
       titleColor: themeProvider.primaryColor,
       cards: [
         _CategoryCard(
-          imagePath: 'assets/images/tasks_card_1.png',
+          imagePath: 'assets/images/checklist_2.png',
           label: 'Tasks',
           color: themeProvider.primaryColor,
           onTap: onTasksTap,
         ),
         _CategoryCard(
-          imagePath: 'assets/images/routine_circle.png',
+          imagePath: 'assets/images/calendar.png',
           label: 'Routines',
           color: const Color(0xFF81C784),
           onTap: onRoutinesTap,

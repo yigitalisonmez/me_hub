@@ -63,6 +63,7 @@ class BreathingProvider extends ChangeNotifier {
   // Timer
   Timer? _breathingTimer;
   Timer? _phaseTimer;
+  Timer? _hapticTimer;
 
   // Quick mode (SOS button - skip mood check)
   bool _isQuickMode = false;
@@ -262,6 +263,11 @@ class BreathingProvider extends ChangeNotifier {
       _startBackgroundAudio();
     }
 
+    // Start haptic loop
+    if (_hapticEnabled) {
+      _startHapticLoop(BreathingPhase.inhale);
+    }
+
     // Start timers
     _startTimers();
 
@@ -328,64 +334,87 @@ class BreathingProvider extends ChangeNotifier {
   void _advancePhase() {
     if (_selectedTechnique == null) return;
 
-    // Haptic feedback on phase change
-    if (_hapticEnabled) {
-      _triggerHaptic();
-    }
+    BreathingPhase nextPhase;
+    int nextDuration;
 
+    // Determine next phase
     switch (_currentPhase) {
       case BreathingPhase.inhale:
         if (_selectedTechnique!.holdAfterInhaleSeconds > 0) {
-          _currentPhase = BreathingPhase.holdIn;
-          _phaseSecondsRemaining = _selectedTechnique!.holdAfterInhaleSeconds;
+          nextPhase = BreathingPhase.holdIn;
+          nextDuration = _selectedTechnique!.holdAfterInhaleSeconds;
         } else {
-          _currentPhase = BreathingPhase.exhale;
-          _phaseSecondsRemaining = _selectedTechnique!.exhaleSeconds;
+          nextPhase = BreathingPhase.exhale;
+          nextDuration = _selectedTechnique!.exhaleSeconds;
         }
         break;
 
       case BreathingPhase.holdIn:
-        _currentPhase = BreathingPhase.exhale;
-        _phaseSecondsRemaining = _selectedTechnique!.exhaleSeconds;
+        nextPhase = BreathingPhase.exhale;
+        nextDuration = _selectedTechnique!.exhaleSeconds;
         break;
 
       case BreathingPhase.exhale:
         if (_selectedTechnique!.holdAfterExhaleSeconds > 0) {
-          _currentPhase = BreathingPhase.holdOut;
-          _phaseSecondsRemaining = _selectedTechnique!.holdAfterExhaleSeconds;
+          nextPhase = BreathingPhase.holdOut;
+          nextDuration = _selectedTechnique!.holdAfterExhaleSeconds;
         } else {
-          _completeCycle();
+          // Cycle complete, back to inhale
+          _cyclesCompleted++;
+          nextPhase = BreathingPhase.inhale;
+          nextDuration = _selectedTechnique!.inhaleSeconds;
         }
         break;
 
       case BreathingPhase.holdOut:
-        _completeCycle();
+        // Cycle complete, back to inhale
+        _cyclesCompleted++;
+        nextPhase = BreathingPhase.inhale;
+        nextDuration = _selectedTechnique!.inhaleSeconds;
         break;
+    }
+
+    // Apple changes
+    _currentPhase = nextPhase;
+    _phaseSecondsRemaining = nextDuration;
+
+    // Start haptic loop for new phase
+    if (_hapticEnabled) {
+      _startHapticLoop(nextPhase);
     }
 
     _phaseProgress = 0.0;
     _phaseStartTime = DateTime.now().millisecondsSinceEpoch;
   }
 
-  void _completeCycle() {
-    _cyclesCompleted++;
-    _currentPhase = BreathingPhase.inhale;
-    _phaseSecondsRemaining = _selectedTechnique!.inhaleSeconds;
-  }
+  void _startHapticLoop(BreathingPhase phase) {
+    _hapticTimer?.cancel();
 
-  void _triggerHaptic() {
-    switch (_currentPhase) {
+    if (!_hapticEnabled) return;
+
+    switch (phase) {
       case BreathingPhase.inhale:
-        HapticFeedback.mediumImpact();
+        // Continuous vibration for inhale (stronger)
+        _hapticTimer = Timer.periodic(const Duration(milliseconds: 100), (
+          timer,
+        ) {
+          HapticFeedback.lightImpact(); // lightImpact feels better when looped rapidly
+        });
         break;
-      case BreathingPhase.holdIn:
-        HapticFeedback.lightImpact();
-        break;
+
       case BreathingPhase.exhale:
-        HapticFeedback.mediumImpact();
+        // Continuous vibration for exhale (lighter/slower)
+        _hapticTimer = Timer.periodic(const Duration(milliseconds: 200), (
+          timer,
+        ) {
+          HapticFeedback.selectionClick(); // very subtle
+        });
         break;
+
+      case BreathingPhase.holdIn:
       case BreathingPhase.holdOut:
-        HapticFeedback.lightImpact();
+        // Stop vibration during holds
+        _hapticTimer?.cancel();
         break;
     }
   }
@@ -483,6 +512,16 @@ class BreathingProvider extends ChangeNotifier {
 
   void setBackground(BackgroundSound? sound) {
     _selectedBackground = sound;
+
+    // If we are currently breathing, update the audio immediately
+    if (_sessionState == SessionState.breathing) {
+      if (sound != null) {
+        _startBackgroundAudio();
+      } else {
+        _stopBackgroundAudio();
+      }
+    }
+
     notifyListeners();
   }
 
@@ -495,6 +534,13 @@ class BreathingProvider extends ChangeNotifier {
   void setHapticEnabled(bool enabled) {
     _hapticEnabled = enabled;
     _saveSettings();
+
+    if (!_hapticEnabled) {
+      _hapticTimer?.cancel();
+    } else if (_sessionState == SessionState.breathing) {
+      _startHapticLoop(_currentPhase);
+    }
+
     notifyListeners();
   }
 
