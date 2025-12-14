@@ -99,102 +99,93 @@ class _WaterLogItemState extends State<WaterLogItem>
 
     final isDark = themeProvider.isDarkMode;
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: themeProvider.surfaceColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.5),
-              width: 1,
+    return SwipeToDismissWrapper(
+      itemId: widget.log.id,
+      onDelete: _handleDelete,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: themeProvider.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.white.withValues(alpha: 0.5),
+                width: 1,
+              ),
+              boxShadow: [
+                // Bevel Effect for Items (Subtle)
+                BoxShadow(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.02)
+                      : Colors.white,
+                  offset: const Offset(0, -1),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : themeProvider.primaryColor.withValues(alpha: 0.05),
+                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  spreadRadius: -1,
+                ),
+              ],
             ),
-            boxShadow: [
-              // Bevel Effect for Items (Subtle)
-              BoxShadow(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.02)
-                    : Colors.white,
-                offset: const Offset(0, -1),
-                blurRadius: 2,
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : themeProvider.primaryColor.withValues(alpha: 0.05),
-                offset: const Offset(0, 3),
-                blurRadius: 6,
-                spreadRadius: -1,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    LucideIcons.droplet,
-                    color: themeProvider.primaryColor,
-                    size: 22,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Amount and time
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${widget.log.amountMl}ml',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: themeProvider.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      timeString,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: themeProvider.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Delete button with visual feedback
-              GestureDetector(
-                onTap: _handleDelete,
-                child: Container(
-                  width: 32,
-                  height: 32,
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: _isDeleting
-                        ? Colors.red.withValues(alpha: 0.2)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
+                    color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    LucideIcons.trash2,
-                    color: Colors.red,
-                    size: 20,
+                  child: Center(
+                    child: Icon(
+                      LucideIcons.droplet,
+                      color: themeProvider.primaryColor,
+                      size: 22,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                // Amount and time
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${widget.log.amountMl}ml',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: themeProvider.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        timeString,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: themeProvider.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Swipe hint
+                Icon(
+                  LucideIcons.chevronLeft,
+                  size: 16,
+                  color: themeProvider.textSecondary.withValues(alpha: 0.5),
+                ),
+              ],
+            ),
           ),
         ),
       ),

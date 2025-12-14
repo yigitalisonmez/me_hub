@@ -7,6 +7,7 @@ import '../providers/todo_provider.dart';
 import '../../domain/entities/daily_todo.dart';
 import 'add_todo_dialog.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/swipe_to_dismiss_wrapper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -520,24 +521,9 @@ class TodoCardWidget extends StatelessWidget {
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDarkMode;
 
-    return Dismissible(
-      key: Key(todo.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(LucideIcons.trash2, color: AppColors.error),
-      ),
-      confirmDismiss: (direction) async {
-        // Delete the todo and return false to prevent Dismissible state issues
-        // The widget will be removed when provider notifies listeners
-        provider.deleteTodo(todo.id);
-        return false;
-      },
+    return SwipeToDismissWrapper(
+      itemId: todo.id,
+      onDelete: () => provider.deleteTodo(todo.id),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),

@@ -9,6 +9,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/wave_progress_bar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/page_header.dart';
+import '../../../../core/widgets/swipe_to_dismiss_wrapper.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../data/services/daily_goal_service.dart';
