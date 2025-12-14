@@ -523,7 +523,37 @@ class TodoCardWidget extends StatelessWidget {
 
     return SwipeToDismissWrapper(
       itemId: todo.id,
-      onDelete: () => provider.deleteTodo(todo.id),
+      onDelete: () {
+        final todoTitle = todo.title;
+        provider.deleteTodo(todo.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  LucideIcons.check,
+                  color: themeProvider.primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '"$todoTitle" deleted',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: themeProvider.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: themeProvider.surfaceColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
