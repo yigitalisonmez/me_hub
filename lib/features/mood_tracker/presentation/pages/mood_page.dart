@@ -392,76 +392,83 @@ class _MoodPageState extends State<MoodPage>
     final icon = MoodUtils.getIconForScore(todayMood.score);
     final label = MoodUtils.getLabelForScore(todayMood.score);
 
-    return ElevatedCard(
-      borderRadius: 32,
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        children: [
-          Text(
-            'You are feeling',
-            style: TextStyle(
-              fontSize: 16,
-              color: themeProvider.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(child: Icon(icon, size: 40, color: color)),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${todayMood.score}/10',
-            style: TextStyle(
-              fontSize: 18,
-              color: themeProvider.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 32),
-          TextButton.icon(
-            onPressed: () async {
-              await moodProvider.deleteTodayMood();
-              setState(() {
-                _currentScore = 5.0;
-              });
-            },
-            icon: Icon(
-              LucideIcons.rotateCcw,
-              size: 18,
-              color: themeProvider.textSecondary,
-            ),
-            label: Text(
-              'Reset Entry',
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedCard(
+        borderRadius: 32,
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'You are feeling',
               style: TextStyle(
+                fontSize: 16,
                 color: themeProvider.textSecondary,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              backgroundColor: themeProvider.surfaceColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 24),
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(child: Icon(icon, size: 40, color: color)),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              '${todayMood.score}/10',
+              style: TextStyle(
+                fontSize: 18,
+                color: themeProvider.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 32),
+            TextButton.icon(
+              onPressed: () async {
+                await moodProvider.deleteTodayMood();
+                setState(() {
+                  _currentScore = 5.0;
+                });
+              },
+              icon: Icon(
+                LucideIcons.rotateCcw,
+                size: 18,
+                color: themeProvider.textSecondary,
+              ),
+              label: Text(
+                'Reset Entry',
+                style: TextStyle(
+                  color: themeProvider.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                backgroundColor: themeProvider.surfaceColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
