@@ -10,6 +10,7 @@ import '../../../../core/services/quote_service.dart';
 import '../../../../core/widgets/glass_container.dart';
 
 import '../../../todo/presentation/providers/todo_provider.dart';
+import '../../../todo/presentation/pages/todo_page.dart';
 import '../../../water/presentation/providers/water_provider.dart';
 import '../../../mood_tracker/presentation/providers/mood_provider.dart';
 import '../../../routines/presentation/providers/routines_provider.dart';
@@ -143,7 +144,18 @@ class _HomePageState extends State<HomePage> {
 
             // Productivity Section
             ProductivitySection(
-              onTasksTap: () => widget.onNavigateToPage?.call(1), // Tasks page
+              onTasksTap: () => Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      const TodoPage(showFullPage: true),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                  transitionDuration: const Duration(milliseconds: 300),
+                ),
+              ),
               onRoutinesTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const RoutinesPage()),

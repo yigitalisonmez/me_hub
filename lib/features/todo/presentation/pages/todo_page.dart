@@ -57,9 +57,15 @@ class _TodoPageState extends State<TodoPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: TodoCardWidget(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Hero(
+                    tag: 'tasks_hero',
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: const TodoCardWidget(),
+                    ),
+                  ),
                 ),
                 SizedBox(height: LayoutConstants.getNavbarClearance(context)),
               ],
