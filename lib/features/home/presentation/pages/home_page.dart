@@ -16,6 +16,7 @@ import '../../../routines/presentation/pages/routines_page.dart';
 import '../../../mood_tracker/presentation/pages/mood_page.dart';
 import '../../../timer/presentation/pages/timer_page.dart';
 import '../../../affirmations/presentation/pages/affirmations_page.dart';
+import '../../../breathing/presentation/pages/breathing_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -150,6 +151,10 @@ class _HomePageState extends State<HomePage> {
               onAffirmationsTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AffirmationsPage()),
+              ),
+              onBreathingTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BreathingPage()),
               ),
             ),
             const SizedBox(height: 24),

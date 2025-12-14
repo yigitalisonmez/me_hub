@@ -48,6 +48,7 @@ class AffirmationProvider extends ChangeNotifier {
   Duration _remainingDuration = const Duration(minutes: 30);
   Duration _totalDuration = const Duration(minutes: 30);
   Timer? _playbackTimer;
+  bool _sessionJustCompleted = false;
 
   // Volume controls
   double _voiceVolume = 1.0;
@@ -74,6 +75,7 @@ class AffirmationProvider extends ChangeNotifier {
 
   double get voiceVolume => _voiceVolume;
   double get backgroundVolume => _backgroundVolume;
+  bool get sessionJustCompleted => _sessionJustCompleted;
 
   AudioPlayer get previewPlayer => _previewPlayer;
 
@@ -556,7 +558,13 @@ class AffirmationProvider extends ChangeNotifier {
     await _saveSessionHistory();
 
     _playbackState = PlaybackState.idle;
+    _sessionJustCompleted = true;
     notifyListeners();
+  }
+
+  /// Call this after navigating to session complete screen
+  void clearSessionCompleted() {
+    _sessionJustCompleted = false;
   }
 
   // ==================== Persistence ====================

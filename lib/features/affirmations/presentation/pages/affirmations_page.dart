@@ -135,10 +135,10 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
     final themeProvider = context.watch<ThemeProvider>();
     final provider = context.watch<AffirmationProvider>();
 
-    // Check if session completed
-    if (provider.playbackState != PlaybackState.idle &&
-        provider.remainingDuration.inSeconds == 0) {
+    // Check if session auto-completed (timer finished)
+    if (provider.sessionJustCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        provider.clearSessionCompleted();
         _onSessionComplete();
       });
     }

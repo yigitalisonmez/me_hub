@@ -456,8 +456,13 @@ class WellnessSection extends StatelessWidget {
 /// Mindfulness section: Affirmations, Breathing, Meditate, Journal
 class MindfulnessSection extends StatelessWidget {
   final VoidCallback? onAffirmationsTap;
+  final VoidCallback? onBreathingTap;
 
-  const MindfulnessSection({super.key, this.onAffirmationsTap});
+  const MindfulnessSection({
+    super.key,
+    this.onAffirmationsTap,
+    this.onBreathingTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -466,16 +471,17 @@ class MindfulnessSection extends StatelessWidget {
       titleColor: const Color(0xFF26A69A),
       cards: [
         _CategoryCard(
-          icon: LucideIcons.sparkles,
+          imagePath: 'assets/images/affirmation.png',
           label: 'Affirmations',
           color: const Color(0xFFE08E6D),
           onTap: onAffirmationsTap,
         ),
         _CategoryCard(
           icon: LucideIcons.wind,
+          imagePath: 'assets/images/breathing.png',
           label: 'Breathing',
           color: const Color(0xFF4DB6AC),
-          isComingSoon: true,
+          onTap: onBreathingTap,
         ),
         _CategoryCard(
           icon: LucideIcons.brain,
