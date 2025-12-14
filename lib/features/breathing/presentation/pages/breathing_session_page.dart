@@ -62,9 +62,25 @@ class _BreathingSessionPageState extends State<BreathingSessionPage>
     _startControlsAutoHide();
   }
 
+  BreathingProvider? _provider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _provider = context.read<BreathingProvider>();
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
+
+    // Ensure session is stopped when page is disposed
+    // This acts as a failsafe if the user exits the session by other means
+    if (_provider?.sessionState != SessionState.idle &&
+        _provider?.sessionState != SessionState.complete) {
+      _provider?.stopSession();
+    }
+
     super.dispose();
   }
 

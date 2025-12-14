@@ -21,21 +21,21 @@ class BackgroundSound {
   static const List<BackgroundSound> presets = [
     BackgroundSound(
       id: 'ambient_pads',
-      name: 'Ambient Sesler',
+      name: 'Ambient Pads',
       nameEn: 'Ambient Pads',
       assetPath: 'assets/audio/backgrounds/ambient-pads.mp3',
       icon: LucideIcons.music,
     ),
     BackgroundSound(
       id: 'rain_wind_chimes',
-      name: 'Yağmur & Rüzgar Çanları',
+      name: 'Rain & Wind Chimes',
       nameEn: 'Rain & Wind Chimes',
       assetPath: 'assets/audio/backgrounds/rain-and-wind-chimes.mp3',
       icon: LucideIcons.cloudRain,
     ),
     BackgroundSound(
       id: 'summer_night',
-      name: 'Yaz Gecesi',
+      name: 'Summer Night',
       nameEn: 'Summer Night',
       assetPath: 'assets/audio/backgrounds/summer-night.mp3',
       icon: LucideIcons.moon,

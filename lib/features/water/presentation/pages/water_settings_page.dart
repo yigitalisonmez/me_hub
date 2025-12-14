@@ -77,10 +77,10 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
 
     if (mounted) {
       setState(() {
-        _dailyGoal = goal;
+        _dailyGoal = goal.clamp(500, 5000);
         _quickAddAmounts = amounts;
         // Check if current goal matches a preset
-        _selectedPreset = _presets.contains(goal) ? goal : null;
+        _selectedPreset = _presets.contains(_dailyGoal) ? _dailyGoal : null;
       });
     }
   }
@@ -375,7 +375,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                       ),
                       child: Slider(
                         key: _sliderKey,
-                        value: _dailyGoal.toDouble(),
+                        value: _dailyGoal.toDouble().clamp(500.0, 5000.0),
                         min: 500,
                         max: 5000,
                         onChanged: _onSliderChanged,

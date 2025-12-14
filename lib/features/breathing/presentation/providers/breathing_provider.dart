@@ -480,6 +480,8 @@ class BreathingProvider extends ChangeNotifier {
     _breathingTimer = null;
     _phaseTimer?.cancel();
     _phaseTimer = null;
+    _hapticTimer?.cancel();
+    _hapticTimer = null;
   }
 
   // ==================== Audio ====================
@@ -535,9 +537,13 @@ class BreathingProvider extends ChangeNotifier {
     _hapticEnabled = enabled;
     _saveSettings();
 
-    if (!_hapticEnabled) {
-      _hapticTimer?.cancel();
-    } else if (_sessionState == SessionState.breathing) {
+    // Reset any existing haptic timer
+    _hapticTimer?.cancel();
+
+    if (_hapticEnabled && _sessionState == SessionState.breathing) {
+      // Immediate feedback to show it's enabled
+      HapticFeedback.lightImpact();
+      // Start the loop for the current phase
       _startHapticLoop(_currentPhase);
     }
 
