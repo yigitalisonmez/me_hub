@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/page_header.dart';
@@ -110,6 +111,24 @@ class _HomePageState extends State<HomePage> {
                     ? '${_getGreeting()}, $_userName'
                     : _getGreeting(),
                 subtitle: 'Welcome to your home',
+                actionWidget: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (child, animation) {
+                    return RotationTransition(
+                      turns: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child: Icon(
+                    themeProvider.isDarkMode
+                        ? LucideIcons.sun
+                        : LucideIcons.moon,
+                    key: ValueKey(themeProvider.isDarkMode),
+                    color: themeProvider.primaryColor,
+                    size: 20,
+                  ),
+                ),
+                onActionTap: () => themeProvider.toggleTheme(),
               ),
             ),
             const SizedBox(height: 16),

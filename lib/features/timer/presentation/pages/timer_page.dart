@@ -266,7 +266,7 @@ class _TimerPageState extends State<TimerPage> {
               onPressed:
                   timer.mode == TimerMode.pomodoro &&
                       timer.state != TimerState.idle
-                  ? timer.reset
+                  ? timer.skip
                   : null,
               isSecondary: true,
             ),

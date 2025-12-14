@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 enum TimerMode { pomodoro, countdown, stopwatch }
@@ -140,8 +141,41 @@ class TimerProvider extends ChangeNotifier {
     }
   }
 
+  void skip() {
+    _timer?.cancel();
+
+    if (_mode == TimerMode.pomodoro) {
+      // Logic similar to _onTimerComplete but forced
+      if (_isBreaktime) {
+        // Skip break -> start work
+        _isBreaktime = false;
+        if (_currentSession < _totalSessions) {
+          _currentSession++;
+        } else {
+          _currentSession = 1; // Reset to first session
+        }
+        _remainingSeconds = _workDuration;
+        _totalSeconds = _workDuration;
+      } else {
+        // Skip work -> start break
+        _isBreaktime = true;
+        _remainingSeconds = _breakDuration;
+        _totalSeconds = _breakDuration;
+      }
+      _state = TimerState.idle;
+    } else {
+      // For countdown, skip just resets/stops
+      reset();
+    }
+
+    notifyListeners();
+  }
+
   void _onTimerComplete() {
     _timer?.cancel();
+
+    // Haptic feedback on completion
+    HapticFeedback.heavyImpact();
 
     if (_mode == TimerMode.pomodoro) {
       if (_isBreaktime) {

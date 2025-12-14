@@ -6,6 +6,7 @@ class PageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData? actionIcon;
+  final Widget? actionWidget;
   final VoidCallback? onActionTap;
 
   const PageHeader({
@@ -13,6 +14,7 @@ class PageHeader extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.actionIcon,
+    this.actionWidget,
     this.onActionTap,
   });
 
@@ -43,7 +45,7 @@ class PageHeader extends StatelessWidget {
             ),
           ],
         ),
-        if (actionIcon != null)
+        if (actionIcon != null || actionWidget != null)
           GestureDetector(
             onTap: onActionTap,
             child: Container(
@@ -77,11 +79,9 @@ class PageHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
-                actionIcon,
-                color: themeProvider.primaryColor,
-                size: 20,
-              ),
+              child:
+                  actionWidget ??
+                  Icon(actionIcon, color: themeProvider.primaryColor, size: 20),
             ),
           ),
       ],
