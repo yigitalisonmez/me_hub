@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -112,35 +113,44 @@ class _BreathingPageState extends State<BreathingPage> {
             ),
           ),
 
-          // Content
+          // Content with staggered animation
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Stats summary
-                _StatsRow(
-                  totalMinutes: breathingProvider.totalMindfulMinutes,
-                  streak: breathingProvider.currentStreak,
-                  sessions: breathingProvider.sessionHistory.length,
-                ),
-                const SizedBox(height: 24),
+              delegate: SliverChildListDelegate(
+                AnimationConfiguration.toStaggeredList(
+                  duration: const Duration(milliseconds: 375),
+                  childAnimationBuilder: (widget) => SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(child: widget),
+                  ),
+                  children: [
+                    // Stats summary
+                    _StatsRow(
+                      totalMinutes: breathingProvider.totalMindfulMinutes,
+                      streak: breathingProvider.currentStreak,
+                      sessions: breathingProvider.sessionHistory.length,
+                    ),
+                    const SizedBox(height: 24),
 
-                // Category buttons
-                _CategorySelector(
-                  selectedCategory: _selectedCategory,
-                  onCategoryChanged: (category) {
-                    setState(() => _selectedCategory = category);
-                  },
-                ),
-                const SizedBox(height: 24),
+                    // Category buttons
+                    _CategorySelector(
+                      selectedCategory: _selectedCategory,
+                      onCategoryChanged: (category) {
+                        setState(() => _selectedCategory = category);
+                      },
+                    ),
+                    const SizedBox(height: 24),
 
-                // Technique cards - filtered by category
-                _TechniqueGrid(
-                  techniques: _getFilteredTechniques(),
-                  customTechniques: breathingProvider.customTechniques,
-                  onTap: (technique) => _startSession(technique),
+                    // Technique cards - filtered by category
+                    _TechniqueGrid(
+                      techniques: _getFilteredTechniques(),
+                      customTechniques: breathingProvider.customTechniques,
+                      onTap: (technique) => _startSession(technique),
+                    ),
+                  ],
                 ),
-              ]),
+              ),
             ),
           ),
         ],
