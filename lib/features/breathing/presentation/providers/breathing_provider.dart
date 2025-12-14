@@ -133,14 +133,15 @@ class BreathingProvider extends ChangeNotifier {
   }
 
   /// Current streak (consecutive days with sessions)
+  /// Does not break streak if user hasn't done exercise today yet
   int get currentStreak {
     if (_sessionHistory.isEmpty) return 0;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
 
     int streak = 0;
-    DateTime? checkDate = today;
 
     // Get unique session dates
     final sessionDates =
@@ -157,9 +158,25 @@ class BreathingProvider extends ChangeNotifier {
             .toList()
           ..sort((a, b) => b.compareTo(a));
 
-    for (final date in sessionDates) {
-      if (checkDate == null) break;
+    if (sessionDates.isEmpty) return 0;
 
+    // Determine starting date for streak check
+    // If there's a session today, start from today
+    // If no session today but there's one yesterday, start from yesterday
+    DateTime checkDate;
+    if (sessionDates.contains(today)) {
+      checkDate = today;
+    } else if (sessionDates.contains(yesterday)) {
+      // User hasn't done exercise today yet, but did yesterday
+      // Start counting from yesterday (streak is still active)
+      checkDate = yesterday;
+    } else {
+      // No session today or yesterday, streak is broken
+      return 0;
+    }
+
+    // Count consecutive days backwards
+    for (final date in sessionDates) {
       if (date == checkDate) {
         streak++;
         checkDate = checkDate.subtract(const Duration(days: 1));
