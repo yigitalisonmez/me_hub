@@ -6,7 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/providers/theme_provider.dart';
 import '../providers/breathing_provider.dart';
-import '../widgets/breathing_circle_animation.dart';
+import '../widgets/breathing_polygon_animation.dart';
 import '../widgets/mood_check_widget.dart';
 import '../widgets/session_complete_widget.dart';
 import '../widgets/session_settings_sheet.dart';
@@ -377,7 +377,7 @@ class _BreathingView extends StatelessWidget {
         const Spacer(),
 
         // Breathing circle animation
-        const BreathingCircleAnimation(),
+        const BreathingPolygonAnimation(),
 
         const Spacer(),
 

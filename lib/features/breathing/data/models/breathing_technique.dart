@@ -40,6 +40,34 @@ class BreathingTechnique {
       exhaleSeconds +
       holdAfterExhaleSeconds;
 
+  /// Number of active phases (determines polygon shape)
+  int get phaseCount {
+    int count = 0;
+    if (inhaleSeconds > 0) count++;
+    if (holdAfterInhaleSeconds > 0) count++;
+    if (exhaleSeconds > 0) count++;
+    if (holdAfterExhaleSeconds > 0) count++;
+    return count;
+  }
+
+  /// Get list of phases with their durations
+  List<({String label, int duration})> get phases {
+    final result = <({String label, int duration})>[];
+    if (inhaleSeconds > 0) {
+      result.add((label: 'Breathe In', duration: inhaleSeconds));
+    }
+    if (holdAfterInhaleSeconds > 0) {
+      result.add((label: 'Hold', duration: holdAfterInhaleSeconds));
+    }
+    if (exhaleSeconds > 0) {
+      result.add((label: 'Breathe Out', duration: exhaleSeconds));
+    }
+    if (holdAfterExhaleSeconds > 0) {
+      result.add((label: 'Hold', duration: holdAfterExhaleSeconds));
+    }
+    return result;
+  }
+
   /// Calculate how many cycles fit in a given duration
   int cyclesInDuration(int minutes) {
     final totalSeconds = minutes * 60;

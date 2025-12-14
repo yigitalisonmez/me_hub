@@ -40,6 +40,7 @@ class BreathingProvider extends ChangeNotifier {
   int _targetDurationMinutes = 3;
   int _cyclesCompleted = 0;
   int _sessionStartTime = 0;
+  int _phaseStartTime = 0; // Timestamp when current phase started
 
   // Animation progress (0.0 to 1.0 within current phase)
   double _phaseProgress = 0.0;
@@ -253,6 +254,7 @@ class BreathingProvider extends ChangeNotifier {
     _cyclesCompleted = 0;
     _currentPhase = BreathingPhase.inhale;
     _phaseSecondsRemaining = _selectedTechnique!.inhaleSeconds;
+    _phaseStartTime = DateTime.now().millisecondsSinceEpoch;
     _phaseProgress = 0.0;
 
     // Start background audio
@@ -298,12 +300,12 @@ class BreathingProvider extends ChangeNotifier {
       return;
     }
 
-    final elapsed = phaseDuration - _phaseSecondsRemaining;
-    // Add smooth sub-second progress
-    _phaseProgress =
-        ((elapsed / phaseDuration) +
-                (1 - _phaseSecondsRemaining / phaseDuration) * 0.016)
-            .clamp(0.0, 1.0);
+    // Calculate continuous progress using real elapsed time
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final elapsedMs = now - _phaseStartTime;
+    final phaseDurationMs = phaseDuration * 1000;
+
+    _phaseProgress = (elapsedMs / phaseDurationMs).clamp(0.0, 1.0);
 
     notifyListeners();
   }
@@ -362,6 +364,7 @@ class BreathingProvider extends ChangeNotifier {
     }
 
     _phaseProgress = 0.0;
+    _phaseStartTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   void _completeCycle() {
