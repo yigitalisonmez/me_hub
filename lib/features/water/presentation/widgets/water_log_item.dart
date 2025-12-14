@@ -48,13 +48,7 @@ class _WaterLogItemState extends State<WaterLogItem>
       _isDeleting = true;
     });
 
-    // Haptic feedback
-    HapticFeedback.mediumImpact();
-
-    // Start animation
-    await _animationController.forward();
-
-    // Delete after animation completes
+    // Delete the log
     widget.provider.deleteLog(widget.log.id);
 
     // Show confirmation snackbar
@@ -79,7 +73,7 @@ class _WaterLogItemState extends State<WaterLogItem>
               ),
             ],
           ),
-          backgroundColor: themeProvider.backgroundColor,
+          backgroundColor: themeProvider.surfaceColor,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
