@@ -6,7 +6,6 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_card_widget.dart';
-import '../widgets/add_todo_dialog.dart';
 
 /// Tasks page - Today's Goals and task management
 class TodoPage extends StatefulWidget {
@@ -26,23 +25,10 @@ class _TodoPageState extends State<TodoPage> {
     super.didChangeDependencies();
     if (!_dataLoaded) {
       _dataLoaded = true;
-      context.read<TodoProvider>().loadTodayTodos();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<TodoProvider>().loadTodayTodos();
+      });
     }
-  }
-
-  void _showAddTodoDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AddTodoDialog(
-        onAdd: ({required String title, DateTime? date, int priority = 2}) {
-          context.read<TodoProvider>().addTodo(
-            title: title,
-            date: date,
-            priority: priority,
-          );
-        },
-      ),
-    );
   }
 
   @override
@@ -52,50 +38,16 @@ class _TodoPageState extends State<TodoPage> {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Page Header with Add button
+        // Page Header with Settings button (using PageHeader for consistency)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: PageHeader(
-                  title: "Today's Goals",
-                  subtitle: 'One task at a time, you got this!',
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Add button
-              Container(
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: themeProvider.primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _showAddTodoDialog,
-                    borderRadius: BorderRadius.circular(16),
-                    child: const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: Icon(
-                        LucideIcons.plus,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          child: PageHeader(
+            title: "Today's Goals",
+            subtitle: 'One task at a time, you got this!',
+            actionIcon: LucideIcons.settings,
+            onActionTap: () {
+              // TODO: Open todo settings
+            },
           ),
         ),
         const SizedBox(height: 16),
