@@ -61,6 +61,45 @@ class _TodoPageState extends State<TodoPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Hero(
                     tag: 'tasks_hero',
+                    flightShuttleBuilder:
+                        (
+                          flightContext,
+                          animation,
+                          flightDirection,
+                          fromHeroContext,
+                          toHeroContext,
+                        ) {
+                          // During flight, show a simple animated card
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              return Material(
+                                type: MaterialType.transparency,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: themeProvider.surfaceColor,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: themeProvider.primaryColor
+                                            .withValues(alpha: 0.2),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      LucideIcons.target,
+                                      color: themeProvider.primaryColor,
+                                      size: 32 + (animation.value * 16),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
                     child: Material(
                       type: MaterialType.transparency,
                       child: const TodoCardWidget(),
