@@ -282,7 +282,6 @@ class _CategoryCard extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
   final bool isComingSoon;
-  final String? heroTag;
 
   const _CategoryCard({
     this.icon,
@@ -291,14 +290,13 @@ class _CategoryCard extends StatelessWidget {
     required this.color,
     this.onTap,
     this.isComingSoon = false,
-    this.heroTag,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    final cardContent = ElevatedCard(
+    return ElevatedCard(
       width: 100,
       height: 100,
       padding: const EdgeInsets.all(8),
@@ -364,16 +362,6 @@ class _CategoryCard extends StatelessWidget {
         ],
       ),
     );
-
-    // Wrap in Hero if heroTag is provided
-    if (heroTag != null) {
-      return Hero(
-        tag: heroTag!,
-        child: Material(type: MaterialType.transparency, child: cardContent),
-      );
-    }
-
-    return cardContent;
   }
 }
 
@@ -403,7 +391,6 @@ class ProductivitySection extends StatelessWidget {
           label: 'Tasks',
           color: themeProvider.primaryColor,
           onTap: onTasksTap,
-          heroTag: 'tasks_hero',
         ),
         _CategoryCard(
           imagePath: 'assets/images/calendar.png',

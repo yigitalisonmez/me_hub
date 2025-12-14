@@ -146,15 +146,7 @@ class _HomePageState extends State<HomePage> {
             ProductivitySection(
               onTasksTap: () => Navigator.push(
                 context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      const TodoPage(showFullPage: true),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                  transitionDuration: const Duration(milliseconds: 300),
-                ),
+                MaterialPageRoute(builder: (_) => const TodoPage()),
               ),
               onRoutinesTap: () => Navigator.push(
                 context,

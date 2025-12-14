@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/layout_constants.dart';
@@ -35,83 +36,41 @@ class _TodoPageState extends State<TodoPage> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Page Header with Settings button (using PageHeader for consistency)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: PageHeader(
-            title: "Today's Goals",
-            subtitle: 'One task at a time, you got this!',
-            actionIcon: LucideIcons.settings,
-            onActionTap: () {
-              // TODO: Open todo settings
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Tasks List
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Hero(
-                    tag: 'tasks_hero',
-                    flightShuttleBuilder:
-                        (
-                          flightContext,
-                          animation,
-                          flightDirection,
-                          fromHeroContext,
-                          toHeroContext,
-                        ) {
-                          // During flight, show a simple animated card
-                          return AnimatedBuilder(
-                            animation: animation,
-                            builder: (context, child) {
-                              return Material(
-                                type: MaterialType.transparency,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: themeProvider.surfaceColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: themeProvider.primaryColor
-                                            .withValues(alpha: 0.2),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      LucideIcons.target,
-                                      color: themeProvider.primaryColor,
-                                      size: 32 + (animation.value * 16),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: const TodoCardWidget(),
-                    ),
-                  ),
-                ),
-                SizedBox(height: LayoutConstants.getNavbarClearance(context)),
-              ],
+    final content = SingleChildScrollView(
+      child: AnimationLimiter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: AnimationConfiguration.toStaggeredList(
+            duration: const Duration(milliseconds: 375),
+            childAnimationBuilder: (widget) => SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(child: widget),
             ),
+            children: [
+              // Page Header with Settings button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: PageHeader(
+                  title: "Today's Goals",
+                  subtitle: 'One task at a time, you got this!',
+                  actionIcon: LucideIcons.settings,
+                  onActionTap: () {
+                    // TODO: Open todo settings
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Tasks Card
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: TodoCardWidget(),
+              ),
+              SizedBox(height: LayoutConstants.getNavbarClearance(context)),
+            ],
           ),
         ),
-      ],
+      ),
     );
 
     if (widget.showFullPage) {
