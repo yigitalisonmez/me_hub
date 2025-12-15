@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../domain/usecases/usecases.dart';
 import '../../../home_widget/data/home_widget_service.dart';
+import '../../../../core/services/cumulative_stats_service.dart';
 
 class WaterProvider with ChangeNotifier {
   final GetTodayWaterIntake _getTodayWaterIntake;
@@ -91,6 +92,9 @@ class WaterProvider with ChangeNotifier {
       final wasGoalReached = isGoalReached;
       await _addWater(DateTime.now(), amountMl);
       await loadTodayWaterIntake();
+
+      // Update cumulative all-time water stats
+      await CumulativeStatsService.addWater(amountMl);
 
       // Check if goal was just reached
       if (!wasGoalReached && isGoalReached) {

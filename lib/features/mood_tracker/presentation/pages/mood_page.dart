@@ -137,17 +137,14 @@ class _MoodPageState extends State<MoodPage>
           // Label and Score
           Column(
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  label,
-                  key: ValueKey(label),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
                 ),
+                child: Text(label),
               ),
               const SizedBox(height: 8),
               Text(

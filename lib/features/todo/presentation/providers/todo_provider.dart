@@ -8,6 +8,7 @@ import '../../domain/usecases/delete_todo.dart';
 import '../../domain/usecases/toggle_todo_completion.dart';
 import '../../../../core/utils/result.dart';
 import '../../../../core/services/completion_tracker_service.dart';
+import '../../../../core/services/cumulative_stats_service.dart';
 
 /// Todo state management provider
 class TodoProvider with ChangeNotifier {
@@ -42,7 +43,7 @@ class TodoProvider with ChangeNotifier {
   List<DailyTodo> get todos => _todos;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   /// Check if all todos are completed
   bool get allTodosCompleted {
     if (_todos.isEmpty) return false;
@@ -165,14 +166,14 @@ class TodoProvider with ChangeNotifier {
 
     if (result is Success) {
       _todos.removeWhere((todo) => todo.id == id);
-      
+
       // Check if all todos are now completed (only if wasn't before and now is)
       if (!wasAllCompleted && allTodosCompleted && _todos.isNotEmpty) {
         _justCompletedAllTodos = true;
       } else {
         _justCompletedAllTodos = false;
       }
-      
+
       notifyListeners();
       return true;
     } else {
@@ -195,15 +196,26 @@ class TodoProvider with ChangeNotifier {
     if (result is Success) {
       final index = _todos.indexWhere((todo) => todo.id == id);
       if (index != -1 && result.data != null) {
-        _todos[index] = result.data!;
-        
+        final oldTodo = _todos[index];
+        final newTodo = result.data!;
+        _todos[index] = newTodo;
+
+        // Update cumulative stats based on completion change
+        if (!oldTodo.isCompleted && newTodo.isCompleted) {
+          // Task was just completed
+          await CumulativeStatsService.incrementTasksCompleted();
+        } else if (oldTodo.isCompleted && !newTodo.isCompleted) {
+          // Task was uncompleted
+          await CumulativeStatsService.decrementTasksCompleted();
+        }
+
         // Check if all todos just became completed (wasn't before, but is now)
         if (!wasAllCompleted && allTodosCompleted && _todos.isNotEmpty) {
           _justCompletedAllTodos = true;
         } else {
           _justCompletedAllTodos = false;
         }
-        
+
         notifyListeners();
 
         // Completion tracking

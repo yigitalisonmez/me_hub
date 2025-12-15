@@ -31,10 +31,19 @@ class WaterLocalDataSource {
     await _box.delete(key);
   }
 
+  /// Get all water intakes from all time
+  Future<List<WaterIntake>> getAllWaterIntakes() async {
+    return _box.values.toList();
+  }
+
+  /// Get total water consumed all time in ml
+  Future<int> getTotalWaterConsumedMl() async {
+    final allIntakes = await getAllWaterIntakes();
+    return allIntakes.fold<int>(0, (sum, intake) => sum + intake.amountMl);
+  }
 
   /// Generate key from date (YYYY-MM-DD format)
   String _getKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
-

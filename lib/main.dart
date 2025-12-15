@@ -39,7 +39,7 @@ import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
-import 'features/settings/presentation/pages/settings_page.dart';
+import 'features/profile/presentation/pages/profile_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
 import 'core/providers/voice_settings_provider.dart';
 import 'core/widgets/glass_nav_bar.dart';
@@ -294,7 +294,15 @@ class _MainScreenState extends State<MainScreen> {
           case 2:
             return const WaterPage();
           case 3:
-            return const SettingsPage();
+            return ProfilePage(
+              onNavigateToPage: (pageIndex) {
+                _pageController.animateToPage(
+                  pageIndex,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            );
           default:
             return const HomePage();
         }

@@ -95,8 +95,8 @@ class GlassNavBar extends StatelessWidget {
                       ),
                       _buildNavItem(
                         context,
-                        icon: LucideIcons.settings,
-                        label: 'Settings',
+                        icon: LucideIcons.user,
+                        label: 'Profile',
                         index: 3,
                         themeProvider: themeProvider,
                       ),
