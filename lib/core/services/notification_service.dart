@@ -87,20 +87,13 @@ class NotificationService {
   Future<void> rescheduleAllRoutineNotifications(List<Routine> routines) async {
     if (!_initialized) await initialize();
 
-    debugPrint('🔄 Tüm bildirimleri yeniden zamanlama başlıyor...');
-
     await cancelAllNotifications();
-    debugPrint('✅ Tüm bildirimler iptal edildi');
 
-    int scheduledCount = 0;
     for (final routine in routines) {
       if (routine.time != null) {
         await scheduleRoutineNotifications(routine);
-        scheduledCount++;
       }
     }
-
-    debugPrint('✅ Toplam $scheduledCount rutin için bildirimler zamanlandı');
   }
 
   Future<void> scheduleRoutineNotifications(Routine routine) async {
@@ -241,23 +234,7 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      if (kDebugMode) {
-        final timeUntilNotification = scheduledDate.difference(now);
-        debugPrint('✅ ${routine.name} - ${_getDayName(dayIndex)}');
-        debugPrint(
-          '   🕐 Rutin saati: ${routineHour.toString().padLeft(2, '0')}:${routineMinute.toString().padLeft(2, '0')}',
-        );
-        debugPrint(
-          '   🔔 Bildirim saati: ${notificationHour.toString().padLeft(2, '0')}:${notificationMinute.toString().padLeft(2, '0')}',
-        );
-        debugPrint(
-          '   📅 İlk bildirim: ${scheduledDate.day}/${scheduledDate.month}/${scheduledDate.year} ${scheduledDate.hour.toString().padLeft(2, '0')}:${scheduledDate.minute.toString().padLeft(2, '0')}',
-        );
-        debugPrint(
-          '   ⏳ Kalan süre: ${timeUntilNotification.inMinutes} dakika',
-        );
-        debugPrint('   🆔 ID: $notificationId');
-      }
+      // Logging removed to reduce console spam
 
       // Random motivational quote
       final quotes = [
@@ -320,22 +297,8 @@ class NotificationService {
 
   Future<void> checkPendingNotifications() async {
     if (!_initialized) await initialize();
-
-    final pendingNotifications = await _notifications
-        .pendingNotificationRequests();
-    debugPrint(
-      '📋 Zamanlanmış bildirim sayısı: ${pendingNotifications.length}',
-    );
-
-    if (pendingNotifications.isEmpty) {
-      debugPrint('⚠️ Hiç zamanlanmış bildirim yok!');
-    } else {
-      for (final notification in pendingNotifications) {
-        debugPrint(
-          '   - ID: ${notification.id}, Başlık: ${notification.title}',
-        );
-      }
-    }
+    // Removed verbose logging
+    await _notifications.pendingNotificationRequests();
   }
 
   int _getNotificationId(String routineId, int dayIndex) {
@@ -347,7 +310,7 @@ class NotificationService {
     await scheduleRoutineNotifications(routine);
   }
 
-   Future<void> showTestNotification() async {
+  Future<void> showTestNotification() async {
     if (!_initialized) await initialize();
 
     try {

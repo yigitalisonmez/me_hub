@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import '../../domain/usecases/usecases.dart';
@@ -38,7 +37,8 @@ class RoutinesProvider with ChangeNotifier {
   }
 
   /// Check if a routine is expanded
-  bool isRoutineExpanded(String routineId) => _expandedRoutines.contains(routineId);
+  bool isRoutineExpanded(String routineId) =>
+      _expandedRoutines.contains(routineId);
 
   /// Toggle routine expansion
   void toggleRoutineExpansion(String routineId) {
@@ -94,30 +94,32 @@ class RoutinesProvider with ChangeNotifier {
     List<int>? selectedDays,
   }) async {
     try {
-    final routine = Routine(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name,
-      items: const [],
-      streakCount: 0,
-      iconCodePoint: iconCodePoint,
-      timeHour: time?.hour,
-      timeMinute: time?.minute,
-      selectedDays: selectedDays,
-    );
-      
+      final routine = Routine(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        name: name,
+        items: const [],
+        streakCount: 0,
+        iconCodePoint: iconCodePoint,
+        timeHour: time?.hour,
+        timeMinute: time?.minute,
+        selectedDays: selectedDays,
+      );
+
       // Önce storage'a kaydet
       final savedRoutine = await _addRoutine(routine);
-      
+
       // Başarılı oldu, şimdi local state'i güncelle
       // Duplicate kontrolü yap
       if (!_routines.any((r) => r.id == savedRoutine.id)) {
         _routines.add(savedRoutine);
         notifyListeners();
       }
-      
+
       // Bildirimleri arka planda zamanla (async)
       if (routine.time != null) {
-        NotificationService().scheduleRoutineNotifications(routine).catchError((e) {
+        NotificationService().scheduleRoutineNotifications(routine).catchError((
+          e,
+        ) {
           debugPrint('Error scheduling notifications: $e');
         });
       }
@@ -130,13 +132,17 @@ class RoutinesProvider with ChangeNotifier {
   /// Get routines active on a specific weekday
   /// weekday: 0=Monday, 6=Sunday
   List<Routine> getActiveRoutinesForDay(int weekday) {
-    return _routines.where((routine) => routine.isActiveOnDay(weekday)).toList();
+    return _routines
+        .where((routine) => routine.isActiveOnDay(weekday))
+        .toList();
   }
 
   /// Get routines inactive on a specific weekday
   /// weekday: 0=Monday, 6=Sunday
   List<Routine> getInactiveRoutinesForDay(int weekday) {
-    return _routines.where((routine) => !routine.isActiveOnDay(weekday)).toList();
+    return _routines
+        .where((routine) => !routine.isActiveOnDay(weekday))
+        .toList();
   }
 
   /// Get routine by ID, returns null if not found
@@ -170,10 +176,7 @@ class RoutinesProvider with ChangeNotifier {
   Future<void> deleteItem(String routineId, String itemId) async {
     try {
       final index = _routines.indexWhere((r) => r.id == routineId);
-      if (index == -1) {
-        debugPrint('deleteItem: Routine not found: $routineId');
-        return;
-      }
+      if (index == -1) return;
 
       final routine = _routines[index];
       final itemCountBefore = routine.items.length;
@@ -182,10 +185,7 @@ class RoutinesProvider with ChangeNotifier {
           .toList();
 
       if (updatedItems.length == itemCountBefore) {
-        // Item bulunamadı, silinecek bir şey yok
-        debugPrint(
-          'deleteItem: Item not found: $itemId in routine: $routineId',
-        );
+        // Item not found, nothing to delete
         return;
       }
 
@@ -194,29 +194,14 @@ class RoutinesProvider with ChangeNotifier {
       // Streak kontrolü yap
       updated = _checkAndUpdateStreak(routine, updated);
 
-      debugPrint(
-        'deleteItem: Before _updateRoutine - routine has ${updated.items.length} items',
-      );
-
       // Update storage first
-      final result = await _updateRoutine(updated);
-      debugPrint(
-        'deleteItem: After _updateRoutine - result has ${result.items.length} items',
-      );
+      await _updateRoutine(updated);
 
       // Then update local state
       _routines[index] = updated;
       notifyListeners();
-
-      debugPrint(
-        'deleteItem: Successfully deleted item $itemId from routine $routineId',
-      );
-      debugPrint(
-        'deleteItem: Local state updated - _routines[$index] has ${_routines[index].items.length} items',
-      );
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('deleteItem error: $e');
-      debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
   }
@@ -289,8 +274,10 @@ class RoutinesProvider with ChangeNotifier {
     // Check if routine was just completed
     final wasCompletedBefore = routine.allItemsCheckedToday(normalizedToday);
     final isCompletedNow = updatedRoutine.allItemsCheckedToday(normalizedToday);
-    
-    if (!wasCompletedBefore && isCompletedNow && updatedRoutine.items.isNotEmpty) {
+
+    if (!wasCompletedBefore &&
+        isCompletedNow &&
+        updatedRoutine.items.isNotEmpty) {
       _justCompletedRoutineName = updatedRoutine.name;
     }
 
@@ -298,7 +285,7 @@ class RoutinesProvider with ChangeNotifier {
     updatedRoutine = _checkAndUpdateStreak(routine, updatedRoutine);
 
     await _updateRoutine(updatedRoutine);
-    
+
     // Update local state immediately for UI responsiveness
     _routines[index] = updatedRoutine;
     notifyListeners();
@@ -307,14 +294,16 @@ class RoutinesProvider with ChangeNotifier {
   Future<void> deleteRoutine(String routineId) async {
     try {
       // Önce silme işlemini yap - başarılı olursa state'i güncelle
-    await _deleteRoutine(routineId);
-      
+      await _deleteRoutine(routineId);
+
       // Silme başarılı oldu, şimdi state'i güncelle
       _routines.removeWhere((r) => r.id == routineId);
       notifyListeners();
-      
+
       // Bildirimleri arka planda iptal et
-      NotificationService().cancelRoutineNotifications(routineId).catchError((e) {
+      NotificationService().cancelRoutineNotifications(routineId).catchError((
+        e,
+      ) {
         debugPrint('Error canceling notifications: $e');
       });
     } catch (e) {
@@ -365,10 +354,7 @@ class RoutinesProvider with ChangeNotifier {
   }
 
   /// Create a new RoutineItem with generated ID
-  RoutineItem createRoutineItem({
-    required String title,
-    int? iconCodePoint,
-  }) {
+  RoutineItem createRoutineItem({required String title, int? iconCodePoint}) {
     return RoutineItem(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       title: title,
