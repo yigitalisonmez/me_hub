@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../domain/usecases/usecases.dart';
+import '../../data/services/daily_goal_service.dart';
 import '../../../home_widget/data/home_widget_service.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
 
@@ -70,6 +71,9 @@ class WaterProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Load saved daily goal first to prevent incorrect progress display
+      _dailyGoalMl = await DailyGoalService.getDailyGoal();
+
       _todayIntake = await _getTodayWaterIntake();
     } catch (e) {
       _error = 'Failed to load water intake';
