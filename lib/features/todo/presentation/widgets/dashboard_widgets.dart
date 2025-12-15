@@ -453,15 +453,17 @@ class WellnessSection extends StatelessWidget {
   }
 }
 
-/// Mindfulness section: Affirmations, Breathing, Meditate, Journal
+/// Mindfulness section: Affirmations, Breathing, Gratitude, Meditate
 class MindfulnessSection extends StatelessWidget {
   final VoidCallback? onAffirmationsTap;
   final VoidCallback? onBreathingTap;
+  final VoidCallback? onGratitudeTap;
 
   const MindfulnessSection({
     super.key,
     this.onAffirmationsTap,
     this.onBreathingTap,
+    this.onGratitudeTap,
   });
 
   @override
@@ -484,15 +486,15 @@ class MindfulnessSection extends StatelessWidget {
           onTap: onBreathingTap,
         ),
         _CategoryCard(
+          icon: LucideIcons.heart,
+          label: 'Gratitude',
+          color: const Color(0xFFFFB74D),
+          onTap: onGratitudeTap,
+        ),
+        _CategoryCard(
           icon: LucideIcons.brain,
           label: 'Meditate',
           color: const Color(0xFF7E57C2),
-          isComingSoon: true,
-        ),
-        _CategoryCard(
-          icon: LucideIcons.bookOpen,
-          label: 'Journal',
-          color: const Color(0xFF5C6BC0),
           isComingSoon: true,
         ),
       ],

@@ -45,6 +45,12 @@ import 'core/providers/voice_settings_provider.dart';
 import 'core/widgets/glass_nav_bar.dart';
 import 'features/affirmations/presentation/providers/affirmation_provider.dart';
 import 'features/breathing/presentation/providers/breathing_provider.dart';
+import 'features/gratitude/domain/entities/gratitude_entry.dart';
+import 'features/gratitude/domain/entities/gratitude_item.dart';
+import 'features/gratitude/data/datasources/gratitude_local_datasource.dart';
+import 'features/gratitude/data/repositories/gratitude_repository_impl.dart';
+import 'features/gratitude/domain/usecases/usecases.dart' as GratitudeUsecases;
+import 'features/gratitude/presentation/providers/gratitude_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +66,9 @@ void main() async {
   Hive.registerAdapter(WaterIntakeAdapter());
   Hive.registerAdapter(WaterLogAdapter());
   Hive.registerAdapter(MoodEntryAdapter());
+  Hive.registerAdapter(GratitudeEntryAdapter());
+  Hive.registerAdapter(GratitudeItemAdapter());
+  Hive.registerAdapter(EntryTypeAdapter());
 
   // Data source'ları başlat
   final todoDataSource = TodoLocalDataSourceImpl();
@@ -70,6 +79,8 @@ void main() async {
   final waterDataSource = WaterLocalDataSource(waterBox);
   final moodDataSource = MoodLocalDataSource();
   await moodDataSource.init();
+  final gratitudeDataSource = GratitudeLocalDataSource();
+  await gratitudeDataSource.init();
 
   // Notification service'i başlat
   await NotificationService().initialize();
@@ -84,6 +95,7 @@ void main() async {
       routinesDataSource: routinesDataSource,
       waterDataSource: waterDataSource,
       moodDataSource: moodDataSource,
+      gratitudeDataSource: gratitudeDataSource,
       showOnboarding: showOnboarding,
     ),
   );
@@ -94,6 +106,7 @@ class MeHubApp extends StatelessWidget {
   final RoutineLocalDataSource routinesDataSource;
   final WaterLocalDataSource waterDataSource;
   final MoodLocalDataSource moodDataSource;
+  final GratitudeLocalDataSource gratitudeDataSource;
   final bool showOnboarding;
 
   const MeHubApp({
@@ -102,6 +115,7 @@ class MeHubApp extends StatelessWidget {
     required this.routinesDataSource,
     required this.waterDataSource,
     required this.moodDataSource,
+    required this.gratitudeDataSource,
     required this.showOnboarding,
   });
 
@@ -175,6 +189,37 @@ class MeHubApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<BreathingProvider>(
           create: (_) => BreathingProvider(),
+        ),
+        Provider<GratitudeRepositoryImpl>(
+          create: (_) => GratitudeRepositoryImpl(gratitudeDataSource),
+        ),
+        ChangeNotifierProvider<GratitudeProvider>(
+          create: (context) => GratitudeProvider(
+            addEntry: GratitudeUsecases.AddGratitudeEntry(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            getTodayEntry: GratitudeUsecases.GetTodayGratitudeEntry(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            getAllEntries: GratitudeUsecases.GetAllGratitudeEntries(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            getRandomPastEntry: GratitudeUsecases.GetRandomPastGratitudeEntry(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            updateEntry: GratitudeUsecases.UpdateGratitudeEntry(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            deleteEntry: GratitudeUsecases.DeleteGratitudeEntry(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            getStreak: GratitudeUsecases.GetGratitudeStreak(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+            getEmotionTagStats: GratitudeUsecases.GetEmotionTagStats(
+              context.read<GratitudeRepositoryImpl>(),
+            ),
+          ),
         ),
       ],
       child: Consumer<ThemeProvider>(

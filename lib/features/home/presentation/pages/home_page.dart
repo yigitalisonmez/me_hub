@@ -19,6 +19,7 @@ import '../../../mood_tracker/presentation/pages/mood_page.dart';
 import '../../../timer/presentation/pages/timer_page.dart';
 import '../../../affirmations/presentation/pages/affirmations_page.dart';
 import '../../../breathing/presentation/pages/breathing_page.dart';
+import '../../../gratitude/presentation/pages/gratitude_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -178,6 +179,10 @@ class _HomePageState extends State<HomePage> {
               onBreathingTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const BreathingPage()),
+              ),
+              onGratitudeTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GratitudePage()),
               ),
             ),
             const SizedBox(height: 24),
