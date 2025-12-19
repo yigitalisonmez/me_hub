@@ -474,6 +474,7 @@ class _MoodPageState extends State<MoodPage>
     return const PageHeader(
       title: 'Mood Tracker',
       subtitle: 'How are you feeling today?',
+      showBackButton: true,
       actionIcon: LucideIcons.heart,
     );
   }

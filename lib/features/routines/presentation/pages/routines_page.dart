@@ -242,6 +242,7 @@ class _RoutinesPageState extends State<RoutinesPage>
     return const PageHeader(
       title: 'Routines',
       subtitle: 'Build habits & stay consistent',
+      showBackButton: true,
       actionIcon: LucideIcons.settings,
     );
   }

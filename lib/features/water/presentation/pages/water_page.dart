@@ -168,6 +168,7 @@ class _WaterPageState extends State<WaterPage>
     return PageHeader(
       title: 'Water Tracker',
       subtitle: 'Stay hydrated & healthy',
+      showBackButton: true,
       actionIcon: LucideIcons.settings,
       onActionTap: () async {
         final result = await Navigator.of(context).push(

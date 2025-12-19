@@ -113,6 +113,7 @@ class _HomePageState extends State<HomePage> {
                     ? '${_getGreeting()}, $_userName'
                     : _getGreeting(),
                 subtitle: 'Welcome to your home',
+                centerTitle: false,
                 actionWidget: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
                   transitionBuilder: (child, animation) {

@@ -9,7 +9,6 @@ import 'core/theme/theme_extensions.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/theme_provider.dart';
 import 'features/home/presentation/pages/home_page.dart';
-import 'features/todo/presentation/pages/todo_page.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/repositories/todo_repository_impl.dart';
 import 'features/todo/domain/usecases/get_today_todos.dart';
@@ -27,7 +26,6 @@ import 'features/routines/data/repositories/routine_repository_impl.dart'
     as RoutinesRepo;
 import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
 import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
-import 'features/water/presentation/pages/water_page.dart';
 import 'features/water/presentation/providers/water_provider.dart';
 import 'features/mood_tracker/presentation/providers/mood_provider.dart';
 import 'features/mood_tracker/data/datasources/mood_local_datasource.dart';
@@ -312,7 +310,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildPageView() {
-    // 4 pages: Home, Tasks, Water, Settings
+    // 2 pages: Home, Profile
     return PageView.builder(
       controller: _pageController,
       physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
@@ -321,7 +319,7 @@ class _MainScreenState extends State<MainScreen> {
           _currentIndex = index;
         });
       },
-      itemCount: 4, // Reduced to 4 pages
+      itemCount: 2,
       itemBuilder: (context, index) {
         switch (index) {
           case 0:
@@ -335,10 +333,6 @@ class _MainScreenState extends State<MainScreen> {
               },
             ); // Home/Dashboard
           case 1:
-            return const TodoPage(showFullPage: false); // Tasks
-          case 2:
-            return const WaterPage();
-          case 3:
             return ProfilePage(
               onNavigateToPage: (pageIndex) {
                 _pageController.animateToPage(

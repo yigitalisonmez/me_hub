@@ -53,6 +53,7 @@ class _TodoPageState extends State<TodoPage> {
                 child: PageHeader(
                   title: "Today's Goals",
                   subtitle: 'One task at a time, you got this!',
+                  showBackButton: true,
                   actionIcon: LucideIcons.settings,
                   onActionTap: () {
                     // TODO: Open todo settings

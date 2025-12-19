@@ -65,7 +65,7 @@ class GlassNavBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-                // Nav items: Home, Tasks, [space for mic], Water, Settings
+                // Nav items: Home, [space for mic], Profile
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -77,27 +77,13 @@ class GlassNavBar extends StatelessWidget {
                         index: 0,
                         themeProvider: themeProvider,
                       ),
-                      _buildNavItem(
-                        context,
-                        icon: LucideIcons.listTodo,
-                        label: 'Tasks',
-                        index: 1,
-                        themeProvider: themeProvider,
-                      ),
                       // Spacer for center mic FAB
                       const SizedBox(width: 56),
                       _buildNavItem(
                         context,
-                        icon: LucideIcons.droplet,
-                        label: 'Water',
-                        index: 2,
-                        themeProvider: themeProvider,
-                      ),
-                      _buildNavItem(
-                        context,
                         icon: LucideIcons.user,
                         label: 'Profile',
-                        index: 3,
+                        index: 1,
                         themeProvider: themeProvider,
                       ),
                     ],
@@ -110,13 +96,13 @@ class GlassNavBar extends StatelessWidget {
           Positioned(
             left: 0,
             right: 0,
-            top: -12,
+            top: -18,
             child: Center(
               child: GestureDetector(
                 onTap: onMicTap,
                 child: Container(
-                  height: 56,
-                  width: 56,
+                  height: 68,
+                  width: 68,
                   decoration: BoxDecoration(
                     color: themeProvider.primaryColor,
                     shape: BoxShape.circle,
@@ -125,15 +111,15 @@ class GlassNavBar extends StatelessWidget {
                         color: themeProvider.primaryColor.withValues(
                           alpha: 0.4,
                         ),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: const Icon(
                     LucideIcons.mic,
                     color: Colors.white,
-                    size: 26,
+                    size: 30,
                   ),
                 ),
               ),

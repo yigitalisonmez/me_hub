@@ -50,22 +50,10 @@ class _TimerPageState extends State<TimerPage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(
-            LucideIcons.arrowLeft,
-            color: context.watch<ThemeProvider>().textPrimary,
-          ),
-        ),
-        const Expanded(
-          child: PageHeader(
-            title: 'Timer',
-            subtitle: 'Stay focused & productive',
-          ),
-        ),
-      ],
+    return const PageHeader(
+      title: 'Timer',
+      subtitle: 'Stay focused & productive',
+      showBackButton: true,
     );
   }
 
