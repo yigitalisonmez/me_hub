@@ -38,13 +38,13 @@ class TodoCardWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    LucideIcons.target,
+                    LucideIcons.clipboardList,
                     color: themeProvider.primaryColor,
                     size: 20,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Text(
-                    'TODAY\'S GOALS',
+                    'YOUR TASKS',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -54,14 +54,12 @@ class TodoCardWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(
-                height: 2,
-                width: 60,
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor,
-                  borderRadius: BorderRadius.circular(1),
-                ),
+              Divider(
+                height: 32,
+                thickness: 0.5,
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
               ),
 
               // Progress Stats Header (only if there are todos)

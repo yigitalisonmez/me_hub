@@ -61,58 +61,39 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        _controller.forward();
-      },
-      onTapUp: (_) => _handleTap(),
-      onTapCancel: () {
-        _controller.reverse();
-      },
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-              decoration: BoxDecoration(
-                color: widget.themeProvider.primaryColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-                boxShadow: null,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    LucideIcons.droplet,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: ElevatedCard(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            borderRadius: 20,
+            backgroundColor: widget.themeProvider.primaryColor,
+            onTap: _handleTap,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
+                const SizedBox(height: 12),
+                Text(
+                  '${widget.amount}ml',
+                  style: widget.theme.textTheme.titleLarge?.copyWith(
                     color: Colors.white,
-                    size: 28,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${widget.amount}ml',
-                    style: widget.theme.textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.label,
+                  style: widget.theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.label,
-                    style: widget.theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -35,46 +35,58 @@ class ElevatedCard extends StatelessWidget {
         backgroundColor ??
         (isSurface ? themeProvider.surfaceColor : themeProvider.cardColor);
 
-    final Widget content = Container(
+    final decoration = BoxDecoration(
+      color: baseColor,
+      borderRadius: BorderRadius.circular(borderRadius),
+      boxShadow: [
+        // Neumorphic: Light shadow (top-left) - ışık kaynağı
+        BoxShadow(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.03)
+              : Colors.white.withValues(alpha: 0.5),
+          offset: const Offset(-3, -3),
+          blurRadius: 6,
+        ),
+        // Neumorphic: Dark shadow (bottom-right) - gölge
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.4)
+              : Colors.black.withValues(alpha: 0.12),
+          offset: const Offset(3, 3),
+          blurRadius: 6,
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return Container(
+        margin: margin,
+        decoration: decoration,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(borderRadius),
+            splashColor: themeProvider.primaryColor.withValues(alpha: 0.2),
+            highlightColor: themeProvider.primaryColor.withValues(alpha: 0.1),
+            child: Container(
+              width: width,
+              height: height,
+              padding: padding,
+              child: child,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
       width: width,
       height: height,
       margin: margin,
       padding: padding,
-      decoration: BoxDecoration(
-        color: baseColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.6),
-          width: 1,
-        ),
-        boxShadow: [
-          // Shadow 1 (Top - Light Source)
-          BoxShadow(
-            color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white,
-            offset: const Offset(0, -2),
-            blurRadius: 4,
-            spreadRadius: 0,
-          ),
-          // Shadow 2 (Bottom - Ground Separation)
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : themeProvider.primaryColor.withValues(alpha: 0.15),
-            offset: const Offset(0, 8),
-            blurRadius: 16,
-            spreadRadius: -4,
-          ),
-        ],
-      ),
+      decoration: decoration,
       child: child,
     );
-
-    if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: content);
-    }
-
-    return content;
   }
 }

@@ -24,26 +24,24 @@ class DailyProgressSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Today\'s Progress',
+                "Today's Progress",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: themeProvider.textPrimary,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(height: 6),
-              Container(
-                height: 3,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              Divider(
+                height: 20,
+                thickness: 0.5,
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
         SizedBox(
           height: 130,
           child: ListView(
@@ -255,17 +253,25 @@ class _CategorySection extends StatelessWidget {
                   letterSpacing: -0.3,
                 ),
               ),
+              Divider(
+                height: 20,
+                thickness: 0.5,
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 4),
         SizedBox(
-          height: 110,
+          height: 130,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: cards.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) => cards[index],
           ),
         ),
@@ -297,8 +303,8 @@ class _CategoryCard extends StatelessWidget {
     final themeProvider = context.watch<ThemeProvider>();
 
     return ElevatedCard(
-      width: 100,
-      height: 100,
+      width: 110,
+      height: 110,
       padding: const EdgeInsets.all(8),
       borderRadius: 16,
       onTap: isComingSoon ? null : onTap,
@@ -486,7 +492,7 @@ class MindfulnessSection extends StatelessWidget {
           onTap: onBreathingTap,
         ),
         _CategoryCard(
-          icon: LucideIcons.heart,
+          imagePath: 'assets/images/gratitude_2.png',
           label: 'Gratitude',
           color: const Color(0xFFFFB74D),
           onTap: onGratitudeTap,

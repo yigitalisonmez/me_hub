@@ -91,8 +91,6 @@ class _WaterLogItemState extends State<WaterLogItem>
     final timeFormat = DateFormat('HH:mm');
     final timeString = timeFormat.format(widget.log.timestamp);
 
-    final isDark = themeProvider.isDarkMode;
-
     return SwipeToDismissWrapper(
       itemId: widget.log.id,
       onDelete: _handleDelete,
@@ -100,38 +98,11 @@ class _WaterLogItemState extends State<WaterLogItem>
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
-          child: Container(
+          child: ElevatedCard(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.white.withValues(alpha: 0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                // Bevel Effect for Items (Subtle)
-                BoxShadow(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.02)
-                      : Colors.white,
-                  offset: const Offset(0, -1),
-                  blurRadius: 2,
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : themeProvider.primaryColor.withValues(alpha: 0.05),
-                  offset: const Offset(0, 3),
-                  blurRadius: 6,
-                  spreadRadius: -1,
-                ),
-              ],
-            ),
+            borderRadius: 16,
+            isSurface: true,
             child: Row(
               children: [
                 // Icon

@@ -41,9 +41,11 @@ class QuickAddSection extends StatelessWidget {
         const SizedBox(height: 16),
         // Horizontal Scrollable Buttons
         SizedBox(
-          height: 140,
+          height: 156,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: quickAddAmounts.length,
             separatorBuilder: (context, index) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
@@ -59,9 +61,11 @@ class QuickAddSection extends StatelessWidget {
                   onTap: () async {
                     // Haptic feedback
                     HapticFeedback.mediumImpact();
-                    
+
                     // Add water
-                    await context.read<WaterProvider>().addWaterAmount(quickAddAmount.amountMl);
+                    await context.read<WaterProvider>().addWaterAmount(
+                      quickAddAmount.amountMl,
+                    );
                   },
                 ),
               );

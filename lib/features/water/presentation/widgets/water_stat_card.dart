@@ -69,15 +69,10 @@ class _WaterStatCardState extends State<WaterStatCard>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ElevatedCard(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: widget.themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: widget.themeProvider.borderColor.withValues(alpha: 0.3),
-        ),
-      ),
+      borderRadius: 16,
+      isSurface: true,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -127,15 +122,10 @@ class WaterStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ElevatedCard(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: themeProvider.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: themeProvider.borderColor.withValues(alpha: 0.3),
-        ),
-      ),
+      borderRadius: 16,
+      isSurface: true,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

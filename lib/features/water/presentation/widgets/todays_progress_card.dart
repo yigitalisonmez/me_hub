@@ -26,7 +26,11 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    final progress = widget.provider.todayIntake?.getProgress(dailyGoalMl: widget.dailyGoal) ?? 0.0;
+    final progress =
+        widget.provider.todayIntake?.getProgress(
+          dailyGoalMl: widget.dailyGoal,
+        ) ??
+        0.0;
     final percentage = (progress * 100).toInt();
     final glassCount = widget.provider.todayIntake?.logs.length ?? 0;
     final remaining = widget.dailyGoal - widget.provider.todayAmount;
@@ -39,13 +43,12 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
             duration: const Duration(milliseconds: 375),
             childAnimationBuilder: (widget) => SlideAnimation(
               verticalOffset: 50.0,
-              child: FadeInAnimation(
-                child: widget,
-              ),
+              child: FadeInAnimation(child: widget),
             ),
             children: [
               // Section Header
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     LucideIcons.trendingUp,
@@ -54,15 +57,23 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'TODAY\'S PROGRESS',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    "TODAY'S PROGRESS",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: themeProvider.primaryColor,
-                      letterSpacing: 0.5,
+                      letterSpacing: 1.0,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              Divider(
+                height: 32,
+                thickness: 0.5,
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
+              ),
               // Current Amount
               Center(
                 child: Row(
@@ -151,7 +162,8 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (mounted && _statCardWidth == null) {
                                 final RenderBox? renderBox =
-                                    _statCardKey.currentContext?.findRenderObject()
+                                    _statCardKey.currentContext
+                                            ?.findRenderObject()
                                         as RenderBox?;
                                 if (renderBox != null) {
                                   setState(() {
