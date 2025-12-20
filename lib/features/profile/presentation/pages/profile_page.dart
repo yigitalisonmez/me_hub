@@ -80,58 +80,65 @@ class _ProfilePageState extends State<ProfilePage>
     super.build(context);
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Scaffold(
-      backgroundColor: themeProvider.backgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ProfileHeroSection(
-              onSettingsTap: () => _navigateToSettings(context),
-              child: ProfileCard(
-                userName: _userName,
-                userEmail: _userEmail,
-                isPremium: true, // TODO: Check actual premium status
-                totalTasksCompleted: _allTimeTasksCompleted,
-                maxStreak: _maxStreak,
-                totalWaterMl: _allTimeWaterMl,
-                onEditTap: () => _showEditProfileDialog(context),
-                themeProvider: themeProvider,
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+      child: Scaffold(
+        backgroundColor: themeProvider.backgroundColor,
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            children: [
+              ProfileHeroSection(
+                onSettingsTap: () => _navigateToSettings(context),
+                child: ProfileCard(
+                  userName: _userName,
+                  userEmail: _userEmail,
+                  isPremium: true, // TODO: Check actual premium status
+                  totalTasksCompleted: _allTimeTasksCompleted,
+                  maxStreak: _maxStreak,
+                  totalWaterMl: _allTimeWaterMl,
+                  onEditTap: () => _showEditProfileDialog(context),
+                  themeProvider: themeProvider,
+                ),
               ),
-            ),
 
-            // Content below hero
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Streak banner
-                  StreakBanner(
-                    streakDays: _maxStreak,
-                    themeProvider: themeProvider,
-                  ),
-                  const SizedBox(height: 24),
+              // Content below hero
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Streak banner
+                    StreakBanner(
+                      streakDays: _maxStreak,
+                      themeProvider: themeProvider,
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Achievements carousel
-                  AchievementsCarousel(themeProvider: themeProvider),
-                  const SizedBox(height: 24),
+                    // Achievements carousel
+                    AchievementsCarousel(themeProvider: themeProvider),
+                    const SizedBox(height: 24),
 
-                  // Settings menu
-                  SettingsMenuSection(
-                    themeProvider: themeProvider,
-                    isDarkMode: themeProvider.isDarkMode,
-                    onDarkModeChanged: (value) => themeProvider.setTheme(value),
-                    onNotificationsTap: () => _navigateToSettings(context),
-                    onVoiceCommandsTap: () => _navigateToSettings(context),
-                    onExportDataTap: () => _showExportDialog(context),
-                    onHelpTap: () => _showHelpDialog(context),
-                    onSignOutTap: () => _showSignOutDialog(context),
-                  ),
+                    // Settings menu
+                    SettingsMenuSection(
+                      themeProvider: themeProvider,
+                      isDarkMode: themeProvider.isDarkMode,
+                      onDarkModeChanged: (value) =>
+                          themeProvider.setTheme(value),
+                      onNotificationsTap: () => _navigateToSettings(context),
+                      onVoiceCommandsTap: () => _navigateToSettings(context),
+                      onExportDataTap: () => _showExportDialog(context),
+                      onHelpTap: () => _showHelpDialog(context),
+                      onSignOutTap: () => _showSignOutDialog(context),
+                    ),
 
-                  SizedBox(height: LayoutConstants.getNavbarClearance(context)),
-                ],
+                    SizedBox(
+                      height: LayoutConstants.getNavbarClearance(context),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
