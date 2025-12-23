@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -34,101 +35,197 @@ class _ChallengesPageState extends State<ChallengesPage> {
     return Scaffold(
       backgroundColor: theme.backgroundColor,
       body: SafeArea(
-        child: provider.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    // Header - using PageHeader for consistency
-                    PageHeader(
-                      title: 'Goals & Challenges',
-                      subtitle: 'Reach your goals, earn badges!',
-                      showBackButton: true,
-                      actionIcon: LucideIcons.trophy,
-                    ),
-                    const SizedBox(height: 32),
+        child: Skeletonizer(
+          enabled: provider.isLoading,
+          effect: ShimmerEffect(
+            baseColor: theme.isDarkMode
+                ? Colors.grey.shade800
+                : Colors.grey.shade300,
+            highlightColor: theme.isDarkMode
+                ? Colors.grey.shade700
+                : Colors.grey.shade100,
+          ),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                // Header - using PageHeader for consistency
+                PageHeader(
+                  title: 'Goals & Challenges',
+                  subtitle: 'Reach your goals, earn badges!',
+                  showBackButton: true,
+                  actionIcon: LucideIcons.trophy,
+                ),
+                const SizedBox(height: 32),
 
-                    // Stats Row
-                    _buildStatsRow(theme, provider),
-                    const SizedBox(height: 24),
+                // Stats Row
+                _buildStatsRow(theme, provider),
+                const SizedBox(height: 24),
 
-                    // XP Level Bar
-                    const XpLevelBar(),
-                    const SizedBox(height: 24),
+                // XP Level Bar
+                const XpLevelBar(),
+                const SizedBox(height: 24),
 
-                    // Active Challenges
-                    _buildSectionTitle(theme, 'Active Challenges'),
-                    const SizedBox(height: 12),
-                    if (provider.activeChallenges.isEmpty)
-                      _buildEmptyChallengesState(theme)
-                    else
-                      SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          clipBehavior: Clip.none,
-                          itemCount: provider.activeChallenges.length,
-                          itemBuilder: (context, index) {
-                            final challenge = provider.activeChallenges[index];
-                            return ActiveChallengeCard(
-                              challenge: challenge,
-                              onComplete: () =>
-                                  provider.markChallengeComplete(challenge.id),
-                              onDelete: () => _confirmDeleteChallenge(
-                                context,
-                                provider,
-                                challenge.id,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-
-                    // Badges Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildSectionTitle(theme, 'Badges'),
-                        GestureDetector(
-                          onTap: () => _showAllBadges(context, provider),
-                          child: Text(
-                            'See All',
-                            style: TextStyle(
-                              color: theme.primaryColor,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    BadgeGrid(badges: provider.allBadges),
-                    const SizedBox(height: 24),
-
-                    // Available Challenges
-                    if (provider.availableChallenges.isNotEmpty) ...[
-                      _buildSectionTitle(theme, 'Start New Challenge'),
-                      const SizedBox(height: 12),
-                      ...provider.availableChallenges.map(
-                        (challenge) => AvailableChallengeCard(
+                // Active Challenges
+                _buildSectionTitle(theme, 'Active Challenges'),
+                const SizedBox(height: 12),
+                if (provider.isLoading)
+                  _buildSkeletonChallengeCards(theme)
+                else if (provider.activeChallenges.isEmpty)
+                  _buildEmptyChallengesState(theme)
+                else
+                  SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      itemCount: provider.activeChallenges.length,
+                      itemBuilder: (context, index) {
+                        final challenge = provider.activeChallenges[index];
+                        return ActiveChallengeCard(
                           challenge: challenge,
-                          onJoin: () => provider.joinChallenge(challenge),
+                          onComplete: () =>
+                              provider.markChallengeComplete(challenge.id),
+                          onDelete: () => _confirmDeleteChallenge(
+                            context,
+                            provider,
+                            challenge.id,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 24),
+
+                // Badges Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildSectionTitle(theme, 'Badges'),
+                    GestureDetector(
+                      onTap: () => _showAllBadges(context, provider),
+                      child: Text(
+                        'See All',
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-
-                    SizedBox(
-                      height: LayoutConstants.getNavbarClearance(context),
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                BadgeGrid(badges: provider.allBadges),
+                const SizedBox(height: 24),
+
+                // Available Challenges
+                if (provider.availableChallenges.isNotEmpty) ...[
+                  _buildSectionTitle(theme, 'Start New Challenge'),
+                  const SizedBox(height: 12),
+                  ...provider.availableChallenges.map(
+                    (challenge) => AvailableChallengeCard(
+                      challenge: challenge,
+                      onJoin: () => provider.joinChallenge(challenge),
+                    ),
+                  ),
+                ],
+
+                SizedBox(height: LayoutConstants.getNavbarClearance(context)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Skeleton placeholder for challenge cards during loading
+  Widget _buildSkeletonChallengeCards(ThemeProvider theme) {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        itemCount: 2,
+        itemBuilder: (context, index) {
+          return Container(
+            width: 280,
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: theme.surfaceColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 16,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                color: theme.textSecondary.withValues(
+                                  alpha: 0.2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 12,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: theme.textSecondary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: theme.textSecondary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ],
               ),
+            ),
+          );
+        },
       ),
     );
   }

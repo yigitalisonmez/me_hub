@@ -102,6 +102,9 @@ dependencies:
   audio_waveforms: ^2.0.1
   avatar_glow: ^3.0.1
 
+  # Skeleton loading states
+  skeletonizer: ^2.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
