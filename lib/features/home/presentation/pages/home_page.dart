@@ -20,6 +20,8 @@ import '../../../timer/presentation/pages/timer_page.dart';
 import '../../../affirmations/presentation/pages/affirmations_page.dart';
 import '../../../breathing/presentation/pages/breathing_page.dart';
 import '../../../gratitude/presentation/pages/gratitude_page.dart';
+import '../../../challenges/presentation/pages/challenges_page.dart';
+import '../../../water/presentation/pages/water_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -158,12 +160,19 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(builder: (_) => const TimerPage()),
               ),
+              onGoalsTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChallengesPage()),
+              ),
             ),
             const SizedBox(height: 20),
 
             // Wellness Section
             WellnessSection(
-              onWaterTap: () => widget.onNavigateToPage?.call(2), // Water page
+              onWaterTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WaterPage()),
+              ),
               onMoodTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const MoodPage()),
@@ -184,6 +193,15 @@ class _HomePageState extends State<HomePage> {
               onGratitudeTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const GratitudePage()),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Gamification Section
+            GamificationSection(
+              onChallengesTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChallengesPage()),
               ),
             ),
             const SizedBox(height: 24),

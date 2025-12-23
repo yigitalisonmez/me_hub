@@ -371,17 +371,19 @@ class _CategoryCard extends StatelessWidget {
   }
 }
 
-/// Productivity section: Tasks, Routines, Pomodoro, Habits
+/// Productivity section: Tasks, Routines, Pomodoro, Goals, Habits
 class ProductivitySection extends StatelessWidget {
   final VoidCallback? onTasksTap;
   final VoidCallback? onRoutinesTap;
   final VoidCallback? onPomodoroTap;
+  final VoidCallback? onGoalsTap;
 
   const ProductivitySection({
     super.key,
     this.onTasksTap,
     this.onRoutinesTap,
     this.onPomodoroTap,
+    this.onGoalsTap,
   });
 
   @override
@@ -410,6 +412,12 @@ class ProductivitySection extends StatelessWidget {
           label: 'Timer',
           color: const Color(0xFFE57373),
           onTap: onPomodoroTap,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.trophy,
+          label: 'Goals',
+          color: const Color(0xFFFF6B6B),
+          onTap: onGoalsTap,
         ),
         _CategoryCard(
           icon: LucideIcons.flame,
@@ -625,6 +633,115 @@ class InsightsCard extends StatelessWidget {
               size: 20,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Goals & Challenges section: Access to gamification features
+class GamificationSection extends StatelessWidget {
+  final VoidCallback? onChallengesTap;
+
+  const GamificationSection({super.key, this.onChallengesTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: onChallengesTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+                const Color(0xFFFFE66D).withValues(alpha: 0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF6B6B), Color(0xFFFFE66D)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  LucideIcons.trophy,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Goals & Challenges',
+                      style: TextStyle(
+                        color: themeProvider.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '30-day challenges, badges & XP',
+                      style: TextStyle(
+                        color: themeProvider.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(LucideIcons.flame, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      'Start',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
