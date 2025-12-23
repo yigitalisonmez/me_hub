@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -54,10 +53,6 @@ class _TodoPageState extends State<TodoPage> {
                   title: "Today's Goals",
                   subtitle: 'One task at a time, you got this!',
                   showBackButton: true,
-                  actionIcon: LucideIcons.settings,
-                  onActionTap: () {
-                    // TODO: Open todo settings
-                  },
                 ),
               ),
               const SizedBox(height: 16),

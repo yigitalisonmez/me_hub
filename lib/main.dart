@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,8 +51,21 @@ import 'features/gratitude/data/repositories/gratitude_repository_impl.dart';
 import 'features/gratitude/domain/usecases/usecases.dart' as GratitudeUsecases;
 import 'features/gratitude/presentation/providers/gratitude_provider.dart';
 
+// Challenges feature imports
+import 'features/challenges/domain/entities/challenge.dart'
+    as ChallengeEntities;
+import 'features/challenges/domain/entities/weekly_goal.dart'
+    as WeeklyGoalEntities;
+import 'features/challenges/domain/entities/badge.dart' as BadgeEntities;
+import 'features/challenges/domain/entities/user_progress.dart'
+    as UserProgressEntities;
+import 'features/challenges/data/datasources/challenges_local_datasource.dart';
+import 'features/challenges/data/repositories/challenges_repository_impl.dart';
+import 'features/challenges/presentation/providers/challenges_provider.dart';
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Hive'ı başlat
   await Hive.initFlutter();
@@ -68,6 +82,17 @@ void main() async {
   Hive.registerAdapter(GratitudeItemAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
 
+  // Challenges adapters
+  Hive.registerAdapter(ChallengeEntities.ChallengeAdapter());
+  Hive.registerAdapter(ChallengeEntities.ChallengeCategoryAdapter());
+  Hive.registerAdapter(ChallengeEntities.DailyProgressAdapter());
+  Hive.registerAdapter(WeeklyGoalEntities.WeeklyGoalAdapter());
+  Hive.registerAdapter(WeeklyGoalEntities.GoalTypeAdapter());
+  Hive.registerAdapter(BadgeEntities.BadgeAdapter());
+  Hive.registerAdapter(BadgeEntities.BadgeTierAdapter());
+  Hive.registerAdapter(BadgeEntities.BadgeRequirementTypeAdapter());
+  Hive.registerAdapter(UserProgressEntities.UserProgressAdapter());
+
   // Data source'ları başlat
   final todoDataSource = TodoLocalDataSourceImpl();
   await todoDataSource.init();
@@ -79,6 +104,8 @@ void main() async {
   await moodDataSource.init();
   final gratitudeDataSource = GratitudeLocalDataSource();
   await gratitudeDataSource.init();
+  final challengesDataSource = ChallengesLocalDataSource();
+  await challengesDataSource.init();
 
   // Notification service'i başlat
   await NotificationService().initialize();
@@ -94,6 +121,7 @@ void main() async {
       waterDataSource: waterDataSource,
       moodDataSource: moodDataSource,
       gratitudeDataSource: gratitudeDataSource,
+      challengesDataSource: challengesDataSource,
       showOnboarding: showOnboarding,
     ),
   );
@@ -105,6 +133,7 @@ class MeHubApp extends StatelessWidget {
   final WaterLocalDataSource waterDataSource;
   final MoodLocalDataSource moodDataSource;
   final GratitudeLocalDataSource gratitudeDataSource;
+  final ChallengesLocalDataSource challengesDataSource;
   final bool showOnboarding;
 
   const MeHubApp({
@@ -114,6 +143,7 @@ class MeHubApp extends StatelessWidget {
     required this.waterDataSource,
     required this.moodDataSource,
     required this.gratitudeDataSource,
+    required this.challengesDataSource,
     required this.showOnboarding,
   });
 
@@ -219,6 +249,14 @@ class MeHubApp extends StatelessWidget {
             ),
           ),
         ),
+        // Challenges Provider
+        Provider<ChallengesRepositoryImpl>(
+          create: (_) => ChallengesRepositoryImpl(challengesDataSource),
+        ),
+        ChangeNotifierProvider<ChallengesProvider>(
+          create: (context) =>
+              ChallengesProvider(context.read<ChallengesRepositoryImpl>()),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -289,23 +327,26 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Scaffold(
-      backgroundColor: themeProvider.backgroundColor,
-      extendBody: true,
-      body: Stack(
-        children: [
-          _buildPageView(),
-          _buildCelebrationOverlay(),
-          // Navbar positioned at the bottom of the Stack
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNavigationBar(),
-          ),
-        ],
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+      child: Scaffold(
+        backgroundColor: themeProvider.backgroundColor,
+        extendBody: true,
+        body: Stack(
+          children: [
+            _buildPageView(),
+            _buildCelebrationOverlay(),
+            // Navbar positioned at the bottom of the Stack
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildBottomNavigationBar(),
+            ),
+          ],
+        ),
+        // FAB removed - mic is now in navbar
       ),
-      // FAB removed - mic is now in navbar
     );
   }
 

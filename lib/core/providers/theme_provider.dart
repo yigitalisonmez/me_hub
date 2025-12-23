@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_colors.dart';
 
@@ -72,6 +73,8 @@ class ThemeProvider with ChangeNotifier {
       // If error, use default (light mode)
       _isDarkMode = false;
     }
+    // Remove splash screen after theme is loaded
+    FlutterNativeSplash.remove();
   }
 
   /// Save theme preference to SharedPreferences

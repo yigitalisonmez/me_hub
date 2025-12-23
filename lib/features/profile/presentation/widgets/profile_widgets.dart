@@ -22,45 +22,68 @@ class ProfileHeroSection extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            themeProvider.primaryColor,
-            themeProvider.primaryColor.withValues(alpha: 0.85),
-          ],
-        ),
+        // gradient: LinearGradient(
+        //   begin: Alignment.topLeft,
+        //   end: Alignment.bottomRight,
+        //   colors: [
+        //     themeProvider.primaryColor,
+        //     themeProvider.primaryColor.withValues(alpha: 0.85),
+        //   ],
+        // ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          child: Column(
-            children: [
-              // Header row with title and settings
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        children: [
+          // Background asset image
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+              child: Opacity(
+                opacity: 1,
+                child: Image.asset(
+                  'assets/images/mesh-gradient.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+              child: Column(
                 children: [
-                  const Text(
-                    'Profile',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                  // Header row with title and settings
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      _SettingsButton(onTap: onSettingsTap),
+                    ],
                   ),
-                  _SettingsButton(onTap: onSettingsTap),
+                  const SizedBox(height: 16),
+                  child,
                 ],
               ),
-              const SizedBox(height: 16),
-              child,
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -117,161 +140,189 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedCard(
-      padding: const EdgeInsets.all(20),
-      borderRadius: 24,
-      child: Column(
-        children: [
-          // Profile header row
-          Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.15 : 0.7,
+                ),
+                Colors.white.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.08 : 0.5,
+                ),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Avatar
-              Stack(
-                clipBehavior: Clip.none,
+              // Profile header row
+              Row(
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          themeProvider.primaryColor,
-                          themeProvider.primaryColor.withValues(alpha: 0.7),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: themeProvider.primaryColor.withValues(
-                            alpha: 0.3,
-                          ),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        avatarInitials ??
-                            (userName.isNotEmpty
-                                ? userName.substring(0, 2).toUpperCase()
-                                : 'U'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Edit button
-                  Positioned(
-                    bottom: -4,
-                    right: -4,
-                    child: GestureDetector(
-                      onTap: onEditTap,
-                      child: Container(
-                        width: 26,
-                        height: 26,
+                  // Avatar
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
                         decoration: BoxDecoration(
-                          color: themeProvider.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: themeProvider.surfaceColor,
-                            width: 2,
+                          gradient: LinearGradient(
+                            colors: [
+                              themeProvider.primaryColor,
+                              themeProvider.primaryColor.withValues(alpha: 0.7),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: themeProvider.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            avatarInitials ??
+                                (userName.isNotEmpty
+                                    ? userName.substring(0, 2).toUpperCase()
+                                    : 'U'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        child: const Icon(
-                          LucideIcons.pencil,
-                          color: Colors.white,
-                          size: 12,
+                      ),
+                      // Edit button
+                      Positioned(
+                        bottom: -4,
+                        right: -4,
+                        child: GestureDetector(
+                          onTap: onEditTap,
+                          child: Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: themeProvider.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(
+                              LucideIcons.pencil,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  // User info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: themeProvider.isDarkMode
+                                ? Colors.white
+                                : themeProvider.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          userEmail,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: themeProvider.isDarkMode
+                                ? Colors.white70
+                                : themeProvider.textSecondary,
+                          ),
+                        ),
+                        if (isPremium) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('✨ ', style: TextStyle(fontSize: 10)),
+                                Text(
+                                  'PREMIUM',
+                                  style: TextStyle(
+                                    color: themeProvider.isDarkMode
+                                        ? Colors.white
+                                        : themeProvider.primaryColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
-              // User info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: themeProvider.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      userEmail,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: themeProvider.textSecondary,
-                      ),
-                    ),
-                    if (isPremium) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: themeProvider.primaryColor.withValues(
-                            alpha: 0.15,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('✨ ', style: TextStyle(fontSize: 10)),
-                            Text(
-                              'PREMIUM',
-                              style: TextStyle(
-                                color: themeProvider.primaryColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+              const SizedBox(height: 20),
+              // Stats row - 3 total stats
+              Row(
+                children: [
+                  _MiniStat(
+                    value: '$totalTasksCompleted',
+                    label: 'Tasks Done',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _MiniStat(
+                    value: '$maxStreak',
+                    label: 'Max Streak',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _MiniStat(
+                    value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
+                    label: 'Water Drinked',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Stats row - 3 total stats
-          Row(
-            children: [
-              _MiniStat(
-                value: '$totalTasksCompleted',
-                label: 'Tasks Done',
-                themeProvider: themeProvider,
-              ),
-              const SizedBox(width: 12),
-              _MiniStat(
-                value: '$maxStreak',
-                label: 'Max Streak',
-                themeProvider: themeProvider,
-              ),
-              const SizedBox(width: 12),
-              _MiniStat(
-                value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
-                label: 'Water Drinked',
-                themeProvider: themeProvider,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -281,11 +332,13 @@ class _MiniStat extends StatelessWidget {
   final String value;
   final String label;
   final ThemeProvider themeProvider;
+  final bool isGlass;
 
   const _MiniStat({
     required this.value,
     required this.label,
     required this.themeProvider,
+    this.isGlass = false,
   });
 
   @override
@@ -294,10 +347,15 @@ class _MiniStat extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: themeProvider.isDarkMode
-              ? Colors.white.withValues(alpha: 0.05)
-              : themeProvider.backgroundColor,
+          color: isGlass
+              ? Colors.white.withValues(alpha: 0.2)
+              : (themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : themeProvider.backgroundColor),
           borderRadius: BorderRadius.circular(12),
+          border: isGlass
+              ? Border.all(color: Colors.white.withValues(alpha: 0.3))
+              : null,
         ),
         child: Column(
           children: [
@@ -314,7 +372,9 @@ class _MiniStat extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: themeProvider.textSecondary,
+                color: isGlass && !themeProvider.isDarkMode
+                    ? themeProvider.textSecondary
+                    : themeProvider.textSecondary,
               ),
             ),
           ],

@@ -29,6 +29,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
 
+    // Persist the user's focus selection for personalization
+    if (_selectedFocus != null) {
+      await prefs.setString('user_primary_focus', _selectedFocus!);
+    }
+
     if (_nameController.text.isNotEmpty) {
       // Securely store user name
       const secureStorage = FlutterSecureStorage();

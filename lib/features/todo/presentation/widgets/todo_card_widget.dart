@@ -522,23 +522,28 @@ class TodoCardWidget extends StatelessWidget {
     return SwipeToDismissWrapper(
       itemId: todo.id,
       onDelete: () {
-        final todoTitle = todo.title;
+        final deletedTodo = todo;
         provider.deleteTodo(todo.id);
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 Icon(
-                  LucideIcons.check,
-                  color: themeProvider.primaryColor,
-                  size: 20,
+                  LucideIcons.trash2,
+                  color: themeProvider.textPrimary,
+                  size: 18,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  '"$todoTitle" deleted',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: themeProvider.textPrimary,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    '"${deletedTodo.title}" deleted',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: themeProvider.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -548,7 +553,19 @@ class TodoCardWidget extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Undo',
+              textColor: themeProvider.primaryColor,
+              onPressed: () {
+                // Restore the deleted todo
+                provider.addTodo(
+                  title: deletedTodo.title,
+                  date: deletedTodo.createdAt,
+                  priority: deletedTodo.priority,
+                );
+              },
+            ),
           ),
         );
       },
