@@ -431,14 +431,19 @@ class _BreathingOrb extends StatefulWidget {
 class _BreathingOrbState extends State<_BreathingOrb>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _breathAnim;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
+    _breathAnim = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -453,9 +458,10 @@ class _BreathingOrbState extends State<_BreathingOrb>
       width: 210,
       height: 210,
       child: AnimatedBuilder(
-        animation: _controller,
+        animation: _breathAnim,
         builder: (context, child) {
-          final scale = 0.86 + (_controller.value * 0.19);
+          final t = _breathAnim.value;
+          final scale = 0.78 + (t * 0.24);
           return Stack(
             alignment: Alignment.center,
             children: [
@@ -467,23 +473,34 @@ class _BreathingOrbState extends State<_BreathingOrb>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.mindful.withValues(alpha: 0.42),
+                      color: AppColors.mindful.withValues(alpha: 0.32 + t * 0.15),
                       width: 1.5,
                     ),
                   ),
                 ),
               ),
               Transform.scale(
-                scale: 0.78 + (_controller.value * 0.14),
+                scale: 0.72 + (t * 0.18),
                 child: Container(
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.mindful.withValues(alpha: 0.28),
+                      color: AppColors.mindful.withValues(alpha: 0.20 + t * 0.14),
                       width: 1.5,
                     ),
+                  ),
+                ),
+              ),
+              Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 152,
+                  height: 152,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.mindfulTint.withValues(alpha: t * 0.20),
                   ),
                 ),
               ),
@@ -492,20 +509,20 @@ class _BreathingOrbState extends State<_BreathingOrb>
                 left: 34,
                 child: _Spark(
                   size: 8,
-                  opacity: 0.65 + _controller.value * 0.25,
+                  opacity: 0.50 + t * 0.40,
                 ),
               ),
               Positioned(
                 top: 54,
                 right: 24,
-                child: _Spark(size: 6, opacity: 0.45 + _controller.value * 0.3),
+                child: _Spark(size: 6, opacity: 0.30 + t * 0.45),
               ),
               Positioned(
                 bottom: 42,
                 left: 54,
                 child: _Spark(
                   size: 5,
-                  opacity: 0.36 + _controller.value * 0.25,
+                  opacity: 0.25 + t * 0.40,
                 ),
               ),
               Transform.translate(

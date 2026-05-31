@@ -207,37 +207,7 @@ class _MoodEntryCard extends StatelessWidget {
         Center(
           child: Column(
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
-                width: 148,
-                height: 148,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: level.color.withValues(alpha: 0.18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: level.color.withValues(alpha: 0.20),
-                      blurRadius: 38,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: level.color.withValues(alpha: 0.20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.45),
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(level.icon, size: 48, color: level.deep),
-                  ),
-                ),
-              ),
+              _PulsingMoodOrb(level: level),
               const SizedBox(height: 14),
               Text(
                 level.label,
@@ -403,33 +373,11 @@ class _MoodScale extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: levels.map((level) {
         final selected = _MoodLevel.fromScore(score).score == level.score;
-        return GestureDetector(
+        return _PulsingMoodButton(
+          key: ValueKey(level.score),
+          level: level,
+          selected: selected,
           onTap: () => onChanged(level.score),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: selected ? 58 : 48,
-            height: selected ? 58 : 48,
-            decoration: BoxDecoration(
-              color: selected
-                  ? level.color
-                  : level.color.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: level.color.withValues(alpha: 0.34),
-                        blurRadius: 18,
-                        offset: const Offset(0, 7),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              level.icon,
-              color: selected ? Colors.white : level.deep,
-              size: selected ? 27 : 22,
-            ),
-          ),
         );
       }).toList(),
     );
@@ -885,6 +833,180 @@ class _MoodLevel {
     if (score <= 6) return scale[2];
     if (score <= 8) return scale[3];
     return scale[4];
+  }
+}
+
+class _PulsingMoodOrb extends StatefulWidget {
+  final _MoodLevel level;
+
+  const _PulsingMoodOrb({required this.level});
+
+  @override
+  State<_PulsingMoodOrb> createState() => _PulsingMoodOrbState();
+}
+
+class _PulsingMoodOrbState extends State<_PulsingMoodOrb>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+    _pulseAnim = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseAnim,
+      builder: (context, child) {
+        final t = _pulseAnim.value;
+        return Container(
+          width: 148 + (t * 12),
+          height: 148 + (t * 12),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.level.color.withValues(alpha: 0.10 + t * 0.10),
+            boxShadow: [
+              BoxShadow(
+                color: widget.level.color.withValues(alpha: 0.10 + t * 0.18),
+                blurRadius: 28 + (t * 22),
+                spreadRadius: 2 + (t * 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Transform.scale(
+              scale: 1.0 + (t * 0.07),
+              child: Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.level.color.withValues(alpha: 0.20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.45),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  widget.level.icon,
+                  size: 48,
+                  color: widget.level.deep,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PulsingMoodButton extends StatefulWidget {
+  final _MoodLevel level;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PulsingMoodButton({
+    super.key,
+    required this.level,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  State<_PulsingMoodButton> createState() => _PulsingMoodButtonState();
+}
+
+class _PulsingMoodButtonState extends State<_PulsingMoodButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+    _pulseAnim = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+    if (widget.selected) _controller.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(_PulsingMoodButton old) {
+    super.didUpdateWidget(old);
+    if (widget.selected && !old.selected) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.selected && old.selected) {
+      _controller.stop();
+      _controller.animateTo(0, duration: const Duration(milliseconds: 200));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _pulseAnim,
+        builder: (context, child) {
+          final t = widget.selected ? _pulseAnim.value : 0.0;
+          final size = widget.selected ? 52.0 + (t * 8.0) : 48.0;
+          return Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: widget.selected
+                  ? widget.level.color
+                  : widget.level.color.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+              boxShadow: widget.selected
+                  ? [
+                      BoxShadow(
+                        color: widget.level.color.withValues(
+                          alpha: 0.22 + t * 0.20,
+                        ),
+                        blurRadius: 14 + (t * 10),
+                        offset: const Offset(0, 5),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Icon(
+              widget.level.icon,
+              color: widget.selected ? Colors.white : widget.level.deep,
+              size: widget.selected ? 24.0 + (t * 4.0) : 22.0,
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
