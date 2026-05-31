@@ -3,6 +3,16 @@
 Completed work should be summarized here with date, changed files, and test
 results.
 
+## 2026-05-31 (Page Transitions)
+
+New `lib/core/utils/app_route.dart`:
+- `AppRoute` — fade + 4.5% slide-up, 300ms easeOutCubic push / 240ms pop. Used for all feature navigations.
+- `AppFadeRoute` — pure fade 380ms for one-way replacements (onboarding → main screen).
+
+All 19 `MaterialPageRoute` usages replaced across: home (9 feature pages), affirmations, breathing, routines (2), water, challenges, gratitude, profile (2), onboarding.
+
+`flutter analyze`: passes cleanly.
+
 ## 2026-05-31 (Post-Redesign Animation & Architecture Fixes)
 
 **Mood page:**

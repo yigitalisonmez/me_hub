@@ -42,6 +42,12 @@ do.
    startup.
 4. Prefer existing patterns over new abstractions.
 
+## Navigation Pattern
+
+- Use `AppRoute` (from `lib/core/utils/app_route.dart`) for all `Navigator.push` calls.
+- Use `AppFadeRoute` for one-way replacement transitions (`pushReplacement`).
+- Never use raw `MaterialPageRoute` — it breaks the consistent transition feel.
+
 ## After Changing Code
 
 1. Run `dart format lib test`.
