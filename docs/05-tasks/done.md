@@ -3,6 +3,22 @@
 Completed work should be summarized here with date, changed files, and test
 results.
 
+## 2026-05-31 (Affirmations Flow — Black Screen + Glow + RecordStep Redesign)
+
+- **Black screen fix**: `_SleepAffirmationsFlowPage` Scaffold was `Colors.transparent` → RecordStep/SessionStep had no background. Restored to `themeProvider.backgroundColor`.
+- **WelcomeStep glow**: Replaced `RadialGradient` Container with `ImageFiltered(blur σ=22)` — glow now spreads beyond its bounds like CSS `filter:blur(6px)`.
+- **RecordStep redesign** (design spec match):
+  - Own `Container` background + `SafeArea`
+  - Top bar: ← back | "Record" | "2/3" step indicator
+  - Timer as `RichText`: "0:18  / 1:00" large+small format
+  - Record button: white circle + border + red rounded square (idle); switches to pause/play icon
+  - "Done" pill shown during active recording
+  - Recordings list: play circle + name/duration + delete + radio-select per row
+  - "Record another · N left" dashed tinted button
+  - Full-width "Use selected for session →" bottom button
+- **SessionStep**: Added `mindfulTint→bg` gradient background, top bar with ← (shown when idle) + "Session" title.
+- `flutter analyze`: no issues.
+
 ## 2026-05-31 (Page Transitions)
 
 New `lib/core/utils/app_route.dart`:
