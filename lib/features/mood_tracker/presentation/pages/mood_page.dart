@@ -475,7 +475,6 @@ class _MoodPageState extends State<MoodPage>
       title: 'Mood Tracker',
       subtitle: 'How are you feeling today?',
       showBackButton: true,
-      actionIcon: LucideIcons.heart,
     );
   }
 }

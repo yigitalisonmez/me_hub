@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Me Hub uygulaması için tema konfigürasyonu
+/// Kora uygulaması için tema konfigürasyonu
 class AppTheme {
   // Private constructor to prevent instantiation
   AppTheme._();

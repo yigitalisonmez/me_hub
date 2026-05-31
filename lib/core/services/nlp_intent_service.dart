@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'command_parser.dart';
@@ -10,7 +11,7 @@ class NlpIntentService {
 
   Interpreter? _interpreter;
   List<String> _labels = [];
-  Map<String, int> _vocab = {};
+  final Map<String, int> _vocab = {};
   Map<int, String> _entities = {};
 
   // Output indices (detected at runtime based on shape)
@@ -37,21 +38,21 @@ class NlpIntentService {
   /// Initialize the NLP model
   Future<bool> initialize() async {
     if (isInitialized) {
-      print('✅ NLP already initialized');
+      debugPrint('✅ NLP already initialized');
       return true;
     }
 
-    print('🔄 Initializing Dual-Head NLP model v2...');
+    debugPrint('🔄 Initializing Dual-Head NLP model v2...');
 
     try {
       // Load model
-      print('  → Loading TFLite model...');
+      debugPrint('  → Loading TFLite model...');
       final options = InterpreterOptions();
       _interpreter = await Interpreter.fromAsset(_modelPath, options: options);
-      print('  → Model loaded successfully');
+      debugPrint('  → Model loaded successfully');
 
       // Load vocabulary
-      print('  → Loading vocabulary...');
+      debugPrint('  → Loading vocabulary...');
       final vocabString = await rootBundle.loadString(_vocabPath);
       final vocabLines = vocabString.split('\n');
       for (int i = 0; i < vocabLines.length; i++) {
@@ -60,27 +61,27 @@ class NlpIntentService {
           _vocab[word] = i;
         }
       }
-      print('  → Vocabulary: ${_vocab.length} words');
+      debugPrint('  → Vocabulary: ${_vocab.length} words');
 
       // Load labels
-      print('  → Loading labels...');
+      debugPrint('  → Loading labels...');
       final labelsString = await rootBundle.loadString(_labelsPath);
       _labels = labelsString
           .split('\n')
           .where((l) => l.trim().isNotEmpty)
           .toList();
       _numIntents = _labels.length;
-      print('  → Labels: $_labels');
+      debugPrint('  → Labels: $_labels');
 
       // Load entities
-      print('  → Loading entities...');
+      debugPrint('  → Loading entities...');
       final entitiesString = await rootBundle.loadString(_entitiesPath);
       final entitiesJson = json.decode(entitiesString) as Map<String, dynamic>;
       _entities = entitiesJson.map(
         (k, v) => MapEntry(int.parse(k), v.toString()),
       );
       _numEntities = _entities.length;
-      print('  → Entities: $_numEntities');
+      debugPrint('  → Entities: $_numEntities');
 
       // Detect output order from model
       final outputTensors = _interpreter!.getOutputTensors();
@@ -89,22 +90,22 @@ class NlpIntentService {
         final shape1 = outputTensors[1].shape;
 
         // Intent has fewer classes (10) than entities (251)
-        if (shape0.last == _numIntents) {
+        if (shape0.last == _numIntents && shape1.last == _numEntities) {
           _intentOutputIdx = 0;
           _entityOutputIdx = 1;
         } else {
           _intentOutputIdx = 1;
           _entityOutputIdx = 0;
         }
-        print('  → Intent output index: $_intentOutputIdx');
-        print('  → Entity output index: $_entityOutputIdx');
+        debugPrint('  → Intent output index: $_intentOutputIdx');
+        debugPrint('  → Entity output index: $_entityOutputIdx');
       }
 
-      print('✅ NLP Model v2 initialized!');
+      debugPrint('✅ NLP Model v2 initialized!');
       return true;
     } catch (e, stack) {
-      print('❌ Failed to initialize NLP model: $e');
-      print('Stack trace: $stack');
+      debugPrint('❌ Failed to initialize NLP model: $e');
+      debugPrint('Stack trace: $stack');
       return false;
     }
   }
@@ -136,13 +137,13 @@ class NlpIntentService {
   /// Process command with dual-head model
   /// Returns ParsedCommand with both intent and entity
   Future<ParsedCommand> processCommand(String text) async {
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('📝 Input: "$text"');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📝 Input: "$text"');
 
     if (!isInitialized) {
       final ok = await initialize();
       if (!ok) {
-        print('⚠️ NLP not initialized, using fallback');
+        debugPrint('⚠️ NLP not initialized, using fallback');
         return CommandParser.parse(text);
       }
     }
@@ -184,7 +185,7 @@ class NlpIntentService {
       // HEURISTIC: Fix "ruh hali" ambiguity
       // If intent is query_status but text contains mood adjectives, switch to mood_set
       if (intent == 'query_status' && _containsMoodAdjective(text)) {
-        print(
+        debugPrint(
           '⚠️ Heuristic override: query_status -> mood_set (found adjective)',
         );
         intent = 'mood_set';
@@ -202,18 +203,22 @@ class NlpIntentService {
       }
       final entity = _entities[entityIdx] ?? '';
 
-      print('🧠 NLP RESULT:');
-      print('   Intent: $intent (${(intentConf * 100).toStringAsFixed(1)}%)');
-      print('   Entity: $entity (${(entityConf * 100).toStringAsFixed(1)}%)');
+      debugPrint('🧠 NLP RESULT:');
+      debugPrint(
+        '   Intent: $intent (${(intentConf * 100).toStringAsFixed(1)}%)',
+      );
+      debugPrint(
+        '   Entity: $entity (${(entityConf * 100).toStringAsFixed(1)}%)',
+      );
 
       // Build command based on intent
       final command = _buildCommand(intent, entity, text, intentConf);
-      print('📦 Command: ${command.type} | ${command.parameters}');
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📦 Command: ${command.type} | ${command.parameters}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return command;
     } catch (e) {
-      print('❌ NLP error: $e');
-      print('⚠️ Falling back to regex parser');
+      debugPrint('❌ NLP error: $e');
+      debugPrint('⚠️ Falling back to regex parser');
       return CommandParser.parse(text);
     }
   }
@@ -245,28 +250,32 @@ class NlpIntentService {
         lower.contains('great') ||
         lower.contains('awesome') ||
         lower.contains('amazing') ||
-        lower.contains('excellent'))
+        lower.contains('excellent')) {
       return 10;
+    }
 
     if (lower.contains('mutlu') ||
         lower.contains('happy') ||
         lower.contains('keyifli') ||
-        lower.contains('joy'))
+        lower.contains('joy')) {
       return 9;
+    }
 
     // Good (6-7)
     if (lower.contains('iyi') ||
         lower.contains('good') ||
         lower.contains('güzel') ||
-        lower.contains('fine'))
+        lower.contains('fine')) {
       return 7;
+    }
 
     // Neutral (5)
     if (lower.contains('normal') ||
         lower.contains('idare') ||
         lower.contains('okay') ||
-        lower.contains('so so'))
+        lower.contains('so so')) {
       return 5;
+    }
 
     // Low (3-4)
     if (lower.contains('kötü') ||
@@ -274,8 +283,9 @@ class NlpIntentService {
         lower.contains('keyifsiz') ||
         lower.contains('mutsuz') ||
         lower.contains('unhappy') ||
-        lower.contains('sad'))
+        lower.contains('sad')) {
       return 3;
+    }
 
     // Very Low (1-2)
     if (lower.contains('berbat') ||
@@ -283,8 +293,9 @@ class NlpIntentService {
         lower.contains('korkunç') ||
         lower.contains('awful') ||
         lower.contains('rezalet') ||
-        lower.contains('depressed'))
+        lower.contains('depressed')) {
       return 1;
+    }
 
     return null;
   }

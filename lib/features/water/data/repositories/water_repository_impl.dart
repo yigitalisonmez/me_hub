@@ -77,4 +77,3 @@ class WaterRepositoryImpl implements WaterRepository {
     await localDataSource.saveWaterIntake(waterIntake);
   }
 }
-

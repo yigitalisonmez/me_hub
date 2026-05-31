@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Me Hub uygulaması için özel tema uzantıları
+/// Kora uygulaması için özel tema uzantıları
 @immutable
 class AppColorScheme extends ThemeExtension<AppColorScheme> {
   const AppColorScheme({

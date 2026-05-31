@@ -11,7 +11,9 @@ import '../../../../core/widgets/elevated_card.dart';
 import '../../domain/entities/badge.dart';
 import '../../data/constants/badge_definitions.dart';
 import '../providers/challenges_provider.dart';
+import '../utils/challenge_icon_lookup.dart';
 import '../widgets/challenges_widgets.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 
 /// Goals & Challenges page - Gamification hub with XP, challenges, and badges
 class ChallengesPage extends StatefulWidget {
@@ -156,7 +158,14 @@ class _ChallengesPageState extends State<ChallengesPage>
       actions: [
         IconButton(
           icon: const Icon(LucideIcons.settings, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SettingsPage(),
+              ),
+            );
+          },
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
@@ -350,7 +359,7 @@ class _ChallengesPageState extends State<ChallengesPage>
               border: Border.all(color: tierColor.withValues(alpha: 0.5)),
             ),
             child: Icon(
-              IconData(recentBadge.iconCodePoint, fontFamily: 'MaterialIcons'),
+              materialIconFromCodePoint(recentBadge.iconCodePoint),
               color: tierColor,
               size: 32,
             ),
@@ -995,7 +1004,7 @@ class _BadgePreviewItem extends StatelessWidget {
             ),
           ),
           child: Icon(
-            IconData(badge.iconCodePoint, fontFamily: 'MaterialIcons'),
+            materialIconFromCodePoint(badge.iconCodePoint),
             color: badge.isUnlocked
                 ? tierColor
                 : theme.textSecondary.withValues(alpha: 0.4),

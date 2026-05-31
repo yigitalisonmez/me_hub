@@ -26,6 +26,23 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   Future<void> _completeOnboarding() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter your name to continue ✨'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      // Name page is index 2
+      _introKey.currentState?.animateScroll(2);
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
 
@@ -34,14 +51,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
       await prefs.setString('user_primary_focus', _selectedFocus!);
     }
 
-    if (_nameController.text.isNotEmpty) {
-      // Securely store user name
-      const secureStorage = FlutterSecureStorage();
-      await secureStorage.write(
-        key: 'user_name',
-        value: _nameController.text.trim(),
-      );
-    }
+    // Securely store user name
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.write(
+      key: 'user_name',
+      value: name,
+    );
 
     if (mounted) {
       Navigator.of(

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import 'routines_provider.dart';
@@ -121,7 +120,4 @@ class EditRoutineProvider with ChangeNotifier {
   Future<void> reorderItems(int oldIndex, int newIndex) async {
     await _routinesProvider.reorderItems(routineId, oldIndex, newIndex);
   }
-
-
 }
-

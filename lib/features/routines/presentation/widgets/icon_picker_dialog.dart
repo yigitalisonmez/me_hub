@@ -86,11 +86,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                         )
                       : Border.all(color: Colors.transparent, width: 2.5),
                 ),
-                child: Icon(
-                  icon,
-                  color: themeProvider.primaryColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: themeProvider.primaryColor, size: 24),
               ),
             );
           },
@@ -102,7 +98,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -114,10 +110,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
         decoration: BoxDecoration(
           color: themeProvider.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: themeProvider.borderColor,
-            width: 2,
-          ),
+          border: Border.all(color: themeProvider.borderColor, width: 2),
           boxShadow: [
             BoxShadow(
               color: themeProvider.primaryColor.withValues(alpha: 0.1),
@@ -299,4 +292,3 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
     );
   }
 }
-

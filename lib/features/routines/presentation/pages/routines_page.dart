@@ -243,7 +243,6 @@ class _RoutinesPageState extends State<RoutinesPage>
       title: 'Routines',
       subtitle: 'Build habits & stay consistent',
       showBackButton: true,
-      actionIcon: LucideIcons.settings,
     );
   }
 

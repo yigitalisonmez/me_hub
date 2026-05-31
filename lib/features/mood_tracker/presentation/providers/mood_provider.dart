@@ -72,7 +72,7 @@ class MoodProvider with ChangeNotifier {
       // Reload all moods to update heatmap
       await loadAllMoods();
       notifyListeners();
-      
+
       // Update widget
       HomeWidgetService().updateWidget(
         moodEmoji: MoodUtils.getEmojiForScore(score),
@@ -88,18 +88,22 @@ class MoodProvider with ChangeNotifier {
   Future<void> deleteMood(DateTime date) async {
     try {
       await _dataSource.deleteMoodEntry(date);
-      
+
       // If deleting today's mood, update _todayMood
       final now = DateTime.now();
-      if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      if (date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day) {
         _todayMood = null;
       }
-      
+
       await loadAllMoods();
       notifyListeners();
 
       // Update widget if today's mood was deleted
-      if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      if (date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day) {
         HomeWidgetService().updateWidget(
           moodEmoji: '😐',
           moodLabel: 'Track Mood',

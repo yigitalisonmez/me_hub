@@ -152,14 +152,15 @@ class CommandParser {
       }
     } else {
       // Word-based amounts
-      if (lower.contains('yarım') || lower.contains('half'))
+      if (lower.contains('yarım') || lower.contains('half')) {
         amount = 500;
-      else if (lower.contains('çeyrek') || lower.contains('quarter'))
+      } else if (lower.contains('çeyrek') || lower.contains('quarter')) {
         amount = 250;
-      else if (lower.contains('bardak') ||
+      } else if (lower.contains('bardak') ||
           lower.contains('glass') ||
-          lower.contains('cup'))
+          lower.contains('cup')) {
         amount = 250;
+      }
     }
 
     return ParsedCommand(
@@ -190,8 +191,6 @@ class CommandParser {
 
   /// Extract todo task title
   static ParsedCommand _extractTodo(String lower, String raw) {
-    print('🔧 _extractTodo input: "$lower"');
-
     // Remove trigger words to get the task
     String task = lower
         .replaceAll(
@@ -210,15 +209,11 @@ class CommandParser {
         )
         .trim();
 
-    print('🔧 After trigger removal: "$task"');
-
     // Clean Turkish suffixes
     task = task
         .replaceAll(RegExp(r'(ma|me)y[ıiuü]$', caseSensitive: false), '')
         .replaceAll(RegExp(r"'?[yns]?[ıiuü]$", caseSensitive: false), '')
         .trim();
-
-    print('🔧 After suffix cleanup: "$task"');
 
     if (task.isEmpty || task.length < 2) {
       return ParsedCommand(
@@ -355,8 +350,9 @@ class CommandParser {
     if (text.contains('su') || text.contains('water')) return 'water';
     if (text.contains('görev') ||
         text.contains('todo') ||
-        text.contains('task'))
+        text.contains('task')) {
       return 'tasks';
+    }
     if (text.contains('rutin') || text.contains('routine')) return 'routines';
     if (text.contains('mood') || text.contains('ruh')) return 'mood';
     if (text.contains('ayar') || text.contains('setting')) return 'settings';

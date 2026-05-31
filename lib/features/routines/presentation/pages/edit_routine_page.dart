@@ -486,7 +486,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     final routine = editProvider.currentRoutine ?? widget.routine;
     final confirmed = await RoutineDialogs.showDeleteRoutine(context, routine);
 
-    if (confirmed == true && mounted) {
+    if (confirmed == true && mounted && context.mounted) {
       Navigator.pop(context);
     }
   }

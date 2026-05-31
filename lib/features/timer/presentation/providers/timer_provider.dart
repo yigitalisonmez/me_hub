@@ -11,10 +11,10 @@ class TimerProvider extends ChangeNotifier {
   TimerState _state = TimerState.idle;
 
   // Pomodoro settings
-  int _workDuration = 25 * 60; // 25 minutes in seconds
-  int _breakDuration = 5 * 60; // 5 minutes
+  final int _workDuration = 25 * 60; // 25 minutes in seconds
+  final int _breakDuration = 5 * 60; // 5 minutes
   int _currentSession = 1;
-  int _totalSessions = 4;
+  final int _totalSessions = 4;
   bool _isBreaktime = false;
 
   // Timer state

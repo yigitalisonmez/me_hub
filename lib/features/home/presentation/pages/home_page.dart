@@ -22,6 +22,7 @@ import '../../../breathing/presentation/pages/breathing_page.dart';
 import '../../../gratitude/presentation/pages/gratitude_page.dart';
 import '../../../challenges/presentation/pages/challenges_page.dart';
 import '../../../water/presentation/pages/water_page.dart';
+import '../../../calendar/presentation/pages/calendar_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -164,6 +165,10 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(builder: (_) => const ChallengesPage()),
               ),
+              onCalendarTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CalendarPage()),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -206,7 +211,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 24),
 
-            // AI Insights Card
+            // Daily Tip Card
             const InsightsCard(),
 
             SizedBox(height: LayoutConstants.getNavbarClearance(context)),
@@ -271,6 +276,7 @@ class _HomePageState extends State<HomePage> {
             left: 16,
             right: 16,
             child: GlassContainer(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -293,6 +299,8 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.w600,
                         fontStyle: FontStyle.italic,
                       ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -302,6 +310,8 @@ class _HomePageState extends State<HomePage> {
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ] else
                     const Text(

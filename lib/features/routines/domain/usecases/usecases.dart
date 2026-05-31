@@ -24,5 +24,3 @@ class DeleteRoutine {
   DeleteRoutine(this.repo);
   Future<void> call(String id) => repo.deleteRoutine(id);
 }
-
-

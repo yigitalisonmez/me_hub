@@ -35,7 +35,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDisabled = !isEnabled || isLoading || onPressed == null;
-    
+
     return SizedBox(
       width: width,
       height: height ?? _getHeight(),
@@ -54,9 +54,7 @@ class CustomButton extends StatelessWidget {
         height: 20,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            _getTextColor(),
-          ),
+          valueColor: AlwaysStoppedAnimation<Color>(_getTextColor()),
         ),
       );
     }
@@ -77,7 +75,7 @@ class CustomButton extends StatelessWidget {
 
   ButtonStyle _getButtonStyle(BuildContext context, bool isDisabled) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     final baseStyle = ElevatedButton.styleFrom(
       elevation: isDisabled ? 0 : 2,
       shape: RoundedRectangleBorder(
@@ -98,7 +96,7 @@ class CustomButton extends StatelessWidget {
             return textColor ?? themeProvider.textPrimary;
           }),
         );
-      
+
       case ButtonType.secondary:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
@@ -110,7 +108,7 @@ class CustomButton extends StatelessWidget {
             return textColor ?? themeProvider.textPrimary;
           }),
         );
-      
+
       case ButtonType.outline:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
@@ -126,7 +124,7 @@ class CustomButton extends StatelessWidget {
             return BorderSide(color: textColor ?? themeProvider.primaryColor);
           }),
         );
-      
+
       case ButtonType.text:
         return baseStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
@@ -212,16 +210,7 @@ class CustomButton extends StatelessWidget {
 }
 
 /// Buton türleri
-enum ButtonType {
-  primary,
-  secondary,
-  outline,
-  text,
-}
+enum ButtonType { primary, secondary, outline, text }
 
 /// Buton boyutları
-enum ButtonSize {
-  small,
-  medium,
-  large,
-}
+enum ButtonSize { small, medium, large }

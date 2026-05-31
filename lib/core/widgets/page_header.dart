@@ -27,6 +27,8 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
+    final hasAction = actionIcon != null || actionWidget != null;
+    final reservedSidePadding = showBackButton || hasAction ? 56.0 : 0.0;
 
     return Stack(
       children: [
@@ -78,40 +80,19 @@ class PageHeader extends StatelessWidget {
           ),
         // Title and subtitle
         if (centerTitle)
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: themeProvider.primaryColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: themeProvider.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          )
-        else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: reservedSidePadding),
+            child: Center(
+              child: Column(
                 children: [
                   Text(
                     title,
                     style: theme.textTheme.displaySmall?.copyWith(
                       color: themeProvider.primaryColor,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -119,10 +100,45 @@ class PageHeader extends StatelessWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: themeProvider.textSecondary,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-              if (actionIcon != null || actionWidget != null)
+            ),
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: themeProvider.primaryColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: themeProvider.textSecondary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (hasAction) ...[
+                const SizedBox(width: 12),
                 GestureDetector(
                   onTap: onActionTap,
                   child: Container(
@@ -167,10 +183,11 @@ class PageHeader extends StatelessWidget {
                         ),
                   ),
                 ),
+              ],
             ],
           ),
         // Action button on the right (only when centerTitle is true)
-        if (centerTitle && (actionIcon != null || actionWidget != null))
+        if (centerTitle && hasAction)
           Positioned(
             right: 0,
             top: 0,

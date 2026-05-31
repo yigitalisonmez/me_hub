@@ -8,6 +8,7 @@ import '../../data/constants/badge_definitions.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/challenge.dart';
 import '../providers/challenges_provider.dart';
+import '../utils/challenge_icon_lookup.dart';
 
 /// XP Level Progress Bar widget
 class XpLevelBar extends StatelessWidget {
@@ -171,10 +172,7 @@ class ActiveChallengeCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    IconData(
-                      challenge.iconCodePoint,
-                      fontFamily: 'MaterialIcons',
-                    ),
+                    materialIconFromCodePoint(challenge.iconCodePoint),
                     color: theme.primaryColor,
                     size: 24,
                   ),
@@ -350,7 +348,7 @@ class AvailableChallengeCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                IconData(challenge.iconCodePoint, fontFamily: 'MaterialIcons'),
+                materialIconFromCodePoint(challenge.iconCodePoint),
                 color: theme.primaryColor,
                 size: 28,
               ),
@@ -470,7 +468,7 @@ class BadgeGrid extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  IconData(badge.iconCodePoint, fontFamily: 'MaterialIcons'),
+                  materialIconFromCodePoint(badge.iconCodePoint),
                   color: badge.isUnlocked
                       ? theme.primaryColor
                       : theme.textSecondary.withValues(alpha: 0.4),
@@ -539,7 +537,7 @@ class BadgeGrid extends StatelessWidget {
                 ),
               ),
               child: Icon(
-                IconData(badge.iconCodePoint, fontFamily: 'MaterialIcons'),
+                materialIconFromCodePoint(badge.iconCodePoint),
                 color: badge.isUnlocked
                     ? theme.primaryColor
                     : theme.textSecondary,

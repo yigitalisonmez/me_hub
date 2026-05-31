@@ -37,7 +37,8 @@ class MoodEntry {
   }) {
     return MoodEntry(
       id: id ?? this.id,
-      dateTimestamp: dateTimestamp ??
+      dateTimestamp:
+          dateTimestamp ??
           (date != null ? date.millisecondsSinceEpoch : this.dateTimestamp),
       score: score ?? this.score,
       note: note ?? this.note,

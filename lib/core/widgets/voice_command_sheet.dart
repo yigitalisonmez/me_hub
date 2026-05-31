@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -11,6 +12,7 @@ import '../../features/water/presentation/providers/water_provider.dart';
 import '../../features/todo/presentation/providers/todo_provider.dart';
 import '../../features/mood_tracker/presentation/providers/mood_provider.dart';
 import '../../features/water/data/services/daily_goal_service.dart';
+import '../../features/timer/presentation/providers/timer_provider.dart';
 
 /// Show voice command bottom sheet
 Future<void> showVoiceCommandSheet(BuildContext context) {
@@ -120,10 +122,12 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
         setState(() {
           _parsedCommand = command;
         });
-        print('🧠 Final NLP result: ${command.type} - ${command.parameters}');
+        debugPrint(
+          '🧠 Final NLP result: ${command.type} - ${command.parameters}',
+        );
       }
     } catch (e) {
-      print('NLP processing error: $e');
+      debugPrint('NLP processing error: $e');
       // Fallback to regex parser
       if (mounted) {
         setState(() {
@@ -134,10 +138,12 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
   }
 
   Future<void> _executeCommand() async {
-    print('🔍 _executeCommand called');
-    print('🔍 _parsedCommand: $_parsedCommand');
-    print('🔍 type: ${_parsedCommand?.type}');
-    print('🔍 parameters: ${_parsedCommand?.parameters}');
+    if (kDebugMode) {
+      debugPrint('🔍 _executeCommand called');
+      debugPrint('🔍 _parsedCommand: $_parsedCommand');
+      debugPrint('🔍 type: ${_parsedCommand?.type}');
+      debugPrint('🔍 parameters: ${_parsedCommand?.parameters}');
+    }
 
     if (_parsedCommand == null) {
       setState(() {
@@ -164,6 +170,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
         case CommandType.addWater:
           final amount = _parsedCommand!.parameters['amount'] as int;
           await context.read<WaterProvider>().addWaterAmount(amount);
+          if (!mounted) return;
           setState(() {
             _successMessage = 'Added $amount ml of water! 💧';
           });
@@ -172,6 +179,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
         case CommandType.addTodo:
           final title = _parsedCommand!.parameters['title'] as String;
           await context.read<TodoProvider>().addTodo(title: title);
+          if (!mounted) return;
           setState(() {
             _successMessage = 'Added task: "$title" ✅';
           });
@@ -180,6 +188,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
         case CommandType.setMood:
           final score = _parsedCommand!.parameters['score'] as int;
           await context.read<MoodProvider>().saveMood(score: score);
+          if (!mounted) return;
           setState(() {
             _successMessage = 'Mood set to $score! 😊';
           });
@@ -187,16 +196,23 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
 
         case CommandType.startTimer:
           final minutes = _parsedCommand!.parameters['minutes'] as int? ?? 25;
+          // Actually start the timer via TimerProvider
+          final timerProvider = context.read<TimerProvider>();
+          timerProvider.setMode(TimerMode.countdown);
+          timerProvider.setCountdownDuration(minutes);
+          timerProvider.start();
+          if (!mounted) return;
           setState(() {
             _successMessage = 'Timer started for $minutes min! ⏱️';
           });
-          // TODO: Integrate with timer feature
           break;
 
         case CommandType.setWaterTarget:
           final target = _parsedCommand!.parameters['target'] as int? ?? 2000;
+          final waterProvider = context.read<WaterProvider>();
           await DailyGoalService.setDailyGoal(target);
-          context.read<WaterProvider>().setDailyGoal(target);
+          if (!mounted) return;
+          waterProvider.setDailyGoal(target);
           setState(() {
             _successMessage = 'Water target set to $target ml! 🎯';
           });
@@ -221,6 +237,7 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
             final todo = matchingTodo.first;
             if (!todo.isCompleted) {
               await todoProvider.toggleTodoCompletion(todo.id);
+              if (!mounted) return;
               setState(() {
                 _successMessage = 'Completed: "${todo.title}" ✅';
               });
@@ -247,18 +264,22 @@ class _VoiceCommandSheetState extends State<VoiceCommandSheet>
           break;
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to execute command: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to execute command: $e';
+        });
+      }
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
 
       // Auto-close after success
       if (_successMessage != null) {
         await Future.delayed(const Duration(milliseconds: 1500));
-        if (mounted) {
+        if (mounted && context.mounted) {
           Navigator.of(context).pop();
         }
       }

@@ -156,8 +156,9 @@ class Routine {
       lastStreakDate!.day,
     );
     if (last == yesterday) return streakCount + 1; // consecutive
-    if (last == DateTime(today.year, today.month, today.day))
+    if (last == DateTime(today.year, today.month, today.day)) {
       return streakCount; // already counted today
+    }
     return 1; // reset streak
   }
 }

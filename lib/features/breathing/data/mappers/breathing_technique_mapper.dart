@@ -36,11 +36,7 @@ class BreathingTechniqueMapper {
       exhaleSeconds: json['exhaleSeconds'] as int,
       holdAfterExhaleSeconds: json['holdAfterExhaleSeconds'] as int,
       primaryColor: Color(json['primaryColor'] as int),
-      icon: IconData(
-        json['iconCodePoint'] as int,
-        fontFamily: 'LucideIcons',
-        fontPackage: 'lucide_icons_flutter',
-      ),
+      icon: BreathingTechnique.iconFromCodePoint(json['iconCodePoint'] as int?),
       isCustom: json['isCustom'] as bool? ?? false,
     );
   }

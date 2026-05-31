@@ -6,7 +6,7 @@ sealed class Result<T> {
 /// Başarılı sonuç
 class Success<T> extends Result<T> {
   final T data;
-  
+
   const Success(this.data);
 
   @override
@@ -26,11 +26,8 @@ class Success<T> extends Result<T> {
 class Error<T> extends Result<T> {
   final String message;
   final String? code;
-  
-  const Error({
-    required this.message,
-    this.code,
-  });
+
+  const Error({required this.message, this.code});
 
   @override
   bool operator ==(Object other) {
@@ -49,19 +46,19 @@ class Error<T> extends Result<T> {
 extension ResultExtension<T> on Result<T> {
   /// Başarılı mı kontrol et
   bool get isSuccess => this is Success<T>;
-  
+
   /// Hatalı mı kontrol et
   bool get isError => this is Error<T>;
-  
+
   /// Veriyi al (sadece başarılı durumda)
   T? get data => isSuccess ? (this as Success<T>).data : null;
-  
+
   /// Hata mesajını al (sadece hatalı durumda)
   String? get errorMessage => isError ? (this as Error<T>).message : null;
-  
+
   /// Hata kodunu al (sadece hatalı durumda)
   String? get errorCode => isError ? (this as Error<T>).code : null;
-  
+
   /// Başarılı durumda işlem yap
   Result<R> map<R>(R Function(T) mapper) {
     if (this is Success<T>) {
@@ -71,17 +68,23 @@ extension ResultExtension<T> on Result<T> {
         return Error<R>(message: e.toString());
       }
     }
-    return Error<R>(message: (this as Error<T>).message, code: (this as Error<T>).code);
+    return Error<R>(
+      message: (this as Error<T>).message,
+      code: (this as Error<T>).code,
+    );
   }
-  
+
   /// Hatalı durumda işlem yap
   Result<T> mapError(String Function(String) mapper) {
     if (this is Error<T>) {
-      return Error<T>(message: mapper((this as Error<T>).message), code: (this as Error<T>).code);
+      return Error<T>(
+        message: mapper((this as Error<T>).message),
+        code: (this as Error<T>).code,
+      );
     }
     return this;
   }
-  
+
   /// Başarılı durumda işlem yap, hatalı durumda varsayılan değer döndür
   T fold<R>(T Function(T) onSuccess, T Function(String) onError) {
     if (this is Success<T>) {

@@ -8,7 +8,7 @@ part of 'affirmation_session.dart';
 
 class AffirmationSessionAdapter extends TypeAdapter<AffirmationSession> {
   @override
-  final int typeId = 10;
+  final int typeId = 12;
 
   @override
   AffirmationSession read(BinaryReader reader) {

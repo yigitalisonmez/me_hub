@@ -50,10 +50,11 @@ class WeeklyMoodTrend extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: days.map((date) {
               final mood = moodProvider.getMoodForDate(date);
-              final isToday = date.year == today.year &&
+              final isToday =
+                  date.year == today.year &&
                   date.month == today.month &&
                   date.day == today.day;
-              
+
               return _DayItem(
                 date: date,
                 score: mood?.score,
@@ -84,8 +85,8 @@ class _DayItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dayName = DateFormat('E').format(date)[0]; // First letter of day
-    final color = score != null 
-        ? MoodUtils.getColorForScore(score!) 
+    final color = score != null
+        ? MoodUtils.getColorForScore(score!)
         : themeProvider.borderColor;
 
     return Column(
@@ -95,8 +96,8 @@ class _DayItem extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-            color: isToday 
-                ? themeProvider.primaryColor 
+            color: isToday
+                ? themeProvider.primaryColor
                 : themeProvider.textSecondary,
           ),
         ),
@@ -117,7 +118,7 @@ class _DayItem extends StatelessWidget {
                       color: color.withValues(alpha: 0.4),
                       blurRadius: 8,
                       spreadRadius: 2,
-                    )
+                    ),
                   ]
                 : null,
           ),

@@ -65,4 +65,3 @@ class WaterLog {
     required this.amountMl,
   });
 }
-

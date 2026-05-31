@@ -6,5 +6,3 @@ abstract class RoutineRepository {
   Future<Routine> updateRoutine(Routine routine);
   Future<void> deleteRoutine(String id);
 }
-
-

@@ -229,12 +229,21 @@ class BreathingTechnique {
       exhaleSeconds: json['exhaleSeconds'] as int,
       holdAfterExhaleSeconds: json['holdAfterExhaleSeconds'] as int,
       primaryColor: Color(json['primaryColor'] as int),
-      icon: IconData(
-        json['iconCodePoint'] as int,
-        fontFamily: 'LucideIcons',
-        fontPackage: 'lucide_icons_flutter',
-      ),
+      icon: iconFromCodePoint(json['iconCodePoint'] as int?),
       isCustom: json['isCustom'] as bool? ?? false,
     );
+  }
+
+  static IconData iconFromCodePoint(int? codePoint) {
+    if (codePoint == LucideIcons.heart.codePoint) return LucideIcons.heart;
+    if (codePoint == LucideIcons.moon.codePoint) return LucideIcons.moon;
+    if (codePoint == LucideIcons.settings.codePoint) {
+      return LucideIcons.settings;
+    }
+    if (codePoint == LucideIcons.square.codePoint) return LucideIcons.square;
+    if (codePoint == LucideIcons.waves.codePoint) return LucideIcons.waves;
+    if (codePoint == LucideIcons.zap.codePoint) return LucideIcons.zap;
+
+    return LucideIcons.settings;
   }
 }

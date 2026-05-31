@@ -21,7 +21,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with AutomaticKeepAliveClientMixin {
   String _userName = '';
-  String _userEmail = '';
   int _allTimeTasksCompleted = 0;
   int _allTimeWaterMl = 0;
   int _maxStreak = 0;
@@ -39,12 +38,10 @@ class _ProfilePageState extends State<ProfilePage>
   Future<void> _loadUserData() async {
     const secureStorage = FlutterSecureStorage();
     final userName = await secureStorage.read(key: 'user_name');
-    final userEmail = await secureStorage.read(key: 'user_email');
 
     if (mounted) {
       setState(() {
         _userName = userName ?? 'User';
-        _userEmail = userEmail ?? 'user@example.com';
       });
     }
   }
@@ -92,8 +89,7 @@ class _ProfilePageState extends State<ProfilePage>
                 onSettingsTap: () => _navigateToSettings(context),
                 child: ProfileCard(
                   userName: _userName,
-                  userEmail: _userEmail,
-                  isPremium: true, // TODO: Check actual premium status
+                  profileLabel: 'Local profile',
                   totalTasksCompleted: _allTimeTasksCompleted,
                   maxStreak: _maxStreak,
                   totalWaterMl: _allTimeWaterMl,
@@ -124,11 +120,8 @@ class _ProfilePageState extends State<ProfilePage>
                       isDarkMode: themeProvider.isDarkMode,
                       onDarkModeChanged: (value) =>
                           themeProvider.setTheme(value),
-                      onNotificationsTap: () => _navigateToSettings(context),
                       onVoiceCommandsTap: () => _navigateToSettings(context),
-                      onExportDataTap: () => _showExportDialog(context),
                       onHelpTap: () => _showHelpDialog(context),
-                      onSignOutTap: () => _showSignOutDialog(context),
                     ),
 
                     SizedBox(
@@ -188,12 +181,11 @@ class _ProfilePageState extends State<ProfilePage>
                 key: 'user_name',
                 value: nameController.text,
               );
-              if (mounted) {
-                setState(() {
-                  _userName = nameController.text;
-                });
-                Navigator.pop(context);
-              }
+              if (!mounted || !context.mounted) return;
+              setState(() {
+                _userName = nameController.text;
+              });
+              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: themeProvider.primaryColor,
@@ -202,35 +194,6 @@ class _ProfilePageState extends State<ProfilePage>
               ),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showExportDialog(BuildContext context) {
-    final themeProvider = context.read<ThemeProvider>();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: themeProvider.surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Export Data',
-          style: TextStyle(color: themeProvider.textPrimary),
-        ),
-        content: Text(
-          'Export your data for backup or analysis. This feature is coming soon!',
-          style: TextStyle(color: themeProvider.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: TextStyle(color: themeProvider.primaryColor),
-            ),
           ),
         ],
       ),
@@ -246,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage>
         backgroundColor: themeProvider.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Help & Support',
+          'About Kora',
           style: TextStyle(color: themeProvider.textPrimary),
         ),
         content: Column(
@@ -254,17 +217,12 @@ class _ProfilePageState extends State<ProfilePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Need help? Contact us:',
+              'Kora keeps your profile and progress on this device.',
               style: TextStyle(color: themeProvider.textSecondary),
             ),
             const SizedBox(height: 12),
             Text(
-              '📧 support@mehub.app',
-              style: TextStyle(color: themeProvider.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '🌐 www.mehub.app/help',
+              'Cloud accounts, export, and support channels will be added only when they are fully ready.',
               style: TextStyle(color: themeProvider.textPrimary),
             ),
           ],
@@ -275,57 +233,6 @@ class _ProfilePageState extends State<ProfilePage>
             child: Text(
               'Close',
               style: TextStyle(color: themeProvider.primaryColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSignOutDialog(BuildContext context) {
-    final themeProvider = context.read<ThemeProvider>();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: themeProvider.surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Sign Out',
-          style: TextStyle(color: themeProvider.textPrimary),
-        ),
-        content: Text(
-          'Are you sure you want to sign out?',
-          style: TextStyle(color: themeProvider.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: themeProvider.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Implement actual sign out logic
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Sign out functionality coming soon!'),
-                  backgroundColor: themeProvider.primaryColor,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD32F2F),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(color: Colors.white),
             ),
           ),
         ],

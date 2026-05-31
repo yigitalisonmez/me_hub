@@ -34,4 +34,3 @@ class UpdateWaterIntake {
   Future<void> call(WaterIntake waterIntake) =>
       repository.updateWaterIntake(waterIntake);
 }
-

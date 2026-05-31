@@ -6,20 +6,21 @@ import '../../../../core/providers/theme_provider.dart';
 class AddItemButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const AddItemButton({
-    super.key,
-    required this.onPressed,
-  });
+  const AddItemButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(LucideIcons.plus, size: 20, color: themeProvider.primaryColor),
+        icon: Icon(
+          LucideIcons.plus,
+          size: 20,
+          color: themeProvider.primaryColor,
+        ),
         label: Text(
           'Add Item',
           style: TextStyle(color: themeProvider.primaryColor),
@@ -37,4 +38,3 @@ class AddItemButton extends StatelessWidget {
     );
   }
 }
-

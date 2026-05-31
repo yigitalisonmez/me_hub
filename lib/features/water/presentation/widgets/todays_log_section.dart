@@ -1,13 +1,9 @@
 part of '../pages/water_page.dart';
 
-
 class TodaysLogSection extends StatelessWidget {
   final WaterProvider provider;
 
-  const TodaysLogSection({
-    super.key,
-    required this.provider,
-  });
+  const TodaysLogSection({super.key, required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +69,13 @@ class TodaysLogSection extends StatelessWidget {
             )
           else
             ...logs
-                .map((log) => WaterLogItem(
-                      key: ValueKey(log.id),
-                      log: log,
-                      provider: provider,
-                    ))
+                .map(
+                  (log) => WaterLogItem(
+                    key: ValueKey(log.id),
+                    log: log,
+                    provider: provider,
+                  ),
+                )
                 .toList()
                 .reversed, // Show newest first
         ],

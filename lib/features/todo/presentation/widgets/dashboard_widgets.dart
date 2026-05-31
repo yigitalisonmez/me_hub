@@ -6,6 +6,7 @@ import '../../../../core/widgets/elevated_card.dart';
 import '../../../water/presentation/providers/water_provider.dart';
 import '../../../mood_tracker/presentation/providers/mood_provider.dart';
 import '../../../routines/presentation/providers/routines_provider.dart';
+import '../providers/todo_provider.dart';
 
 /// Daily progress section showing water, mood, and routines progress
 class DailyProgressSection extends StatelessWidget {
@@ -43,7 +44,7 @@ class DailyProgressSection extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         SizedBox(
-          height: 130,
+          height: 136,
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -165,7 +166,7 @@ class _ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedCard(
       width: 140,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +174,7 @@ class _ProgressCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
@@ -195,6 +196,8 @@ class _ProgressCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(color: themeProvider.textSecondary, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
@@ -204,8 +207,17 @@ class _ProgressCard extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 1),
+          Text(
+            subtitle,
+            style: TextStyle(color: themeProvider.textSecondary, fontSize: 10),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
@@ -302,70 +314,106 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return ElevatedCard(
-      width: 110,
-      height: 110,
-      padding: const EdgeInsets.all(8),
-      borderRadius: 16,
-      onTap: isComingSoon ? null : onTap,
-      child: Stack(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: imagePath != null
-                    ? Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(imagePath!, fit: BoxFit.contain),
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Icon(icon, color: color, size: 28),
-                        ),
-                      ),
+    return Semantics(
+      enabled: !isComingSoon,
+      button: !isComingSoon,
+      label: isComingSoon ? '$label, coming soon' : label,
+      child: ElevatedCard(
+        width: 110,
+        height: 110,
+        padding: const EdgeInsets.all(8),
+        borderRadius: 16,
+        onTap: isComingSoon ? null : onTap,
+        child: Stack(
+          children: [
+            Opacity(
+              opacity: isComingSoon ? 0.48 : 1,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: imagePath != null
+                        ? Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(
+                                imagePath!,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Icon(icon, color: color, size: 28),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isComingSoon
+                          ? themeProvider.textSecondary
+                          : themeProvider.textPrimary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: themeProvider.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-          if (isComingSoon)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Soon',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
+            ),
+            if (isComingSoon)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: themeProvider.isDarkMode
+                          ? Colors.black.withValues(alpha: 0.16)
+                          : Colors.white.withValues(alpha: 0.28),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+            if (isComingSoon)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: themeProvider.textSecondary,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(LucideIcons.lock, color: Colors.white, size: 8),
+                      SizedBox(width: 3),
+                      Text(
+                        'Soon',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -377,6 +425,7 @@ class ProductivitySection extends StatelessWidget {
   final VoidCallback? onRoutinesTap;
   final VoidCallback? onPomodoroTap;
   final VoidCallback? onGoalsTap;
+  final VoidCallback? onCalendarTap;
 
   const ProductivitySection({
     super.key,
@@ -384,6 +433,7 @@ class ProductivitySection extends StatelessWidget {
     this.onRoutinesTap,
     this.onPomodoroTap,
     this.onGoalsTap,
+    this.onCalendarTap,
   });
 
   @override
@@ -405,6 +455,12 @@ class ProductivitySection extends StatelessWidget {
           label: 'Routines',
           color: const Color(0xFF81C784),
           onTap: onRoutinesTap,
+        ),
+        _CategoryCard(
+          icon: LucideIcons.calendarDays,
+          label: 'Calendar',
+          color: const Color(0xFF7E57C2),
+          onTap: onCalendarTap,
         ),
         _CategoryCard(
           imagePath: 'assets/images/pomodoro_timer.png',
@@ -563,13 +619,106 @@ class TodayTasksPreview extends StatelessWidget {
   }
 }
 
-/// AI Insights / Recommendations card
+/// Daily Tip card — shows a contextual tip based on real provider data
 class InsightsCard extends StatelessWidget {
   const InsightsCard({super.key});
+
+  /// Picks the most relevant tip based on today's tracked data.
+  _TipData _pickTip({
+    required WaterProvider water,
+    required MoodProvider mood,
+    required RoutinesProvider routines,
+    required TodoProvider todo,
+  }) {
+    final waterPercent = water.dailyGoalMl > 0
+        ? water.todayAmount / water.dailyGoalMl
+        : 0.0;
+
+    final weekday = DateTime.now().weekday - 1;
+    final activeRoutines = routines.getActiveRoutinesForDay(weekday);
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    int totalRoutineItems = 0;
+    int completedRoutineItems = 0;
+    for (final r in activeRoutines) {
+      totalRoutineItems += r.items.length;
+      completedRoutineItems += r.items
+          .where((i) => i.isCheckedToday(todayDate))
+          .length;
+    }
+    final routinePercent = totalRoutineItems > 0
+        ? completedRoutineItems / totalRoutineItems
+        : 1.0;
+
+    final pendingTodos = todo.todos.where((t) => !t.isCompleted).length;
+
+    // Priority: water < 50% > mood missing > routine < 50% > tasks > all good
+    if (waterPercent < 0.5) {
+      final remaining = water.dailyGoalMl - water.todayAmount;
+      return _TipData(
+        icon: LucideIcons.droplet,
+        color: const Color(0xFF4FC3F7),
+        title: 'Hydration Reminder',
+        message:
+            'You\'ve had ${water.todayAmount}ml today. Try to drink ${remaining > 0 ? remaining : 0}ml more to hit your daily goal!',
+      );
+    }
+
+    if (!mood.hasTodayMood) {
+      return _TipData(
+        icon: LucideIcons.smile,
+        color: const Color(0xFFFFB74D),
+        title: 'Check In With Yourself',
+        message:
+            'You haven\'t logged your mood yet today. A quick check-in keeps you self-aware and consistent.',
+      );
+    }
+
+    if (routinePercent < 0.5 && totalRoutineItems > 0) {
+      final left = totalRoutineItems - completedRoutineItems;
+      return _TipData(
+        icon: LucideIcons.circleCheck,
+        color: const Color(0xFF81C784),
+        title: 'Keep Your Streak Going',
+        message:
+            '$left routine ${left == 1 ? 'task' : 'tasks'} left for today. Small steps compound into big results.',
+      );
+    }
+
+    if (pendingTodos > 0) {
+      return _TipData(
+        icon: LucideIcons.clipboardList,
+        color: const Color(0xFF7986CB),
+        title: 'Tasks Awaiting You',
+        message:
+            'You have $pendingTodos pending ${pendingTodos == 1 ? 'task' : 'tasks'}. Tackle the hardest one first for maximum momentum.',
+      );
+    }
+
+    // Everything looks good
+    return _TipData(
+      icon: LucideIcons.sparkles,
+      color: const Color(0xFF66BB6A),
+      title: 'You\'re On Track!',
+      message:
+          'Water ✓  Mood ✓  Routines ✓  Great job staying consistent today. Keep it up!',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final water = context.watch<WaterProvider>();
+    final mood = context.watch<MoodProvider>();
+    final routinesProvider = context.watch<RoutinesProvider>();
+    final todoProvider = context.watch<TodoProvider>();
+
+    final tip = _pickTip(
+      water: water,
+      mood: mood,
+      routines: routinesProvider,
+      todo: todoProvider,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -580,28 +729,23 @@ class InsightsCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              themeProvider.primaryColor.withValues(alpha: 0.1),
-              themeProvider.primaryColor.withValues(alpha: 0.05),
+              tip.color.withValues(alpha: 0.12),
+              tip.color.withValues(alpha: 0.05),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: themeProvider.primaryColor.withValues(alpha: 0.2),
-          ),
+          border: Border.all(color: tip.color.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: themeProvider.primaryColor.withValues(alpha: 0.15),
+                color: tip.color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                LucideIcons.sparkles,
-                color: themeProvider.primaryColor,
-                size: 24,
-              ),
+              child: Icon(tip.icon, color: tip.color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -609,34 +753,44 @@ class InsightsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AI Insight',
+                    tip.title,
                     style: TextStyle(
-                      color: themeProvider.primaryColor,
-                      fontSize: 14,
+                      color: tip.color,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'You\'re doing great! Keep up the momentum with your daily routines.',
+                    tip.message,
                     style: TextStyle(
                       color: themeProvider.textSecondary,
                       fontSize: 13,
+                      height: 1.4,
                     ),
                   ),
                 ],
               ),
-            ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: themeProvider.primaryColor,
-              size: 20,
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _TipData {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String message;
+
+  const _TipData({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.message,
+  });
 }
 
 /// Goals & Challenges section: Access to gamification features

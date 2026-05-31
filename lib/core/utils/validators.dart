@@ -8,12 +8,14 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Email address is required';
     }
-    
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(value)) {
       return 'Please enter a valid email address';
     }
-    
+
     return null;
   }
 
@@ -22,16 +24,18 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
-    
+
     if (value.length < 8) {
       return 'Password must be at least 8 characters';
     }
-    
-    final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$');
+
+    final passwordRegex = RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$',
+    );
     if (!passwordRegex.hasMatch(value)) {
       return 'Password must contain at least one lowercase letter, one uppercase letter, and one number';
     }
-    
+
     return null;
   }
 
@@ -40,11 +44,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
-    
+
     if (value.length < 6) {
       return 'Password must be at least 6 characters';
     }
-    
+
     return null;
   }
 
@@ -53,12 +57,12 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
-    
+
     final phoneRegex = RegExp(r'^\+?[1-9]\d{1,14}$');
     if (!phoneRegex.hasMatch(value.replaceAll(' ', '').replaceAll('-', ''))) {
       return 'Please enter a valid phone number';
     }
-    
+
     return null;
   }
 
@@ -67,15 +71,15 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Name is required';
     }
-    
+
     if (value.length < 2) {
       return 'Name must be at least 2 characters';
     }
-    
+
     if (value.length > 50) {
       return 'Name must be at most 50 characters';
     }
-    
+
     return null;
   }
 
@@ -92,11 +96,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return '${fieldName ?? 'This field'} is required';
     }
-    
+
     if (value.length < minLength) {
       return '${fieldName ?? 'This field'} must be at least $minLength characters';
     }
-    
+
     return null;
   }
 
@@ -105,11 +109,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return null; // Use another validator for empty fields
     }
-    
+
     if (value.length > maxLength) {
       return '${fieldName ?? 'This field'} must be at most $maxLength characters';
     }
-    
+
     return null;
   }
 
@@ -118,11 +122,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return '${fieldName ?? 'This field'} is required';
     }
-    
+
     if (double.tryParse(value) == null) {
       return '${fieldName ?? 'This field'} must be a number';
     }
-    
+
     return null;
   }
 
@@ -130,11 +134,11 @@ class Validators {
   static String? positiveNumber(String? value, {String? fieldName}) {
     final numberError = number(value, fieldName: fieldName);
     if (numberError != null) return numberError;
-    
+
     if (double.parse(value!) <= 0) {
       return '${fieldName ?? 'This field'} must be a positive number';
     }
-    
+
     return null;
   }
 
@@ -143,12 +147,14 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'URL is required';
     }
-    
-    final urlRegex = RegExp(r'^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$');
+
+    final urlRegex = RegExp(
+      r'^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$',
+    );
     if (!urlRegex.hasMatch(value)) {
       return 'Please enter a valid URL';
     }
-    
+
     return null;
   }
 }

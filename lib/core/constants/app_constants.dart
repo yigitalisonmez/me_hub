@@ -1,10 +1,10 @@
-/// Me Hub uygulaması için global sabitler
+/// Kora uygulaması için global sabitler
 class AppConstants {
   // Private constructor to prevent instantiation
   AppConstants._();
 
   // Uygulama bilgileri
-  static const String appName = 'MeHub';
+  static const String appName = 'Kora';
   static const String appVersion = '1.0.0';
   static const String appDescription = 'All-in-one personal tracking app';
 

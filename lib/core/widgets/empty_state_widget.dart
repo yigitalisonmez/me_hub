@@ -35,8 +35,8 @@ class EmptyStateWidget extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: themeProvider.isDarkMode 
-                        ? Colors.black.withValues(alpha: 0.2) 
+                    color: themeProvider.isDarkMode
+                        ? Colors.black.withValues(alpha: 0.2)
                         : Colors.grey.withValues(alpha: 0.1),
                     offset: const Offset(2, 2),
                     blurRadius: 4,
@@ -93,12 +93,15 @@ class EmptyStateWidget extends StatelessWidget {
                     backgroundColor: themeProvider.surfaceColor,
                     foregroundColor: themeProvider.primaryColor,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: themeProvider.isDarkMode 
-                            ? Colors.white.withValues(alpha: 0.05) 
+                        color: themeProvider.isDarkMode
+                            ? Colors.white.withValues(alpha: 0.05)
                             : themeProvider.primaryColor.withValues(alpha: 0.2),
                         width: 1,
                       ),

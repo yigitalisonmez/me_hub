@@ -8,7 +8,7 @@ class AffirmationRepository {
 
   /// Initialize the repository and open the Hive box
   Future<void> init() async {
-    if (!Hive.isAdapterRegistered(10)) {
+    if (!Hive.isAdapterRegistered(12)) {
       Hive.registerAdapter(AffirmationSessionAdapter());
     }
     _box = await Hive.openBox<AffirmationSession>(_boxName);

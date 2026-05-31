@@ -49,10 +49,6 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-
-    
-
-    
     return ElevatedCard(
       margin: const EdgeInsets.only(bottom: 20),
       child: _isLoading
@@ -65,7 +61,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   Widget _buildLoadingWidget() {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Row(
       children: [
         Container(
@@ -105,7 +101,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   Widget _buildQuoteContent() {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -118,8 +114,8 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: themeProvider.isDarkMode 
-                        ? Colors.black.withValues(alpha: 0.2) 
+                    color: themeProvider.isDarkMode
+                        ? Colors.black.withValues(alpha: 0.2)
                         : Colors.grey.withValues(alpha: 0.1),
                     offset: const Offset(1, 1),
                     blurRadius: 2,
@@ -174,7 +170,7 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
 
   Widget _buildErrorWidget() {
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     return Column(
       children: [
         Row(
@@ -206,7 +202,11 @@ class _DailyQuoteWidgetState extends State<DailyQuoteWidget> {
         const SizedBox(height: 16),
         Text(
           'Unable to load today\'s inspiration. Please check your internet connection.',
-          style: TextStyle(color: themeProvider.textSecondary, fontSize: 14, height: 1.4),
+          style: TextStyle(
+            color: themeProvider.textSecondary,
+            fontSize: 14,
+            height: 1.4,
+          ),
         ),
         const SizedBox(height: 12),
         Text(
