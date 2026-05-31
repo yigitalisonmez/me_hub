@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../../domain/entities/gratitude_entry.dart';
-import '../../domain/entities/gratitude_prompt.dart';
 import '../providers/gratitude_provider.dart';
 import 'gratitude_entry_page.dart';
 
-/// Main page for the Gratitude Journal feature
 class GratitudePage extends StatefulWidget {
   const GratitudePage({super.key});
 
@@ -24,11 +24,8 @@ class _GratitudePageState extends State<GratitudePage> {
   @override
   void initState() {
     super.initState();
-    // Auto-select entry type based on time of day
     final hour = DateTime.now().hour;
-    if (hour >= 17) {
-      _selectedEntryType = EntryType.evening;
-    }
+    if (hour >= 17) _selectedEntryType = EntryType.evening;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GratitudeProvider>().loadAll();
@@ -39,179 +36,55 @@ class _GratitudePageState extends State<GratitudePage> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final provider = context.watch<GratitudeProvider>();
+    final todayEntry = _selectedEntryType == EntryType.morning
+        ? provider.todayMorningEntry
+        : provider.todayEveningEntry;
 
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Gradient header - matching app style
-          SliverAppBar(
-            expandedHeight: 140,
-            pinned: true,
-            backgroundColor: themeProvider.backgroundColor,
-            leading: IconButton(
-              icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            actions: [
-              // Stats button
-              IconButton(
-                icon: const Icon(LucideIcons.chartBar, color: Colors.white),
-                onPressed: () => _showStatsSheet(context, provider),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              PageHeader(
+                title: 'Gratitude',
+                subtitle: 'Three good things',
+                showBackButton: true,
+                actionIcon: LucideIcons.bookmark,
+                onActionTap: () => _showStatsSheet(context, provider),
               ),
+              const SizedBox(height: 22),
+              const _GratitudeHero(),
+              const SizedBox(height: 16),
+              _EntryTypeSelector(
+                selectedType: _selectedEntryType,
+                onChanged: (type) => setState(() => _selectedEntryType = type),
+              ),
+              const SizedBox(height: 16),
+              _StatsStrip(
+                streak: provider.currentStreak,
+                entries: provider.totalEntriesCount,
+                topEmotion: provider.topEmotionTag,
+              ),
+              const SizedBox(height: 18),
+              _ThreeThingsCard(
+                entry: todayEntry,
+                prompt: provider.currentPrompt.content,
+                onRefreshPrompt: provider.refreshPrompt,
+                onStart: () => _navigateToEntry(context),
+              ),
+              const SizedBox(height: 24),
+              _LookingBack(
+                entries: provider.entries,
+                randomEntry: provider.randomPastEntry,
+                onRefresh: provider.refreshRandomPastEntry,
+              ),
+              SizedBox(height: LayoutConstants.getNavbarClearance(context)),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Gratitude',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      themeProvider.primaryColor,
-                      themeProvider.primaryColor.withValues(alpha: 0.7),
-                      themeProvider.backgroundColor,
-                    ],
-                    stops: const [0.0, 0.6, 1.0],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: -20,
-                      right: -20,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 60,
-                      right: 40,
-                      child: Icon(
-                        LucideIcons.heart,
-                        size: 32,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    Positioned(
-                      top: 40,
-                      right: 100,
-                      child: Icon(
-                        LucideIcons.sparkles,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.25),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
-
-          // Content
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                AnimationConfiguration.toStaggeredList(
-                  duration: const Duration(milliseconds: 375),
-                  childAnimationBuilder: (widget) => SlideAnimation(
-                    verticalOffset: 50.0,
-                    child: FadeInAnimation(child: widget),
-                  ),
-                  children: [
-                    // Stats row
-                    _StatsRow(
-                      streak: provider.currentStreak,
-                      entries: provider.totalEntriesCount,
-                      topEmotion: provider.topEmotionTag,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Entry type toggle
-                    _EntryTypeSelector(
-                      selectedType: _selectedEntryType,
-                      onTypeChanged: (type) {
-                        setState(() => _selectedEntryType = type);
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Today's status card
-                    _TodayStatusCard(
-                      entry: _selectedEntryType == EntryType.morning
-                          ? provider.todayMorningEntry
-                          : provider.todayEveningEntry,
-                      entryType: _selectedEntryType,
-                      onStartTap: () => _navigateToEntry(context),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Random memory (if exists)
-                    if (provider.randomPastEntry != null) ...[
-                      _RandomMemoryCard(
-                        entry: provider.randomPastEntry!,
-                        onRefresh: () => provider.refreshRandomPastEntry(),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Daily prompt
-                    _PromptCard(
-                      prompt: provider.currentPrompt,
-                      onRefresh: () => provider.refreshPrompt(),
-                      onStart: () => _navigateToEntry(context),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Recent entries
-                    if (provider.entries.isNotEmpty) ...[
-                      Text(
-                        'Recent Entries',
-                        style: TextStyle(
-                          color: themeProvider.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ...provider.entries
-                          .take(5)
-                          .map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _EntryCard(entry: entry),
-                            ),
-                          ),
-                    ],
-
-                    const SizedBox(height: 80), // FAB clearance
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _navigateToEntry(context),
-        backgroundColor: themeProvider.primaryColor,
-        icon: const Icon(LucideIcons.plus, color: Colors.white),
-        label: const Text(
-          'New Entry',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -227,154 +100,119 @@ class _GratitudePageState extends State<GratitudePage> {
 
   void _showStatsSheet(BuildContext context, GratitudeProvider provider) {
     final themeProvider = context.read<ThemeProvider>();
-
     showModalBottomSheet(
       context: context,
       backgroundColor: themeProvider.cardColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: themeProvider.textSecondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+      builder: (ctx) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: themeProvider.textSecondary.withValues(
+                        alpha: 0.25,
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 22),
+                Text(
+                  'Statistics',
+                  style: TextStyle(
+                    color: themeProvider.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _SheetStat(
+                  icon: LucideIcons.flame,
+                  label: 'Current streak',
+                  value: '${provider.currentStreak} days',
+                  color: AppColors.moodDeep,
+                ),
+                _SheetStat(
+                  icon: LucideIcons.bookOpen,
+                  label: 'Total entries',
+                  value: '${provider.totalEntriesCount}',
+                  color: AppColors.routineDeep,
+                ),
+                if (provider.topEmotionTag != null)
+                  _SheetStat(
+                    icon: LucideIcons.heart,
+                    label: 'Top feeling',
+                    value: provider.topEmotionTag!,
+                    color: AppColors.waterDeep,
+                  ),
+              ],
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Statistics',
-              style: TextStyle(
-                color: themeProvider.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _StatItem(
-              icon: LucideIcons.flame,
-              label: 'Current Streak',
-              value: '${provider.currentStreak} days',
-              color: const Color(0xFFFF7043),
-            ),
-            const SizedBox(height: 12),
-            _StatItem(
-              icon: LucideIcons.bookOpen,
-              label: 'Total Entries',
-              value: '${provider.totalEntriesCount}',
-              color: themeProvider.primaryColor,
-            ),
-            const SizedBox(height: 12),
-            if (provider.topEmotionTag != null)
-              _StatItem(
-                icon: LucideIcons.heart,
-                label: 'Top Emotion',
-                value: provider.topEmotionTag!,
-                color: const Color(0xFF42A5F5),
-              ),
-            const SizedBox(height: 24),
-          ],
-        ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GratitudeHero extends StatelessWidget {
+  const _GratitudeHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 18, 14),
+      decoration: BoxDecoration(
+        color: AppColors.routineTint,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.routine.withValues(alpha: 0.12)),
       ),
-    );
-  }
-}
-
-// Stats row matching breathing page
-class _StatsRow extends StatelessWidget {
-  final int streak;
-  final int entries;
-  final String? topEmotion;
-
-  const _StatsRow({
-    required this.streak,
-    required this.entries,
-    this.topEmotion,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Row(
-      children: [
-        Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.flame,
-            value: '$streak',
-            label: 'day streak',
-            color: const Color(0xFFFF7043),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.bookOpen,
-            value: '$entries',
-            label: 'entries',
-            color: themeProvider.primaryColor,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.heart,
-            value: topEmotion ?? '-',
-            label: 'top feeling',
-            color: const Color(0xFF42A5F5),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniStatCard extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  const _MiniStatCard({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return ElevatedCard(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      borderRadius: 16,
-      child: Column(
+      child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              color: themeProvider.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          Image.asset(
+            'assets/images/gratitude_2.png',
+            width: 78,
+            fit: BoxFit.contain,
           ),
-          Text(
-            label,
-            style: TextStyle(color: themeProvider.textSecondary, fontSize: 11),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Three good things',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'A minute of noticing what went well.',
+                  style: TextStyle(
+                    color: themeProvider.isDarkMode
+                        ? AppColors.textSecondary
+                        : AppColors.textSecondary,
+                    fontSize: 12.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -384,11 +222,11 @@ class _MiniStatCard extends StatelessWidget {
 
 class _EntryTypeSelector extends StatelessWidget {
   final EntryType selectedType;
-  final void Function(EntryType) onTypeChanged;
+  final ValueChanged<EntryType> onChanged;
 
   const _EntryTypeSelector({
     required this.selectedType,
-    required this.onTypeChanged,
+    required this.onChanged,
   });
 
   @override
@@ -399,17 +237,17 @@ class _EntryTypeSelector extends StatelessWidget {
           child: _TypeButton(
             icon: LucideIcons.sun,
             label: 'Morning',
-            isSelected: selectedType == EntryType.morning,
-            onTap: () => onTypeChanged(EntryType.morning),
+            selected: selectedType == EntryType.morning,
+            onTap: () => onChanged(EntryType.morning),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: _TypeButton(
             icon: LucideIcons.moon,
             label: 'Evening',
-            isSelected: selectedType == EntryType.evening,
-            onTap: () => onTypeChanged(EntryType.evening),
+            selected: selectedType == EntryType.evening,
+            onTap: () => onChanged(EntryType.evening),
           ),
         ),
       ],
@@ -420,54 +258,48 @@ class _EntryTypeSelector extends StatelessWidget {
 class _TypeButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
 
   const _TypeButton({
     required this.icon,
     required this.label,
-    required this.isSelected,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          color: isSelected
-              ? themeProvider.primaryColor
-              : themeProvider.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: themeProvider.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+          color: selected ? AppColors.routineDeep : themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected
+                ? AppColors.routineDeep
+                : themeProvider.borderColor.withValues(alpha: 0.35),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
+              color: selected ? Colors.white : themeProvider.textSecondary,
               size: 18,
-              color: isSelected ? Colors.white : themeProvider.textSecondary,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : themeProvider.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? Colors.white : themeProvider.textSecondary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -477,312 +309,442 @@ class _TypeButton extends StatelessWidget {
   }
 }
 
-class _TodayStatusCard extends StatelessWidget {
-  final GratitudeEntry? entry;
-  final EntryType entryType;
-  final VoidCallback onStartTap;
+class _StatsStrip extends StatelessWidget {
+  final int streak;
+  final int entries;
+  final String? topEmotion;
 
-  const _TodayStatusCard({
-    required this.entry,
-    required this.entryType,
-    required this.onStartTap,
+  const _StatsStrip({
+    required this.streak,
+    required this.entries,
+    required this.topEmotion,
   });
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final isComplete = entry != null && entry!.isComplete;
-
-    return ElevatedCard(
-      borderRadius: 20,
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          // Progress circle
-          _ProgressCircle(
-            current: entry?.items.length ?? 0,
-            target: 3,
-            color: isComplete
-                ? const Color(0xFF4CAF50)
-                : themeProvider.primaryColor,
-          ),
-          const SizedBox(width: 16),
-          // Text content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isComplete
-                      ? 'Completed! 🎉'
-                      : entryType == EntryType.morning
-                      ? 'Morning Gratitude'
-                      : 'Evening Gratitude',
-                  style: TextStyle(
-                    color: themeProvider.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isComplete
-                      ? '${entry!.items.length} items recorded'
-                      : 'Write 3-5 things you\'re grateful for',
-                  style: TextStyle(
-                    color: themeProvider.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!isComplete)
-            IconButton(
-              onPressed: onStartTap,
-              icon: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: themeProvider.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.plus,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-        ],
-      ),
+    return Row(
+      children: [
+        _MiniStat(
+          icon: LucideIcons.flame,
+          value: '$streak',
+          label: 'streak',
+          color: AppColors.moodDeep,
+        ),
+        const SizedBox(width: 10),
+        _MiniStat(
+          icon: LucideIcons.bookOpen,
+          value: '$entries',
+          label: 'entries',
+          color: AppColors.routineDeep,
+        ),
+        const SizedBox(width: 10),
+        _MiniStat(
+          icon: LucideIcons.heart,
+          value: topEmotion ?? '-',
+          label: 'feeling',
+          color: AppColors.waterDeep,
+        ),
+      ],
     );
   }
 }
 
-class _ProgressCircle extends StatelessWidget {
-  final int current;
-  final int target;
+class _MiniStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
   final Color color;
 
-  const _ProgressCircle({
-    required this.current,
-    required this.target,
+  const _MiniStat({
+    required this.icon,
+    required this.value,
+    required this.label,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final progress = (current / target).clamp(0.0, 1.0);
     final themeProvider = context.watch<ThemeProvider>();
-
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: progress,
-            strokeWidth: 4,
-            backgroundColor: themeProvider.textSecondary.withValues(alpha: 0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-          Text(
-            '$current/$target',
-            style: TextStyle(
-              color: themeProvider.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RandomMemoryCard extends StatelessWidget {
-  final GratitudeEntry entry;
-  final VoidCallback onRefresh;
-
-  const _RandomMemoryCard({required this.entry, required this.onRefresh});
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final firstItem = entry.items.isNotEmpty ? entry.items.first : null;
-
-    return ElevatedCard(
-      borderRadius: 20,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.sparkles,
-                color: const Color(0xFF9C27B0),
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Memory from ${_formatDate(entry.date)}',
-                style: TextStyle(
-                  color: const Color(0xFF9C27B0),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: onRefresh,
-                icon: Icon(
-                  LucideIcons.refreshCw,
-                  color: themeProvider.textSecondary,
-                  size: 16,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (firstItem != null)
+    return Expanded(
+      child: ElevatedCard(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        borderRadius: 17,
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(height: 6),
             Text(
-              '"${firstItem.content}"',
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: themeProvider.textPrimary,
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
               ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
             ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PromptCard extends StatelessWidget {
-  final GratitudePrompt prompt;
-  final VoidCallback onRefresh;
+class _ThreeThingsCard extends StatelessWidget {
+  final GratitudeEntry? entry;
+  final String prompt;
+  final VoidCallback onRefreshPrompt;
   final VoidCallback onStart;
 
-  const _PromptCard({
+  const _ThreeThingsCard({
+    required this.entry,
     required this.prompt,
-    required this.onRefresh,
+    required this.onRefreshPrompt,
     required this.onStart,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final items = entry?.items ?? const [];
+    final prompts = [
+      prompt,
+      'A small moment you enjoyed...',
+      'Something about yourself...',
+    ];
 
-    return ElevatedCard(
-      borderRadius: 20,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.lightbulb,
-                color: themeProvider.primaryColor,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              "Today's entry",
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: onRefreshPrompt,
+              icon: Icon(
+                LucideIcons.refreshCw,
+                color: themeProvider.textSecondary,
                 size: 18,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Today\'s Prompt',
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ...List.generate(3, (index) {
+          final filled = index < items.length;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _GratitudeLine(
+              number: index + 1,
+              text: filled ? items[index].content : prompts[index],
+              filled: filled,
+              onTap: onStart,
+            ),
+          );
+        }),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: onStart,
+            icon: const Icon(
+              LucideIcons.feather,
+              color: Colors.white,
+              size: 17,
+            ),
+            label: Text(
+              entry?.isComplete == true
+                  ? 'Edit today\'s entry'
+                  : 'Save today\'s entry',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.routineDeep,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GratitudeLine extends StatelessWidget {
+  final int number;
+  final String text;
+  final bool filled;
+  final VoidCallback onTap;
+
+  const _GratitudeLine({
+    required this.number,
+    required this.text,
+    required this.filled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    return ElevatedCard(
+      padding: const EdgeInsets.all(14),
+      borderRadius: 18,
+      borderColor: filled
+          ? AppColors.routine.withValues(alpha: 0.55)
+          : themeProvider.borderColor.withValues(alpha: 0.35),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: filled ? AppColors.routine : AppColors.routineTint,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Center(
+              child: Text(
+                '$number',
                 style: TextStyle(
-                  color: themeProvider.primaryColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  color: filled ? Colors.white : AppColors.routineDeep,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: onRefresh,
-                icon: Icon(
-                  LucideIcons.refreshCw,
-                  color: themeProvider.textSecondary,
-                  size: 16,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            prompt.content,
-            style: TextStyle(
-              color: themeProvider.textPrimary,
-              fontSize: 15,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onStart,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeProvider.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Start Writing',
-                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: filled
+                    ? themeProvider.textPrimary
+                    : themeProvider.textTertiary,
+                fontSize: 13.5,
+                height: 1.3,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (filled)
+            const Icon(
+              LucideIcons.check,
+              color: AppColors.routineDeep,
+              size: 18,
+            ),
         ],
       ),
     );
   }
 }
 
-class _EntryCard extends StatelessWidget {
-  final GratitudeEntry entry;
+class _LookingBack extends StatelessWidget {
+  final List<GratitudeEntry> entries;
+  final GratitudeEntry? randomEntry;
+  final Future<void> Function() onRefresh;
 
-  const _EntryCard({required this.entry});
+  const _LookingBack({
+    required this.entries,
+    required this.randomEntry,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final recent = entries.take(5).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Looking back',
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${entries.length} days',
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (randomEntry != null) ...[
+          _MemoryCard(
+            entry: randomEntry!,
+            highlighted: true,
+            onRefresh: onRefresh,
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (recent.isEmpty)
+          ElevatedCard(
+            padding: const EdgeInsets.all(18),
+            borderRadius: 20,
+            child: Text(
+              'Your saved gratitude notes will gather here.',
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+        else
+          ...recent.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MemoryCard(entry: entry),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MemoryCard extends StatelessWidget {
+  final GratitudeEntry entry;
+  final bool highlighted;
+  final Future<void> Function()? onRefresh;
+
+  const _MemoryCard({
+    required this.entry,
+    this.highlighted = false,
+    this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return ElevatedCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 20,
+      backgroundColor: highlighted
+          ? AppColors.routineTint.withValues(
+              alpha: themeProvider.isDarkMode ? 0.10 : 1,
+            )
+          : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                highlighted ? LucideIcons.sparkles : LucideIcons.leaf,
+                color: AppColors.routineDeep,
+                size: 15,
+              ),
+              const SizedBox(width: 7),
+              Text(
+                highlighted
+                    ? 'Memory from ${_formatDate(entry.date)}'
+                    : _formatDate(entry.date),
+                style: const TextStyle(
+                  color: AppColors.routineDeep,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const Spacer(),
+              if (highlighted && onRefresh != null)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onRefresh,
+                  icon: Icon(
+                    LucideIcons.refreshCw,
+                    color: themeProvider.textSecondary,
+                    size: 16,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...entry.items
+              .take(3)
+              .map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 7),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 7),
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: AppColors.routine,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          item.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: themeProvider.textPrimary,
+                            fontSize: 13,
+                            height: 1.3,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final entryDate = DateTime(date.year, date.month, date.day);
-
     if (entryDate == today) return 'Today';
     if (entryDate == today.subtract(const Duration(days: 1))) {
       return 'Yesterday';
     }
-
-    final months = [
+    const months = [
       'Jan',
       'Feb',
       'Mar',
@@ -798,103 +760,15 @@ class _EntryCard extends StatelessWidget {
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return ElevatedCard(
-      borderRadius: 16,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                entry.entryType == EntryType.morning
-                    ? LucideIcons.sun
-                    : LucideIcons.moon,
-                color: entry.entryType == EntryType.morning
-                    ? const Color(0xFFFF9800)
-                    : const Color(0xFF5C6BC0),
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatDate(entry.date),
-                style: TextStyle(
-                  color: themeProvider.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${entry.items.length} items',
-                style: TextStyle(
-                  color: themeProvider.textSecondary,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ...entry.items
-              .take(2)
-              .map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 6),
-                        width: 5,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: themeProvider.primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          item.content,
-                          style: TextStyle(
-                            color: themeProvider.textPrimary,
-                            fontSize: 13,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          if (entry.items.length > 2)
-            Text(
-              '+${entry.items.length - 2} more',
-              style: TextStyle(
-                color: themeProvider.textSecondary,
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
-class _StatItem extends StatelessWidget {
+class _SheetStat extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
 
-  const _StatItem({
+  const _SheetStat({
     required this.icon,
     required this.label,
     required this.value,
@@ -904,33 +778,40 @@ class _StatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 19),
           ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(color: themeProvider.textSecondary, fontSize: 14),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: themeProvider.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+          Text(
+            value,
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

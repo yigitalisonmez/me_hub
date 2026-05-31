@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
+
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../core/widgets/page_header.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../providers/timer_provider.dart';
-import '../widgets/timer_display.dart';
 
-class TimerPage extends StatefulWidget {
+class TimerPage extends StatelessWidget {
   const TimerPage({super.key});
 
-  @override
-  State<TimerPage> createState() => _TimerPageState();
-}
-
-class _TimerPageState extends State<TimerPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -31,15 +27,25 @@ class _TimerPageState extends State<TimerPage> {
             child: Column(
               children: [
                 const SizedBox(height: 16),
-                _buildHeader(context),
-                const SizedBox(height: 24),
-                _buildModeSelector(themeProvider),
-                const SizedBox(height: 32),
-                _buildTimerCard(themeProvider),
-                const SizedBox(height: 24),
-                _buildControls(themeProvider),
-                const SizedBox(height: 24),
-                _buildSessionInfo(themeProvider),
+                const PageHeader(
+                  title: 'Focus Timer',
+                  subtitle: 'Pomodoro focus',
+                  showBackButton: true,
+                  actionIcon: LucideIcons.settings,
+                ),
+                const SizedBox(height: 22),
+                const _ModeSelector(),
+                const SizedBox(height: 14),
+                const _TaskPill(),
+                const SizedBox(height: 16),
+                const _TimerStage(),
+                const SizedBox(height: 16),
+                const _RoundsIndicator(),
+                const SizedBox(height: 18),
+                const _Controls(),
+                const SizedBox(height: 18),
+                const _TimerConfig(),
+                const _CountdownDurations(),
                 SizedBox(height: LayoutConstants.getNavbarClearance(context)),
               ],
             ),
@@ -48,88 +54,98 @@ class _TimerPageState extends State<TimerPage> {
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context) {
-    return const PageHeader(
-      title: 'Timer',
-      subtitle: 'Stay focused & productive',
-      showBackButton: true,
-    );
-  }
+class _ModeSelector extends StatelessWidget {
+  const _ModeSelector();
 
-  Widget _buildModeSelector(ThemeProvider themeProvider) {
-    return Consumer<TimerProvider>(
-      builder: (context, timer, _) {
-        return ElevatedCard(
-          padding: const EdgeInsets.all(6),
-          child: Row(
-            children: [
-              _buildModeTab(
-                themeProvider,
-                timer,
-                TimerMode.pomodoro,
-                'Pomodoro',
-                LucideIcons.brain,
-              ),
-              _buildModeTab(
-                themeProvider,
-                timer,
-                TimerMode.countdown,
-                'Countdown',
-                LucideIcons.timer,
-              ),
-              _buildModeTab(
-                themeProvider,
-                timer,
-                TimerMode.stopwatch,
-                'Stopwatch',
-                LucideIcons.clock,
-              ),
-            ],
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<TimerProvider>();
+
+    return ElevatedCard(
+      padding: const EdgeInsets.all(5),
+      borderRadius: 18,
+      child: Row(
+        children: [
+          _ModeTab(
+            label: 'Pomodoro',
+            icon: LucideIcons.brain,
+            mode: TimerMode.pomodoro,
+            selected: timer.mode == TimerMode.pomodoro,
+            onTap: () => _setMode(context, TimerMode.pomodoro),
           ),
-        );
-      },
+          _ModeTab(
+            label: 'Countdown',
+            icon: LucideIcons.timer,
+            mode: TimerMode.countdown,
+            selected: timer.mode == TimerMode.countdown,
+            onTap: () => _setMode(context, TimerMode.countdown),
+          ),
+          _ModeTab(
+            label: 'Stopwatch',
+            icon: LucideIcons.clock,
+            mode: TimerMode.stopwatch,
+            selected: timer.mode == TimerMode.stopwatch,
+            onTap: () => _setMode(context, TimerMode.stopwatch),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildModeTab(
-    ThemeProvider themeProvider,
-    TimerProvider timer,
-    TimerMode mode,
-    String label,
-    IconData icon,
-  ) {
-    final isSelected = timer.mode == mode;
+  void _setMode(BuildContext context, TimerMode mode) {
+    context.read<TimerProvider>().setMode(mode);
+    HapticFeedback.selectionClick();
+  }
+}
+
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final TimerMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ModeTab({
+    required this.label,
+    required this.icon,
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final color = _accentForMode(mode, context.watch<TimerProvider>());
 
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          timer.setMode(mode);
-          HapticFeedback.selectionClick();
-        },
+        onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            color: isSelected ? themeProvider.primaryColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            color: selected ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
             children: [
               Icon(
                 icon,
-                size: 20,
-                color: isSelected ? Colors.white : themeProvider.textSecondary,
+                color: selected ? Colors.white : themeProvider.textSecondary,
+                size: 19,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? Colors.white
-                      : themeProvider.textSecondary,
+                  color: selected ? Colors.white : themeProvider.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
@@ -138,238 +154,395 @@ class _TimerPageState extends State<TimerPage> {
       ),
     );
   }
+}
 
-  Widget _buildTimerCard(ThemeProvider themeProvider) {
-    return Consumer<TimerProvider>(
-      builder: (context, timer, _) {
-        Color accentColor;
-        if (timer.mode == TimerMode.pomodoro) {
-          accentColor = timer.isBreaktime
-              ? const Color(0xFF4CAF50) // Green for break
-              : themeProvider.primaryColor; // Primary for work
-        } else if (timer.mode == TimerMode.countdown) {
-          accentColor = const Color(0xFF2196F3); // Blue
-        } else {
-          accentColor = const Color(0xFFFF9800); // Orange
-        }
+class _TaskPill extends StatelessWidget {
+  const _TaskPill();
 
-        return ElevatedCard(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            children: [
-              TimerDisplay(
-                progress: timer.progress,
-                time: timer.formattedTime,
-                statusText: timer.statusText,
-                accentColor: accentColor,
-                isRunning: timer.state == TimerState.running,
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final timer = context.watch<TimerProvider>();
+    if (timer.mode != TimerMode.pomodoro) return const SizedBox.shrink();
+
+    return ElevatedCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      borderRadius: 999,
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryDeep,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Finish design review',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
               ),
-              if (timer.mode == TimerMode.countdown &&
-                  timer.state == TimerState.idle) ...[
-                const SizedBox(height: 24),
-                _buildDurationSelector(themeProvider, timer),
+            ),
+          ),
+          Icon(
+            LucideIcons.chevronRight,
+            color: themeProvider.textTertiary,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimerStage extends StatelessWidget {
+  const _TimerStage();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final timer = context.watch<TimerProvider>();
+    final accent = _accentForMode(timer.mode, timer);
+    final track = timer.mode == TimerMode.pomodoro
+        ? AppColors.terraTint
+        : accent.withValues(alpha: 0.14);
+
+    return SizedBox(
+      height: 270,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 236,
+            height: 236,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: themeProvider.cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.20),
+                  blurRadius: 32,
+                  offset: const Offset(0, 16),
+                ),
               ],
+            ),
+          ),
+          SizedBox(
+            width: 236,
+            height: 236,
+            child: CircularProgressIndicator(
+              value:
+                  timer.mode == TimerMode.stopwatch &&
+                      timer.state == TimerState.running
+                  ? null
+                  : timer.progress.clamp(0, 1),
+              strokeWidth: 10,
+              strokeCap: StrokeCap.round,
+              backgroundColor: track,
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/pomodoro_timer.png',
+                width: 64,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                timer.formattedTime,
+                style: TextStyle(
+                  color: themeProvider.textPrimary,
+                  fontSize: 44,
+                  height: 1,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                timer.statusText.toUpperCase(),
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 12,
+                  letterSpacing: 1,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildDurationSelector(
-    ThemeProvider themeProvider,
-    TimerProvider timer,
-  ) {
-    final durations = [5, 10, 15, 20, 30, 45, 60];
+class _RoundsIndicator extends StatelessWidget {
+  const _RoundsIndicator();
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: durations.map((minutes) {
-        final isSelected = timer.remainingSeconds == minutes * 60;
-        return GestureDetector(
-          onTap: () => timer.setCountdownDuration(minutes),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final timer = context.watch<TimerProvider>();
+    if (timer.mode != TimerMode.pomodoro) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ...List.generate(timer.totalSessions, (index) {
+          final active = index < timer.currentSession;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 9,
+            height: 9,
+            margin: const EdgeInsets.symmetric(horizontal: 3.5),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? themeProvider.primaryColor
-                  : themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isSelected
-                    ? themeProvider.primaryColor
-                    : themeProvider.borderColor,
-              ),
+              color: active
+                  ? AppColors.primaryDeep
+                  : themeProvider.borderColor.withValues(alpha: 0.45),
+              shape: BoxShape.circle,
             ),
-            child: Text(
-              '${minutes}m',
-              style: TextStyle(
-                color: isSelected ? Colors.white : themeProvider.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          );
+        }),
+        const SizedBox(width: 8),
+        Text(
+          'Round ${timer.currentSession} of ${timer.totalSessions}',
+          style: TextStyle(
+            color: themeProvider.textSecondary,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildControls(ThemeProvider themeProvider) {
-    return Consumer<TimerProvider>(
-      builder: (context, timer, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Reset button
-            _buildControlButton(
-              themeProvider,
-              icon: LucideIcons.rotateCcw,
-              onPressed: timer.state != TimerState.idle ? timer.reset : null,
-              isSecondary: true,
-            ),
-            const SizedBox(width: 24),
-            // Play/Pause button
-            _buildControlButton(
-              themeProvider,
-              icon: timer.state == TimerState.running
-                  ? LucideIcons.pause
-                  : LucideIcons.play,
-              onPressed: () {
-                if (timer.state == TimerState.running) {
-                  timer.pause();
-                } else {
-                  timer.start();
-                }
-                HapticFeedback.mediumImpact();
-              },
-              isPrimary: true,
-            ),
-            const SizedBox(width: 24),
-            // Skip button (only for Pomodoro)
-            _buildControlButton(
-              themeProvider,
-              icon: LucideIcons.skipForward,
-              onPressed:
-                  timer.mode == TimerMode.pomodoro &&
-                      timer.state != TimerState.idle
-                  ? timer.skip
-                  : null,
-              isSecondary: true,
-            ),
-          ],
-        );
-      },
+class _Controls extends StatelessWidget {
+  const _Controls();
+
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<TimerProvider>();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _ControlButton(
+          icon: LucideIcons.rotateCcw,
+          onTap: timer.state == TimerState.idle ? null : timer.reset,
+        ),
+        const SizedBox(width: 22),
+        _ControlButton(
+          icon: timer.state == TimerState.running
+              ? LucideIcons.pause
+              : LucideIcons.play,
+          primary: true,
+          onTap: () {
+            if (timer.state == TimerState.running) {
+              timer.pause();
+            } else {
+              timer.start();
+            }
+            HapticFeedback.mediumImpact();
+          },
+        ),
+        const SizedBox(width: 22),
+        _ControlButton(
+          icon: LucideIcons.skipForward,
+          onTap: timer.mode == TimerMode.pomodoro ? timer.skip : null,
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildControlButton(
-    ThemeProvider themeProvider, {
-    required IconData icon,
-    VoidCallback? onPressed,
-    bool isPrimary = false,
-    bool isSecondary = false,
-  }) {
-    final size = isPrimary ? 72.0 : 52.0;
-    final iconSize = isPrimary ? 32.0 : 24.0;
+class _ControlButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool primary;
+
+  const _ControlButton({
+    required this.icon,
+    required this.onTap,
+    this.primary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final timer = context.watch<TimerProvider>();
+    final accent = _accentForMode(timer.mode, timer);
+    final disabled = onTap == null;
 
     return GestureDetector(
-      onTap: onPressed,
+      onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: size,
-        height: size,
+        duration: const Duration(milliseconds: 180),
+        width: primary ? 72 : 50,
+        height: primary ? 72 : 50,
         decoration: BoxDecoration(
-          color: isPrimary
-              ? themeProvider.primaryColor
-              : themeProvider.surfaceColor,
           shape: BoxShape.circle,
-          boxShadow: isPrimary
-              ? [
-                  BoxShadow(
-                    color: themeProvider.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
+          color: primary ? accent : themeProvider.cardColor,
+          border: primary
+              ? null
+              : Border.all(
+                  color: themeProvider.borderColor.withValues(alpha: 0.35),
+                ),
+          boxShadow: [
+            BoxShadow(
+              color: primary
+                  ? accent.withValues(alpha: 0.36)
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: primary ? 24 : 14,
+              offset: Offset(0, primary ? 12 : 7),
+            ),
+          ],
         ),
-        child: Center(
-          child: Icon(
-            icon,
-            size: iconSize,
-            color: onPressed == null
-                ? themeProvider.textSecondary.withValues(alpha: 0.3)
-                : (isPrimary ? Colors.white : themeProvider.textPrimary),
-          ),
+        child: Icon(
+          icon,
+          size: primary ? 30 : 20,
+          color: disabled
+              ? themeProvider.textTertiary.withValues(alpha: 0.55)
+              : primary
+              ? Colors.white
+              : themeProvider.textSecondary,
         ),
       ),
     );
   }
+}
 
-  Widget _buildSessionInfo(ThemeProvider themeProvider) {
-    return Consumer<TimerProvider>(
-      builder: (context, timer, _) {
-        if (timer.mode != TimerMode.pomodoro) {
-          return const SizedBox.shrink();
-        }
+class _TimerConfig extends StatelessWidget {
+  const _TimerConfig();
 
-        return ElevatedCard(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildInfoItem(
-                themeProvider,
-                'Session',
-                '${timer.currentSession}/${timer.totalSessions}',
-                LucideIcons.target,
-              ),
-              Container(width: 1, height: 40, color: themeProvider.borderColor),
-              _buildInfoItem(
-                themeProvider,
-                'Work',
-                '${timer.workDuration ~/ 60}m',
-                LucideIcons.brain,
-              ),
-              Container(width: 1, height: 40, color: themeProvider.borderColor),
-              _buildInfoItem(
-                themeProvider,
-                'Break',
-                '${timer.breakDuration ~/ 60}m',
-                LucideIcons.coffee,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<TimerProvider>();
+    if (timer.mode != TimerMode.pomodoro) return const SizedBox.shrink();
 
-  Widget _buildInfoItem(
-    ThemeProvider themeProvider,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Column(
+    return Row(
       children: [
-        Icon(icon, size: 20, color: themeProvider.primaryColor),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: themeProvider.textPrimary,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: themeProvider.textSecondary),
+        _ConfigCard(value: '${timer.workDuration ~/ 60}', label: 'Focus min'),
+        const SizedBox(width: 10),
+        _ConfigCard(value: '${timer.breakDuration ~/ 60}', label: 'Break min'),
+        const SizedBox(width: 10),
+        _ConfigCard(
+          value: '${timer.currentSession}/${timer.totalSessions}',
+          label: 'Today',
         ),
       ],
     );
+  }
+}
+
+class _ConfigCard extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _ConfigCard({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    return Expanded(
+      child: ElevatedCard(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
+        borderRadius: 17,
+        child: Column(
+          children: [
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: themeProvider.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CountdownDurations extends StatelessWidget {
+  const _CountdownDurations();
+
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<TimerProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    if (timer.mode != TimerMode.countdown || timer.state != TimerState.idle) {
+      return const SizedBox.shrink();
+    }
+
+    const durations = [5, 10, 15, 20, 30, 45, 60];
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
+        children: durations.map((minutes) {
+          final selected = timer.remainingSeconds == minutes * 60;
+          return GestureDetector(
+            onTap: () => timer.setCountdownDuration(minutes),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
+              decoration: BoxDecoration(
+                color: selected ? AppColors.water : themeProvider.cardColor,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: selected
+                      ? AppColors.water
+                      : themeProvider.borderColor.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Text(
+                '${minutes}m',
+                style: TextStyle(
+                  color: selected ? Colors.white : themeProvider.textSecondary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+Color _accentForMode(TimerMode mode, TimerProvider timer) {
+  switch (mode) {
+    case TimerMode.pomodoro:
+      return timer.isBreaktime ? AppColors.routineDeep : AppColors.primaryDeep;
+    case TimerMode.countdown:
+      return AppColors.waterDeep;
+    case TimerMode.stopwatch:
+      return AppColors.moodDeep;
   }
 }

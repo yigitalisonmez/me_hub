@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../providers/affirmation_provider.dart';
 
-/// Welcome step - shows how it works and session history
 class WelcomeStep extends StatelessWidget {
   final VoidCallback onBegin;
 
@@ -13,224 +14,233 @@ class WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
     final provider = context.watch<AffirmationProvider>();
 
     return Column(
       children: [
-        // Scrollable content
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                _buildHeader(themeProvider),
-
-                const SizedBox(height: 32),
-
-                // How It Works
-                _buildHowItWorks(themeProvider),
-
-                const SizedBox(height: 32),
-
-                // Session History
-                if (provider.sessionHistory.isNotEmpty)
-                  _buildSessionHistory(themeProvider, provider),
-
-                const SizedBox(height: 24),
+                const _SleepHero(),
+                const SizedBox(height: 18),
+                const _FlowSteps(),
+                if (provider.sessionHistory.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  _SessionHistory(provider: provider),
+                ],
               ],
             ),
           ),
         ),
-
-        // Let's Begin button - fixed at bottom
         SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: _buildBeginButton(themeProvider),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onBegin,
+                icon: const Icon(
+                  LucideIcons.mic,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                label: const Text(
+                  'Record your affirmations',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mindfulDeep,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildHeader(ThemeProvider themeProvider) {
+class _SleepHero extends StatelessWidget {
+  const _SleepHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                themeProvider.primaryColor.withValues(alpha: 0.2),
-                themeProvider.primaryColor.withValues(alpha: 0.05),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
+        Center(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 172,
+                height: 172,
                 decoration: BoxDecoration(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  LucideIcons.sparkles,
-                  color: themeProvider.primaryColor,
-                  size: 28,
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.mindful.withValues(alpha: 0.30),
+                      AppColors.mindful.withValues(alpha: 0.03),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sleep Affirmations',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Reprogram your subconscious while you sleep',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: themeProvider.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              Image.asset(
+                'assets/images/affirmation.png',
+                width: 138,
+                fit: BoxFit.contain,
               ),
             ],
           ),
         ),
+        const SizedBox(height: 4),
+        Text(
+          'Fall asleep to your own kind words.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: themeProvider.textPrimary,
+            fontSize: 24,
+            height: 1.15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Record short affirmations and let them play softly over calming sounds.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: themeProvider.textSecondary,
+            fontSize: 13.5,
+            height: 1.45,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
+}
 
-  Widget _buildHowItWorks(ThemeProvider themeProvider) {
+class _FlowSteps extends StatelessWidget {
+  const _FlowSteps();
+
+  @override
+  Widget build(BuildContext context) {
     final steps = [
-      {
-        'icon': LucideIcons.mic,
-        'title': 'Record',
-        'desc': 'Record up to 3 short affirmations (max 1 min each)',
-      },
-      {
-        'icon': LucideIcons.music,
-        'title': 'Choose Music',
-        'desc': 'Select calming background sounds',
-      },
-      {
-        'icon': LucideIcons.moon,
-        'title': 'Sleep',
-        'desc': 'Listen for 30 minutes as you drift off',
-      },
+      (
+        icon: LucideIcons.mic,
+        title: 'Record',
+        text: 'Up to 3 affirmations in your own voice.',
+      ),
+      (
+        icon: LucideIcons.wind,
+        title: 'Set the mood',
+        text: 'Layer in rain, pads or summer night.',
+      ),
+      (
+        icon: LucideIcons.moon,
+        title: 'Drift off',
+        text: 'Listen on a gentle loop as you sleep.',
+      ),
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              LucideIcons.info,
-              size: 18,
-              color: themeProvider.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'How It Works',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: themeProvider.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ...steps.asMap().entries.map((entry) {
-          final index = entry.key;
-          final step = entry.value;
-          return _buildStepCard(
-            themeProvider,
-            stepNumber: index + 1,
-            icon: step['icon'] as IconData,
-            title: step['title'] as String,
-            description: step['desc'] as String,
-          );
-        }),
+        for (var i = 0; i < steps.length; i++) ...[
+          _FlowStep(
+            number: i + 1,
+            icon: steps[i].icon,
+            title: steps[i].title,
+            text: steps[i].text,
+          ),
+          if (i != steps.length - 1) const SizedBox(height: 10),
+        ],
       ],
     );
   }
+}
 
-  Widget _buildStepCard(
-    ThemeProvider themeProvider, {
-    required int stepNumber,
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+class _FlowStep extends StatelessWidget {
+  final int number;
+  final IconData icon;
+  final String title;
+  final String text;
+
+  const _FlowStep({
+    required this.number,
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return ElevatedCard(
+      padding: const EdgeInsets.all(13),
+      borderRadius: 18,
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: themeProvider.primaryColor.withValues(alpha: 0.15),
+            width: 24,
+            height: 24,
+            decoration: const BoxDecoration(
+              color: AppColors.mindful,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
-                '$stepNumber',
-                style: TextStyle(
-                  color: themeProvider.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                '$number',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.mindfulTint,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icon, color: AppColors.mindfulDeep, size: 18),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(icon, size: 16, color: themeProvider.primaryColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: themeProvider.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
                 Text(
-                  description,
+                  title,
                   style: TextStyle(
-                    fontSize: 13,
+                    color: themeProvider.textPrimary,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  text,
+                  style: TextStyle(
                     color: themeProvider.textSecondary,
+                    fontSize: 12,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -240,97 +250,69 @@ class WelcomeStep extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildSessionHistory(
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
+class _SessionHistory extends StatelessWidget {
+  final AffirmationProvider provider;
+
+  const _SessionHistory({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              LucideIcons.history,
-              size: 18,
-              color: themeProvider.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Recent Sessions',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: themeProvider.textPrimary,
+        Text(
+          'Recent sessions',
+          style: TextStyle(
+            color: themeProvider.textPrimary,
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...provider.sessionHistory
+            .take(3)
+            .map(
+              (log) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ElevatedCard(
+                  padding: const EdgeInsets.all(12),
+                  borderRadius: 16,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.moon,
+                        color: AppColors.mindfulDeep,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Text(
+                          log.formattedDate,
+                          style: TextStyle(
+                            color: themeProvider.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${log.durationMinutes} min',
+                        style: TextStyle(
+                          color: themeProvider.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...provider.sessionHistory.take(5).map((log) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: themeProvider.cardColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  LucideIcons.moon,
-                  size: 18,
-                  color: themeProvider.primaryColor.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    log.formattedDate,
-                    style: TextStyle(
-                      color: themeProvider.textPrimary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${log.durationMinutes} min',
-                  style: TextStyle(
-                    color: themeProvider.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
       ],
-    );
-  }
-
-  Widget _buildBeginButton(ThemeProvider themeProvider) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onBegin,
-        icon: const Icon(LucideIcons.arrowRight, color: Colors.white),
-        label: const Text(
-          "Let's Begin",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: themeProvider.primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 4,
-          shadowColor: themeProvider.primaryColor.withValues(alpha: 0.4),
-        ),
-      ),
     );
   }
 }

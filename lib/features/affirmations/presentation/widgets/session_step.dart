@@ -1,13 +1,13 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../data/models/background_sound.dart';
 import '../providers/affirmation_provider.dart';
 
-/// Session step - 30 min circular timer with music dropdown
 class SessionStep extends StatelessWidget {
   final VoidCallback onComplete;
   final VoidCallback onBack;
@@ -20,458 +20,455 @@ class SessionStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
     final provider = context.watch<AffirmationProvider>();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-
-          // Status text
-          Text(
-            provider.playbackState == PlaybackState.playing
-                ? 'Session Active'
-                : provider.playbackState == PlaybackState.paused
-                ? 'Paused'
-                : 'Ready to Start',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: provider.playbackState == PlaybackState.playing
-                  ? themeProvider.primaryColor
-                  : themeProvider.textSecondary,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Circular Timer
-          _buildCircularTimer(themeProvider, provider),
-
-          const SizedBox(height: 40),
-
-          // Playback controls
-          _buildPlaybackControls(context, themeProvider, provider),
-
-          const SizedBox(height: 32),
-
-          // Background music dropdown
-          _buildMusicDropdown(themeProvider, provider),
-
-          const SizedBox(height: 24),
-
-          // Volume slider
-          if (provider.playbackState != PlaybackState.idle)
-            _buildVolumeControls(themeProvider, provider),
-
-          const SizedBox(height: 32),
-
-          // End session button
-          if (provider.playbackState != PlaybackState.idle)
-            _buildEndSessionButton(themeProvider, provider),
-
-          // Back button (only when idle)
-          if (provider.playbackState == PlaybackState.idle)
-            TextButton.icon(
-              onPressed: onBack,
-              icon: Icon(
-                LucideIcons.arrowLeft,
-                color: themeProvider.textSecondary,
-              ),
-              label: Text(
-                'Back to recordings',
-                style: TextStyle(color: themeProvider.textSecondary),
-              ),
-            ),
-
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircularTimer(
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
-    final progress = provider.progress;
-    final timeString = provider.formattedRemainingTime;
-
-    return SizedBox(
-      width: 220,
-      height: 220,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background circle
-          Container(
-            width: 220,
-            height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: themeProvider.cardColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-          ),
-          // Progress arc
-          SizedBox(
-            width: 200,
-            height: 200,
-            child: CustomPaint(
-              painter: _CircularProgressPainter(
-                progress: progress,
-                color: themeProvider.primaryColor,
-                backgroundColor: themeProvider.backgroundColor,
-                strokeWidth: 10,
-              ),
-            ),
-          ),
-          // Time display
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                LucideIcons.moon,
-                size: 28,
-                color: themeProvider.primaryColor.withValues(alpha: 0.7),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                timeString,
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: 'monospace',
-                  color: themeProvider.textPrimary,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'remaining',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: themeProvider.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaybackControls(
-    BuildContext context,
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
-    final isPlaying = provider.playbackState == PlaybackState.playing;
-    final isPaused = provider.playbackState == PlaybackState.paused;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Play/Pause button
-        GestureDetector(
-          onTap: () {
-            if (isPlaying) {
-              provider.pausePlayback();
-            } else if (isPaused) {
-              provider.resumePlayback();
-            } else {
-              provider.startPlayback();
-            }
-          },
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: themeProvider.primaryColor,
-              boxShadow: [
-                BoxShadow(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Icon(
-              isPlaying ? LucideIcons.pause : LucideIcons.play,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMusicDropdown(
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.music,
-                size: 18,
-                color: themeProvider.textSecondary,
+          _SessionPlayer(provider: provider),
+          const SizedBox(height: 18),
+          _PlaybackControls(provider: provider, onComplete: onComplete),
+          const SizedBox(height: 20),
+          _BackgroundSounds(provider: provider),
+          const SizedBox(height: 18),
+          _VolumePanel(provider: provider),
+          const SizedBox(height: 18),
+          if (provider.playbackState == PlaybackState.idle)
+            Center(
+              child: TextButton.icon(
+                onPressed: onBack,
+                icon: const Icon(LucideIcons.arrowLeft, size: 17),
+                label: const Text('Back to recordings'),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Background Sound',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: themeProvider.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: themeProvider.backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String?>(
-                value: provider.selectedBackground?.id,
-                isExpanded: true,
-                icon: Icon(
-                  LucideIcons.chevronDown,
-                  color: themeProvider.textSecondary,
-                ),
-                dropdownColor: themeProvider.cardColor,
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.volumeOff,
-                          size: 18,
-                          color: themeProvider.textSecondary,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Silent',
-                          style: TextStyle(color: themeProvider.textPrimary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ...BackgroundSound.presets.map((sound) {
-                    return DropdownMenuItem<String?>(
-                      value: sound.id,
-                      child: Row(
-                        children: [
-                          Icon(
-                            sound.icon,
-                            size: 18,
-                            color: themeProvider.primaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            sound.nameEn,
-                            style: TextStyle(color: themeProvider.textPrimary),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-                onChanged: (value) {
-                  if (value == null) {
-                    provider.setBackground(null);
-                  } else {
-                    final sound = BackgroundSound.findById(value);
-                    provider.setBackground(sound);
-                  }
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVolumeControls(
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          // Voice volume
-          Row(
-            children: [
-              Icon(
-                LucideIcons.mic,
-                size: 16,
-                color: themeProvider.primaryColor,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Voice',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: themeProvider.textSecondary,
-                ),
-              ),
-              Expanded(
-                child: Slider(
-                  value: provider.voiceVolume,
-                  onChanged: provider.setVoiceVolume,
-                  activeColor: themeProvider.primaryColor,
-                  inactiveColor: themeProvider.backgroundColor,
-                ),
-              ),
-              SizedBox(
-                width: 40,
-                child: Text(
-                  '${(provider.voiceVolume * 100).round()}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: themeProvider.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Background volume
-          if (provider.selectedBackground != null)
-            Row(
-              children: [
-                Icon(
-                  LucideIcons.music,
-                  size: 16,
-                  color: const Color(0xFF4FC3F7),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Music',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: themeProvider.textSecondary,
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: provider.backgroundVolume,
-                    onChanged: provider.setBackgroundVolume,
-                    activeColor: const Color(0xFF4FC3F7),
-                    inactiveColor: themeProvider.backgroundColor,
-                  ),
-                ),
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    '${(provider.backgroundVolume * 100).round()}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: themeProvider.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEndSessionButton(
-    ThemeProvider themeProvider,
-    AffirmationProvider provider,
-  ) {
-    return TextButton.icon(
-      onPressed: () async {
-        await provider.stopPlayback();
-        onComplete();
-      },
-      icon: Icon(LucideIcons.x, color: themeProvider.textSecondary),
-      label: Text(
-        'Complete Session',
-        style: TextStyle(color: themeProvider.textSecondary),
       ),
     );
   }
 }
 
-/// Custom painter for circular progress indicator
-class _CircularProgressPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-  final Color backgroundColor;
-  final double strokeWidth;
+class _SessionPlayer extends StatelessWidget {
+  final AffirmationProvider provider;
 
-  _CircularProgressPainter({
-    required this.progress,
-    required this.color,
-    required this.backgroundColor,
-    required this.strokeWidth,
-  });
+  const _SessionPlayer({required this.provider});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final selectedIndex = provider.selectedRecordingIndex;
+    final recordingName =
+        selectedIndex != null && selectedIndex < provider.savedRecordings.length
+        ? provider.savedRecordings[selectedIndex].name
+        : 'No recording selected';
 
-    // Background circle
-    final bgPaint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // Progress arc
-    final progressPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    final sweepAngle = 2 * math.pi * progress;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2, // Start from top
-      sweepAngle,
-      false,
-      progressPaint,
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(
+            width: 220,
+            height: 220,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 190,
+                  height: 190,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.mindfulTint.withValues(
+                      alpha: themeProvider.isDarkMode ? 0.12 : 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.mindful.withValues(alpha: 0.22),
+                        blurRadius: 34,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 208,
+                  height: 208,
+                  child: CircularProgressIndicator(
+                    value: provider.progress.clamp(0, 1).toDouble(),
+                    strokeWidth: 6,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: themeProvider.borderColor.withValues(
+                      alpha: 0.34,
+                    ),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.mindful,
+                    ),
+                  ),
+                ),
+                Image.asset(
+                  'assets/images/affirmation.png',
+                  width: 130,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'NOW PLAYING',
+            style: TextStyle(
+              color: AppColors.mindfulDeep,
+              fontSize: 11,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            recordingName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${provider.formattedRemainingTime} of ${_formatDuration(provider.totalDuration)}',
+            style: TextStyle(
+              color: themeProvider.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+}
+
+class _PlaybackControls extends StatelessWidget {
+  final AffirmationProvider provider;
+  final VoidCallback onComplete;
+
+  const _PlaybackControls({required this.provider, required this.onComplete});
+
   @override
-  bool shouldRepaint(covariant _CircularProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+  Widget build(BuildContext context) {
+    final isPlaying = provider.playbackState == PlaybackState.playing;
+    final isPaused = provider.playbackState == PlaybackState.paused;
+    final canStart = provider.selectedRecordingIndex != null;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _CircleButton(
+          icon: LucideIcons.refreshCw,
+          onTap: provider.playbackState == PlaybackState.idle
+              ? null
+              : () => provider.stopPlayback(),
+        ),
+        const SizedBox(width: 22),
+        _CircleButton(
+          icon: isPlaying ? LucideIcons.pause : LucideIcons.play,
+          primary: true,
+          onTap: canStart
+              ? () {
+                  if (isPlaying) {
+                    provider.pausePlayback();
+                  } else if (isPaused) {
+                    provider.resumePlayback();
+                  } else {
+                    provider.startPlayback();
+                  }
+                }
+              : null,
+        ),
+        const SizedBox(width: 22),
+        _CircleButton(
+          icon: LucideIcons.square,
+          onTap: provider.playbackState == PlaybackState.idle
+              ? null
+              : () async {
+                  await provider.stopPlayback();
+                  onComplete();
+                },
+        ),
+      ],
+    );
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool primary;
+
+  const _CircleButton({
+    required this.icon,
+    required this.onTap,
+    this.primary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final disabled = onTap == null;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: primary ? 72 : 50,
+        height: primary ? 72 : 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: primary ? AppColors.mindfulDeep : themeProvider.cardColor,
+          border: primary
+              ? null
+              : Border.all(
+                  color: themeProvider.borderColor.withValues(alpha: 0.35),
+                ),
+          boxShadow: [
+            BoxShadow(
+              color: primary
+                  ? AppColors.mindfulDeep.withValues(alpha: 0.32)
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: primary ? 24 : 14,
+              offset: Offset(0, primary ? 12 : 7),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: disabled
+              ? themeProvider.textTertiary.withValues(alpha: 0.55)
+              : primary
+              ? Colors.white
+              : themeProvider.textSecondary,
+          size: primary ? 28 : 19,
+        ),
+      ),
+    );
+  }
+}
+
+class _BackgroundSounds extends StatelessWidget {
+  final AffirmationProvider provider;
+
+  const _BackgroundSounds({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Background sound',
+          style: TextStyle(
+            color: themeProvider.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: provider.availableBackgrounds.map((sound) {
+            final selected = provider.selectedBackground?.id == sound.id;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: sound == provider.availableBackgrounds.last ? 0 : 9,
+                ),
+                child: _SoundTile(
+                  sound: sound,
+                  selected: selected,
+                  previewing: provider.previewingSoundId == sound.id,
+                  onSelect: () => provider.setBackground(sound),
+                  onPreview: () => provider.previewBackgroundSound(sound),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _SoundTile extends StatelessWidget {
+  final BackgroundSound sound;
+  final bool selected;
+  final bool previewing;
+  final VoidCallback onSelect;
+  final VoidCallback onPreview;
+
+  const _SoundTile({
+    required this.sound,
+    required this.selected,
+    required this.previewing,
+    required this.onSelect,
+    required this.onPreview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return GestureDetector(
+      onTap: onSelect,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.mindfulTint.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.14 : 1,
+                )
+              : themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected
+                ? AppColors.mindful
+                : themeProvider.borderColor.withValues(alpha: 0.35),
+            width: 1.4,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              sound.icon,
+              color: selected
+                  ? AppColors.mindfulDeep
+                  : themeProvider.textSecondary,
+              size: 18,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              sound.nameEn,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: selected
+                    ? AppColors.mindfulDeep
+                    : themeProvider.textSecondary,
+                fontSize: 10.8,
+                height: 1.15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 7),
+            GestureDetector(
+              onTap: onPreview,
+              child: Icon(
+                previewing ? LucideIcons.circlePause : LucideIcons.circlePlay,
+                color: selected
+                    ? AppColors.mindfulDeep
+                    : themeProvider.textTertiary,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VolumePanel extends StatelessWidget {
+  final AffirmationProvider provider;
+
+  const _VolumePanel({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedCard(
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 12),
+      borderRadius: 20,
+      child: Column(
+        children: [
+          _VolumeRow(
+            icon: LucideIcons.mic,
+            label: 'Voice',
+            value: provider.voiceVolume,
+            onChanged: provider.setVoiceVolume,
+          ),
+          _VolumeRow(
+            icon: LucideIcons.volume2,
+            label: 'Background',
+            value: provider.backgroundVolume,
+            onChanged: provider.setBackgroundVolume,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VolumeRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _VolumeRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.mindfulDeep, size: 16),
+        const SizedBox(width: 9),
+        SizedBox(
+          width: 84,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: themeProvider.textPrimary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: AppColors.mindful,
+              inactiveTrackColor: AppColors.mindfulTint.withValues(
+                alpha: themeProvider.isDarkMode ? 0.16 : 1,
+              ),
+              thumbColor: Colors.white,
+              overlayColor: AppColors.mindful.withValues(alpha: 0.16),
+              trackHeight: 6,
+            ),
+            child: Slider(value: value, onChanged: onChanged),
+          ),
+        ),
+      ],
+    );
   }
 }
