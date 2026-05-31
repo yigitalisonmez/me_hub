@@ -906,49 +906,57 @@ class _PulsingMoodOrbState extends State<_PulsingMoodOrb>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseAnim,
-      builder: (context, child) {
-        final t = _pulseAnim.value;
-        return Container(
-          width: 148 + (t * 12),
-          height: 148 + (t * 12),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: widget.level.color.withValues(alpha: 0.10 + t * 0.10),
-            boxShadow: [
-              BoxShadow(
-                color: widget.level.color.withValues(alpha: 0.10 + t * 0.18),
-                blurRadius: 28 + (t * 22),
-                spreadRadius: 2 + (t * 8),
+    // Fixed SizedBox so layout doesn't shift during animation
+    return SizedBox(
+      width: 160,
+      height: 160,
+      child: AnimatedBuilder(
+        animation: _pulseAnim,
+        builder: (context, child) {
+          final t = _pulseAnim.value;
+          return Transform.scale(
+            scale: 1.0 + (t * 0.09),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.level.color.withValues(alpha: 0.10 + t * 0.10),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.level.color.withValues(
+                      alpha: 0.10 + t * 0.18,
+                    ),
+                    blurRadius: 28 + (t * 22),
+                    spreadRadius: 2 + (t * 8),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Center(
-            child: Transform.scale(
-              scale: 1.0 + (t * 0.07),
-              child: Container(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.level.color.withValues(alpha: 0.20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.45),
-                    width: 2,
+              child: Center(
+                child: Transform.scale(
+                  scale: 1.0 + (t * 0.06),
+                  child: Container(
+                    width: 104,
+                    height: 104,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: widget.level.color.withValues(alpha: 0.20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        width: 2,
+                      ),
+                    ),
+                    child: _MoodFaceWidget(level: widget.level, size: 48),
                   ),
                 ),
-                child: _MoodFaceWidget(level: widget.level, size: 48),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
 
-class _PulsingMoodButton extends StatefulWidget {
+class _PulsingMoodButton extends StatelessWidget {
   final _MoodLevel level;
   final bool selected;
   final VoidCallback onTap;
@@ -961,81 +969,36 @@ class _PulsingMoodButton extends StatefulWidget {
   });
 
   @override
-  State<_PulsingMoodButton> createState() => _PulsingMoodButtonState();
-}
-
-class _PulsingMoodButtonState extends State<_PulsingMoodButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _pulseAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    );
-    _pulseAnim = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
-    if (widget.selected) _controller.repeat(reverse: true);
-  }
-
-  @override
-  void didUpdateWidget(_PulsingMoodButton old) {
-    super.didUpdateWidget(old);
-    if (widget.selected && !old.selected) {
-      _controller.repeat(reverse: true);
-    } else if (!widget.selected && old.selected) {
-      _controller.stop();
-      _controller.animateTo(0, duration: const Duration(milliseconds: 200));
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (context, child) {
-          final t = widget.selected ? _pulseAnim.value : 0.0;
-          final size = widget.selected ? 52.0 + (t * 8.0) : 48.0;
-          return Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: widget.selected
-                  ? widget.level.color
-                  : widget.level.color.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-              boxShadow: widget.selected
-                  ? [
-                      BoxShadow(
-                        color: widget.level.color.withValues(
-                          alpha: 0.22 + t * 0.20,
-                        ),
-                        blurRadius: 14 + (t * 10),
-                        offset: const Offset(0, 5),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: _MoodFaceWidget(
-              level: widget.level,
-              size: widget.selected ? 24.0 + (t * 4.0) : 22.0,
-              overrideColor: widget.selected ? Colors.white : null,
-            ),
-          );
-        },
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: selected ? 58 : 48,
+        height: selected ? 58 : 48,
+        decoration: BoxDecoration(
+          color: selected
+              ? level.color
+              : level.color.withValues(alpha: 0.18),
+          shape: BoxShape.circle,
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: level.color.withValues(alpha: 0.34),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: _MoodFaceWidget(
+            level: level,
+            size: selected ? 27 : 22,
+            overrideColor: selected ? Colors.white : null,
+          ),
+        ),
       ),
     );
   }

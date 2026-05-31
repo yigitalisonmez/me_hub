@@ -369,8 +369,11 @@ class _BreathingStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
         _BreathingOrb(color: technique.primaryColor),
         const SizedBox(height: 14),
         Text(
@@ -415,6 +418,7 @@ class _BreathingStage extends StatelessWidget {
           }).toList(),
         ),
       ],
+    ),
     );
   }
 }
@@ -526,7 +530,7 @@ class _BreathingOrbState extends State<_BreathingOrb>
                 ),
               ),
               Transform.translate(
-                offset: const Offset(0, -8),
+                offset: Offset(0, -4 - (t * 14)),
                 child: Transform.scale(
                   scale: scale,
                   child: Image.asset(
