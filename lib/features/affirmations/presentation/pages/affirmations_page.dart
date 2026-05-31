@@ -582,13 +582,16 @@ class _SleepAffirmationsFlowPageState
         if (shouldPop) nav.pop();
       },
       child: Scaffold(
-        backgroundColor: context.watch<ThemeProvider>().backgroundColor,
+        backgroundColor: Colors.transparent,
         body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           onPageChanged: provider.goToStep,
           children: [
-            WelcomeStep(onBegin: () => _goToStep(1)),
+            WelcomeStep(
+              onBegin: () => _goToStep(1),
+              onBack: () => Navigator.of(context).pop(),
+            ),
             RecordStep(
               onContinue: () => _goToStep(2),
               onBack: () => _goToStep(0),
