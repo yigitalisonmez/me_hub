@@ -32,3 +32,5 @@ and summary UI.
 - Home and Mood avoid user-facing "AI" labels unless the feature is actually
   backed by an AI flow.
 - Settings debug notification tools were removed from the user-facing screen.
+- Home, Profile, and Onboarding pages fully redesigned as part of Kora Redesign
+  (2026-05-31).

@@ -17,9 +17,7 @@ Events, categories, reminder offsets, completion state, and local notifications.
 
 ## Notes
 
-- Calendar files were untracked when this documentation structure was created.
 - Reminder scheduling touches `NotificationService`.
-- Analyzer currently reports async context and deprecated color value warnings in
-  this feature.
-- Treat Calendar as release-risky until reminder scheduling, update/delete
-  cancellation, and Android notification permissions are verified on device.
+- Background notifications verified on physical device (2026-05-30).
+- `flutter analyze` passes cleanly.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).

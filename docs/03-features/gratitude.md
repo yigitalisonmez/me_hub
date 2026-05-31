@@ -17,5 +17,5 @@ Daily gratitude entries, gratitude items, prompts, streaks, and reflections.
 
 ## Notes
 
-- Some widgets still use deprecated `withOpacity`; this appears in analyzer
-  output and can be cleaned when touching the feature.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).
+- `flutter analyze` passes cleanly post-redesign.

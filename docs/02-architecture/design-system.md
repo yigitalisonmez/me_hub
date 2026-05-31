@@ -12,6 +12,12 @@ The current UI direction is warm, personal, and depth-based.
 - `lib/core/widgets/glass_container.dart`
 - `lib/core/widgets/glass_nav_bar.dart`
 - `lib/core/widgets/page_header.dart`
+- `lib/core/widgets/action_button.dart` — reusable CTA button
+- `lib/core/widgets/app_snack_bar.dart` — standardised snackbar helper
+- `lib/core/widgets/progress_ring.dart` — circular progress indicator
+- `lib/core/widgets/section_header.dart` — section title + optional action
+- `lib/core/widgets/shimmer_loading.dart` — skeleton/shimmer placeholder
+- `lib/core/widgets/stat_card.dart` — metric display card
 
 ## Current Style
 

@@ -1,23 +1,23 @@
 # Feature Live Status
 
-Last audited: 2026-05-30.
+Last audited: 2026-05-31.
 
 ## Summary
 
 | Feature | Status | Live Notes |
 | --- | --- | --- |
-| Onboarding | Working | Stores local name/focus. Empty name validation prevents skipping. Brand is Kora. |
-| Home | Working | Dashboard loads local providers. "Daily Tip" card shows dynamic tips based on real water/mood/routine/todo data. |
-| Todo | Working | Local Hive CRUD. Extensively tested (17 unit tests). Stats behavior around deletes should be reviewed. |
-| Routines | Working | Local Hive CRUD and streak logic extensively tested (18 unit tests). Notification behavior verified on device. |
-| Water | Working | Local tracking works. All-time stats calculation and goal tracking extensively tested (11 unit tests). |
-| Mood | Mostly working | Local daily mood works. Data-source recovery can delete old box on open failure. |
-| Gratitude | Mostly working | Local entries/streaks. Needs tests and UI walkthrough. |
-| Breathing | Partially working | Session/audio/haptic flow exists. Custom technique paths look incomplete/not surfaced. |
-| Affirmations | Partially working | Recording/playback flow exists. Dead Hive repository/model remains, but concrete typeId conflict is fixed. |
+| Onboarding | Working | Stores local name/focus. Empty name validation prevents skipping. Brand is Kora. UI redesigned (2026-05-31). |
+| Home | Working | Dashboard loads local providers. "Daily Tip" card shows dynamic tips based on real water/mood/routine/todo data. UI redesigned (2026-05-31). |
+| Todo | Working | Local Hive CRUD. Extensively tested (17 unit tests). Stats behavior around deletes should be reviewed. UI redesigned (2026-05-31). |
+| Routines | Working | Local Hive CRUD and streak logic extensively tested (18 unit tests). Notification behavior verified on device. UI redesigned (2026-05-31). |
+| Water | Working | Local tracking works. All-time stats calculation and goal tracking extensively tested (11 unit tests). Stats integrity fixed. UI redesigned (2026-05-31). |
+| Mood | Working | Local daily mood works. UI redesigned (2026-05-31). Data-source recovery can delete old box on open failure. |
+| Gratitude | Working | Local entries/streaks. UI redesigned (2026-05-31). |
+| Breathing | Partially working | Session/audio/haptic flow exists. UI redesigned (2026-05-31). Custom technique paths look incomplete/not surfaced. |
+| Affirmations | Working | Recording/playback flow exists. UI redesigned (2026-05-31). typeId conflict resolved (moved to 12). |
 | Challenges | Working | Local gamification exists. Release icon tree-shaking issue is fixed. Settings icon navigates correctly. |
-| Calendar | Working | Events and reminders exist. Background notifications verified successfully on physical device. |
-| Timer | Local only | Timer page works locally. Voice "start timer" does not start TimerProvider. |
+| Calendar | Working | Events and reminders exist. Background notifications verified on device. UI redesigned (2026-05-31). |
+| Timer | Working | Timer page works locally. UI redesigned (2026-05-31). Voice "start timer" now triggers TimerProvider. |
 | Settings | Mostly working | Debug/test notification controls were removed from the user-facing screen. |
 | Profile | Working | Local-only profile. Achievements carousel dynamically loads unlocked badges. Needs naming/support-copy pass. |
 | Voice/NLP | Partially working | Some commands execute. Debug prints, no confirmation, unsupported commands remain. |

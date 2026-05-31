@@ -3,6 +3,31 @@
 Completed work should be summarized here with date, changed files, and test
 results.
 
+## 2026-05-31 (Kora Redesign — Full UI Overhaul)
+
+Comprehensive redesign of all major feature screens. Branch: `temp/kora-redesign-claude`, merged to `main`.
+
+**Redesigned screens:**
+- Affirmations: page + record/session/welcome step widgets
+- Breathing: full page
+- Calendar: full page
+- Gratitude: full page
+- Home: full page
+- Mood Tracker: full page
+- Onboarding: full page
+- Profile: full page
+- Routines: full page
+- Timer: full page
+- Todo: page + dashboard widgets
+- Water: page, goal page (new), progress card, log section, quick-add section, amount button, log item
+
+**New core widgets added:**
+`action_button.dart`, `app_snack_bar.dart`, `progress_ring.dart`,
+`section_header.dart`, `shimmer_loading.dart`, `stat_card.dart`
+
+- `flutter analyze`: passes cleanly.
+- `flutter test`: 46/46 tests passing.
+
 ## 2026-05-31 (Pre-Live UI Consistency Pass)
 
 - Locked the app to portrait orientation via `SystemChrome.setPreferredOrientations`.

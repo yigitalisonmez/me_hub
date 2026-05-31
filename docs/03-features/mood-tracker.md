@@ -17,5 +17,6 @@ Record mood entries, show today's mood, history, trends, and heatmap views.
 
 ## Notes
 
-- Mood data is also used by analytics and home widget flows.
+- Mood data is also used by analytics flows (home widget is disabled for v1).
 - Be careful when changing date filtering.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).

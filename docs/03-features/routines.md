@@ -20,5 +20,6 @@ optional reminder times.
 ## Notes
 
 - Notifications are scheduled from routine provider flows.
-- `RoutineItem` uses `typeId: 10`, which currently conflicts with an
-  affirmation model. Check `02-architecture/hive-typeids.md` before changing.
+- `RoutineItem` uses `typeId: 10`. The previous conflict with `AffirmationSession`
+  is resolved — that model moved to `typeId: 12`. See `02-architecture/hive-typeids.md`.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).

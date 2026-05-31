@@ -18,12 +18,11 @@ store session history.
   flows.
 - Audio files stored through path provider / recorder paths.
 
-## Important Risk
+## Notes
 
-`AffirmationSession` uses Hive `typeId: 10`, which conflicts with
-`RoutineItem`. Resolve with a migration plan before registering both in the same
-Hive runtime.
-
-The active affirmation UI/provider currently stores saved recordings and session
-history in SharedPreferences plus local files. The data-layer Hive repository
-appears unused. Treat that path as dead/risky until proven otherwise.
+- Hive `typeId` conflict with `RoutineItem` is resolved — `AffirmationSession`
+  moved to `typeId: 12`. See `02-architecture/hive-typeids.md`.
+- The active UI/provider stores recordings and session history in
+  SharedPreferences plus local files. The data-layer Hive repository remains
+  in the codebase but is unused; treat it as dead code until explicitly needed.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).

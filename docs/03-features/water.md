@@ -19,8 +19,8 @@ updates.
 
 ## Notes
 
-- Provider updates can affect cumulative stats and the home widget.
-- Check `home_widget` behavior when changing today's progress.
-- Live audit found a likely stats integrity issue: all-time water increments on
-  add, while undo/delete paths should be checked because they do not obviously
-  decrement cumulative stats.
+- Provider updates can affect cumulative stats (home widget disabled for v1).
+- Stats integrity fixed: `undoLastLog()` and `deleteLog()` now both call
+  `CumulativeStatsService.subtractWater()` (2026-05-30).
+- `water_goal_page.dart` added as a dedicated goal-setting page.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).

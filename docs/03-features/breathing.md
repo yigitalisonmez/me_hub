@@ -20,3 +20,4 @@ audio, session history, and custom techniques.
 
 - Provider is large. Prefer small, focused edits.
 - Always check timer/audio disposal when changing session lifecycle.
+- UI fully redesigned as part of Kora Redesign (2026-05-31).
