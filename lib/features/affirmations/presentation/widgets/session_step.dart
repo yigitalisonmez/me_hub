@@ -20,30 +20,82 @@ class SessionStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.watch<ThemeProvider>();
     final provider = context.watch<AffirmationProvider>();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SessionPlayer(provider: provider),
-          const SizedBox(height: 18),
-          _PlaybackControls(provider: provider, onComplete: onComplete),
-          const SizedBox(height: 20),
-          _BackgroundSounds(provider: provider),
-          const SizedBox(height: 18),
-          _VolumePanel(provider: provider),
-          const SizedBox(height: 18),
-          if (provider.playbackState == PlaybackState.idle)
-            Center(
-              child: TextButton.icon(
-                onPressed: onBack,
-                icon: const Icon(LucideIcons.arrowLeft, size: 17),
-                label: const Text('Back to recordings'),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppColors.mindfulTint, tp.backgroundColor],
+          stops: const [0.0, 0.50],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: Row(
+                children: [
+                  if (provider.playbackState == PlaybackState.idle)
+                    GestureDetector(
+                      onTap: onBack,
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: tp.cardColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: tp.textSecondary.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: Icon(
+                          LucideIcons.chevronLeft,
+                          size: 19,
+                          color: tp.textPrimary,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 38),
+                  Expanded(
+                    child: Text(
+                      'Session',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: tp.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 38),
+                ],
               ),
             ),
-        ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SessionPlayer(provider: provider),
+                    const SizedBox(height: 18),
+                    _PlaybackControls(provider: provider, onComplete: onComplete),
+                    const SizedBox(height: 20),
+                    _BackgroundSounds(provider: provider),
+                    const SizedBox(height: 18),
+                    _VolumePanel(provider: provider),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

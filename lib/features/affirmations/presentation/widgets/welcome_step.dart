@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -195,30 +197,27 @@ class _FloatingHero extends StatelessWidget {
         child: child,
       ),
       child: SizedBox(
-        width: 220,
-        height: 220,
+        width: 240,
+        height: 240,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Soft radial glow
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.mindful.withValues(alpha: 0.32),
-                    AppColors.mindful.withValues(alpha: 0.0),
-                  ],
-                  radius: 0.65,
+            // Blurred glow (CSS filter:blur equivalent — spreads outside bounds)
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.mindful.withValues(alpha: 0.38),
                 ),
               ),
             ),
-            // Asset
+            // Asset on top of glow
             Image.asset(
               'assets/images/affirmation.png',
-              width: 168,
+              width: 172,
               filterQuality: FilterQuality.high,
             ),
           ],

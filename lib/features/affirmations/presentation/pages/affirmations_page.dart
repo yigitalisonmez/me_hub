@@ -581,7 +581,7 @@ class _SleepAffirmationsFlowPageState
         if (shouldPop) nav.pop();
       },
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: context.watch<ThemeProvider>().backgroundColor,
         body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),

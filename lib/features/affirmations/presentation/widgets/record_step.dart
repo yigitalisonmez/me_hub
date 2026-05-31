@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/elevated_card.dart';
 import '../providers/affirmation_provider.dart';
 
 class RecordStep extends StatefulWidget {
@@ -30,48 +29,144 @@ class _RecordStepState extends State<RecordStep> {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.watch<ThemeProvider>();
     final provider = context.watch<AffirmationProvider>();
+    final canContinue = provider.selectedRecordingIndex != null;
+    final remaining = 3 - provider.savedRecordings.length;
 
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _RecordStage(
-                  provider: provider,
-                  nameController: _nameController,
-                  onSaveRecording: () {
-                    final name = _nameController.text.trim();
-                    if (name.isEmpty) return;
-                    provider.saveRecordingWithName(name);
-                    _nameController.clear();
-                  },
+    return Container(
+      color: tp.backgroundColor,
+      child: SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(tp),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _RecordStage(
+                      provider: provider,
+                      nameController: _nameController,
+                      onSaveRecording: () {
+                        final name = _nameController.text.trim();
+                        if (name.isEmpty) return;
+                        provider.saveRecordingWithName(name);
+                        _nameController.clear();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _RecordingsList(provider: provider),
+                    if (remaining > 0 && provider.savedRecordings.isNotEmpty)
+                      _RecordAnotherButton(remaining: remaining),
+                    const SizedBox(height: 8),
+                  ],
                 ),
-                const SizedBox(height: 18),
-                _RecordingsList(provider: provider),
-              ],
+              ),
+            ),
+            _buildBottomButton(tp, canContinue),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(ThemeProvider tp) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: widget.onBack,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: tp.cardColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: tp.textSecondary.withValues(alpha: 0.12),
+                ),
+              ),
+              child: Icon(
+                LucideIcons.chevronLeft,
+                size: 19,
+                color: tp.textPrimary,
+              ),
             ),
           ),
-        ),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-            child: _NavigationButtons(
-              provider: provider,
-              onBack: widget.onBack,
-              onContinue: widget.onContinue,
+          Expanded(
+            child: Text(
+              'Record',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: tp.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
+          Text(
+            '2/3',
+            style: const TextStyle(
+              color: AppColors.mindfulDeep,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButton(ThemeProvider tp, bool canContinue) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        18,
+        8,
+        18,
+        MediaQuery.of(context).padding.bottom + 16,
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton(
+          onPressed: canContinue ? widget.onContinue : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.mindfulDeep,
+            disabledBackgroundColor: tp.borderColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Use selected for session',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                LucideIcons.arrowRight,
+                size: 18,
+                color: canContinue ? Colors.white : tp.textSecondary,
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
 
+// ── Recording stage card ──────────────────────────────
 class _RecordStage extends StatelessWidget {
   final AffirmationProvider provider;
   final TextEditingController nameController;
@@ -85,47 +180,58 @@ class _RecordStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
+    final tp = context.watch<ThemeProvider>();
     final isRecording = provider.recordingState == RecordingState.recording;
     final isPaused = provider.recordingState == RecordingState.paused;
     final isRecorded = provider.recordingState == RecordingState.recorded;
 
-    return ElevatedCard(
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
-      borderRadius: 28,
-      backgroundColor: themeProvider.cardColor,
-      borderColor: isRecording
-          ? AppColors.mindful.withValues(alpha: 0.42)
-          : themeProvider.borderColor.withValues(alpha: 0.28),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
+      decoration: BoxDecoration(
+        color: tp.cardColor,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: isRecording
+              ? AppColors.mindful.withValues(alpha: 0.45)
+              : tp.textSecondary.withValues(alpha: 0.10),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           _WaveBars(active: isRecording),
-          const SizedBox(height: 12),
-          Text(
-            provider.formattedRecordingTime,
-            style: TextStyle(
-              color: themeProvider.textPrimary,
-              fontSize: 31,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
+          const SizedBox(height: 14),
+          // Timer: "0:18 / 1:00" format
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: provider.formattedRecordingTime,
+                  style: TextStyle(
+                    color: tp.textPrimary,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                TextSpan(
+                  text: '  / 1:00',
+                  style: TextStyle(
+                    color: tp.textSecondary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            isRecorded
-                ? 'Recording complete'
-                : isPaused
-                ? 'Paused'
-                : isRecording
-                ? 'Speak slowly and kindly'
-                : '${provider.savedRecordings.length}/3 recordings saved',
-            style: TextStyle(
-              color: themeProvider.textSecondary,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           if (!isRecorded)
             _RecordControls(provider: provider)
           else
@@ -134,12 +240,29 @@ class _RecordStage extends StatelessWidget {
               onSave: onSaveRecording,
               onDiscard: provider.cancelRecording,
             ),
+          const SizedBox(height: 10),
+          Text(
+            isRecording
+                ? 'Tap to pause · speak slowly and kindly'
+                : isPaused
+                ? 'Paused · tap to resume'
+                : isRecorded
+                ? 'Recording complete · name and save'
+                : '${provider.savedRecordings.length}/3 recordings saved',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: tp.textSecondary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
+// ── Animated waveform bars ────────────────────────────
 class _WaveBars extends StatefulWidget {
   final bool active;
 
@@ -151,52 +274,50 @@ class _WaveBars extends StatefulWidget {
 
 class _WaveBarsState extends State<_WaveBars>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1050),
+      duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
+      animation: _ctrl,
       builder: (context, _) {
         return SizedBox(
-          height: 58,
+          height: 56,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(21, (index) {
-              final base = 14 + math.sin(index * 0.75).abs() * 28;
+            children: List.generate(21, (i) {
+              final base = 14.0 + math.sin(i * 0.9).abs() * 32 + (i % 3) * 6;
               final pulse = widget.active
                   ? math
-                            .sin(
-                              (_controller.value * math.pi * 2) + index * 0.55,
-                            )
+                            .sin((_ctrl.value * math.pi * 2) + i * 0.55)
                             .abs() *
-                        18
+                        20
                   : 0;
               return Container(
                 width: 4,
-                height: base + pulse,
-                margin: const EdgeInsets.symmetric(horizontal: 1.8),
+                height: (base + pulse).clamp(4.0, 56.0),
+                margin: const EdgeInsets.symmetric(horizontal: 1.5),
                 decoration: BoxDecoration(
                   color: AppColors.mindful.withValues(
-                    alpha: widget.active ? 0.90 : 0.38,
+                    alpha: widget.active ? 0.88 : 0.30,
                   ),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(99),
                 ),
               );
             }),
@@ -207,6 +328,7 @@ class _WaveBarsState extends State<_WaveBars>
   }
 }
 
+// ── Record / pause / stop button ─────────────────────
 class _RecordControls extends StatelessWidget {
   final AffirmationProvider provider;
 
@@ -214,7 +336,6 @@ class _RecordControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
     final isIdle = provider.recordingState == RecordingState.idle;
     final isRecording = provider.recordingState == RecordingState.recording;
     final isPaused = provider.recordingState == RecordingState.paused;
@@ -222,6 +343,7 @@ class _RecordControls extends StatelessWidget {
 
     return Column(
       children: [
+        // Main record button: circle with border + red square inside (design spec)
         GestureDetector(
           onTap: isIdle
               ? canRecord
@@ -236,63 +358,65 @@ class _RecordControls extends StatelessWidget {
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isRecording
-                  ? Colors.white
-                  : canRecord
-                  ? AppColors.mindfulDeep
-                  : themeProvider.borderColor,
-              border: isRecording
-                  ? Border.all(color: AppColors.mindful, width: 3)
-                  : null,
+              color: Colors.white,
+              border: Border.all(
+                color: isRecording
+                    ? AppColors.mindful
+                    : AppColors.mindful.withValues(alpha: 0.45),
+                width: 2.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.mindfulDeep.withValues(alpha: 0.25),
+                  color: AppColors.mindfulDeep.withValues(alpha: 0.18),
                   blurRadius: 22,
-                  offset: const Offset(0, 10),
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Icon(
-              isIdle
-                  ? LucideIcons.mic
-                  : isRecording
-                  ? LucideIcons.pause
-                  : LucideIcons.play,
-              color: isRecording ? AppColors.mindfulDeep : Colors.white,
-              size: 30,
+            child: Center(
+              child: isIdle
+                  ? Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: isRecording || !canRecord
+                            ? Colors.grey
+                            : const Color(0xFFD8584E),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    )
+                  : Icon(
+                      isRecording ? LucideIcons.pause : LucideIcons.play,
+                      color: AppColors.mindfulDeep,
+                      size: 28,
+                    ),
             ),
           ),
         ),
-        const SizedBox(height: 13),
-        if (isRecording || isPaused)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _StageButton(
-                icon: isRecording ? LucideIcons.pause : LucideIcons.play,
-                label: isRecording ? 'Pause' : 'Resume',
-                onTap: isRecording
-                    ? provider.pauseRecording
-                    : provider.resumeRecording,
+        if (isRecording || isPaused) ...[
+          const SizedBox(height: 14),
+          GestureDetector(
+            onTap: provider.stopRecording,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
               ),
-              const SizedBox(width: 10),
-              _StageButton(
-                icon: LucideIcons.square,
-                label: 'Done',
-                filled: true,
-                onTap: provider.stopRecording,
+              decoration: BoxDecoration(
+                color: AppColors.mindfulDeep,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          )
-        else
-          Text(
-            canRecord ? 'Tap to record up to 1:00' : 'Recording limit reached',
-            style: TextStyle(
-              color: themeProvider.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+              child: const Text(
+                'Done',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
+        ],
       ],
     );
   }
@@ -320,38 +444,7 @@ class _RecordControls extends StatelessWidget {
   }
 }
 
-class _StageButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool filled;
-
-  const _StageButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.filled = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: filled ? AppColors.mindfulDeep : Colors.transparent,
-        foregroundColor: filled ? Colors.white : AppColors.mindfulDeep,
-        side: BorderSide(
-          color: filled ? AppColors.mindfulDeep : AppColors.mindful,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    );
-  }
-}
-
+// ── Name + save after recording ──────────────────────
 class _SaveRecordingForm extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSave;
@@ -365,21 +458,43 @@ class _SaveRecordingForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
+    final tp = context.watch<ThemeProvider>();
+
     return Column(
       children: [
         TextField(
           controller: controller,
-          style: TextStyle(color: themeProvider.textPrimary),
+          style: TextStyle(color: tp.textPrimary),
           decoration: InputDecoration(
-            hintText: 'Name your affirmation',
-            hintStyle: TextStyle(color: themeProvider.textTertiary),
+            hintText: 'Name this affirmation',
+            hintStyle: TextStyle(
+              color: tp.textSecondary.withValues(alpha: 0.55),
+            ),
             filled: true,
-            fillColor: themeProvider.inputFillColor,
-            prefixIcon: const Icon(LucideIcons.tag, size: 18),
+            fillColor: tp.backgroundColor,
+            prefixIcon: const Icon(
+              LucideIcons.tag,
+              size: 17,
+              color: AppColors.mindfulDeep,
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: tp.textSecondary.withValues(alpha: 0.12),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: tp.textSecondary.withValues(alpha: 0.12),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppColors.mindfulDeep,
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -387,40 +502,37 @@ class _SaveRecordingForm extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: OutlinedButton(
                 onPressed: onDiscard,
-                icon: const Icon(LucideIcons.x, size: 16),
-                label: const Text('Discard'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: themeProvider.textSecondary,
+                  foregroundColor: tp.textSecondary,
                   side: BorderSide(
-                    color: themeProvider.borderColor.withValues(alpha: 0.45),
+                    color: tp.textSecondary.withValues(alpha: 0.25),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
+                child: const Text('Discard'),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: onSave,
-                icon: const Icon(
-                  LucideIcons.save,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                label: const Text('Save'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mindfulDeep,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -431,6 +543,7 @@ class _SaveRecordingForm extends StatelessWidget {
   }
 }
 
+// ── Recordings list ───────────────────────────────────
 class _RecordingsList extends StatelessWidget {
   final AffirmationProvider provider;
 
@@ -438,7 +551,7 @@ class _RecordingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
+    final tp = context.watch<ThemeProvider>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,9 +561,9 @@ class _RecordingsList extends StatelessWidget {
             Text(
               'Your recordings',
               style: TextStyle(
-                color: themeProvider.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
+                color: tp.textPrimary,
+                fontSize: 15.5,
+                fontWeight: FontWeight.w800,
               ),
             ),
             const Spacer(),
@@ -458,39 +571,47 @@ class _RecordingsList extends StatelessWidget {
               '${provider.savedRecordings.length}/3',
               style: const TextStyle(
                 color: AppColors.mindfulDeep,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
         if (provider.savedRecordings.isEmpty)
-          ElevatedCard(
-            padding: const EdgeInsets.all(18),
-            borderRadius: 18,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: tp.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: tp.textSecondary.withValues(alpha: 0.10),
+              ),
+            ),
             child: Row(
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: AppColors.mindfulTint,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     LucideIcons.micOff,
                     color: AppColors.mindfulDeep,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'No recordings yet. Use the record button above.',
+                    'No recordings yet.\nTap the button above to start.',
                     style: TextStyle(
-                      color: themeProvider.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      color: tp.textSecondary,
+                      fontSize: 13,
+                      height: 1.4,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -498,150 +619,158 @@ class _RecordingsList extends StatelessWidget {
             ),
           )
         else
-          ...provider.savedRecordings.asMap().entries.map((entry) {
-            final index = entry.key;
-            final recording = entry.value;
-            final selected = provider.selectedRecordingIndex == index;
-            final previewing = provider.previewingRecordingIndex == index;
+          Column(
+            children: provider.savedRecordings.asMap().entries.map((entry) {
+              final index = entry.key;
+              final recording = entry.value;
+              final selected = provider.selectedRecordingIndex == index;
+              final previewing = provider.previewingRecordingIndex == index;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 9),
-              child: ElevatedCard(
-                padding: const EdgeInsets.all(11),
-                borderRadius: 18,
-                backgroundColor: selected
-                    ? AppColors.mindfulTint.withValues(
-                        alpha: themeProvider.isDarkMode ? 0.14 : 1,
-                      )
-                    : null,
-                borderColor: selected
-                    ? AppColors.mindful.withValues(alpha: 0.65)
-                    : null,
-                onTap: () => provider.selectRecording(index),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => provider.previewRecording(index),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: const BoxDecoration(
-                          color: AppColors.mindful,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          previewing ? LucideIcons.pause : LucideIcons.play,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 9),
+                child: GestureDetector(
+                  onTap: () => provider.selectRecording(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.mindfulTint : tp.cardColor,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.mindful
+                            : tp.textSecondary.withValues(alpha: 0.10),
+                        width: selected ? 1.5 : 1,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            recording.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: themeProvider.textPrimary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
+                    child: Row(
+                      children: [
+                        // Play/pause button
+                        GestureDetector(
+                          onTap: () => provider.previewRecording(index),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: AppColors.mindful,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              previewing
+                                  ? LucideIcons.pause
+                                  : LucideIcons.play,
+                              color: Colors.white,
+                              size: 15,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _formatDuration(recording.durationSeconds),
-                            style: TextStyle(
-                              color: themeProvider.textSecondary,
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _confirmDelete(
-                        context,
-                        themeProvider,
-                        provider,
-                        index,
-                      ),
-                      icon: Icon(
-                        LucideIcons.trash2,
-                        color: themeProvider.textTertiary,
-                        size: 17,
-                      ),
-                    ),
-                    Container(
-                      width: 21,
-                      height: 21,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: selected
-                              ? AppColors.mindfulDeep
-                              : themeProvider.borderColor,
-                          width: 2,
                         ),
-                      ),
-                      child: selected
-                          ? Center(
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.mindfulDeep,
-                                  shape: BoxShape.circle,
+                        const SizedBox(width: 12),
+                        // Name + duration
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                recording.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: tp.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            )
-                          : null,
+                              const SizedBox(height: 2),
+                              Text(
+                                _fmt(recording.durationSeconds),
+                                style: TextStyle(
+                                  color: tp.textSecondary,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Delete
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () =>
+                              _confirmDelete(context, tp, provider, index),
+                          icon: Icon(
+                            LucideIcons.trash2,
+                            color: tp.textSecondary,
+                            size: 16,
+                          ),
+                        ),
+                        // Radio select circle
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.mindfulDeep
+                                  : tp.borderColor,
+                              width: 2,
+                            ),
+                          ),
+                          child: selected
+                              ? Center(
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.mindfulDeep,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }).toList(),
+          ),
       ],
     );
   }
 
-  String _formatDuration(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '$minutes:${secs.toString().padLeft(2, '0')}';
-  }
+  String _fmt(int s) =>
+      '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
 
   void _confirmDelete(
     BuildContext context,
-    ThemeProvider themeProvider,
+    ThemeProvider tp,
     AffirmationProvider provider,
     int index,
   ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: themeProvider.cardColor,
+        backgroundColor: tp.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Delete recording?',
-          style: TextStyle(color: themeProvider.textPrimary),
+          style: TextStyle(color: tp.textPrimary),
         ),
         content: Text(
           'This cannot be undone.',
-          style: TextStyle(color: themeProvider.textSecondary),
+          style: TextStyle(color: tp.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: TextStyle(color: themeProvider.textSecondary),
+              style: TextStyle(color: tp.textSecondary),
             ),
           ),
           ElevatedButton(
@@ -658,65 +787,40 @@ class _RecordingsList extends StatelessWidget {
   }
 }
 
-class _NavigationButtons extends StatelessWidget {
-  final AffirmationProvider provider;
-  final VoidCallback onBack;
-  final VoidCallback onContinue;
+// ── "Record another · N left" dashed button ──────────
+class _RecordAnotherButton extends StatelessWidget {
+  final int remaining;
 
-  const _NavigationButtons({
-    required this.provider,
-    required this.onBack,
-    required this.onContinue,
-  });
+  const _RecordAnotherButton({required this.remaining});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final canContinue = provider.selectedRecordingIndex != null;
-
-    return Row(
-      children: [
-        OutlinedButton.icon(
-          onPressed: onBack,
-          icon: const Icon(LucideIcons.arrowLeft, size: 17),
-          label: const Text('Back'),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () {},
+          icon: const Icon(LucideIcons.mic, size: 15),
+          label: Text(
+            'Record another  ·  $remaining left',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           style: OutlinedButton.styleFrom(
-            foregroundColor: themeProvider.textSecondary,
+            foregroundColor: AppColors.mindfulDeep,
+            backgroundColor: AppColors.mindfulTint,
             side: BorderSide(
-              color: themeProvider.borderColor.withValues(alpha: 0.45),
+              color: AppColors.mindful.withValues(alpha: 0.50),
+              width: 1.5,
+              strokeAlign: BorderSide.strokeAlignInside,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: canContinue ? onContinue : null,
-            icon: const Icon(
-              LucideIcons.arrowRight,
-              color: Colors.white,
-              size: 17,
-            ),
-            label: const Text(
-              'Use selected',
-              style: TextStyle(fontWeight: FontWeight.w900),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mindfulDeep,
-              disabledBackgroundColor: themeProvider.borderColor,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
