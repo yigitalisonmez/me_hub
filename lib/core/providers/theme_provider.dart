@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_colors.dart';
 
@@ -18,16 +19,15 @@ class ThemeProvider with ChangeNotifier {
       _isDarkMode ? AppColors.darkBackground : AppColors.background;
 
   /// Get card background color
-  Color get cardColor => _isDarkMode ? AppColors.darkCard : AppColors.white;
+  Color get cardColor => _isDarkMode ? AppColors.darkCard : AppColors.surface;
 
   /// Get surface color (for stat cards, log items, etc.)
   Color get surfaceColor =>
       _isDarkMode ? AppColors.darkSurface : AppColors.surface;
 
   /// Get input field fill color - elevated/lighter than card for depth
-  Color get inputFillColor => _isDarkMode
-      ? const Color(0xFF3A3A3A) // Lighter than darkCard for depth
-      : const Color(0xFFFAFAFA); // Lighter than white for subtle depth
+  Color get inputFillColor =>
+      _isDarkMode ? AppColors.darkElevated : AppColors.elevated;
 
   /// Get primary color (orange) - same for both light and dark mode
   Color get primaryColor => AppColors.primary;
@@ -37,14 +37,18 @@ class ThemeProvider with ChangeNotifier {
 
   /// Get text primary color
   Color get textPrimary =>
-      _isDarkMode ? AppColors.darkTextPrimary : AppColors.darkGrey;
+      _isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary;
 
   /// Get text secondary color
   Color get textSecondary =>
-      _isDarkMode ? AppColors.darkTextSecondary : AppColors.grey;
+      _isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary;
 
   /// Get border color - same primary for both modes
-  Color get borderColor => AppColors.primary;
+  Color get borderColor =>
+      _isDarkMode ? AppColors.darkBorder : AppColors.accentGrey;
+
+  Color get textTertiary =>
+      _isDarkMode ? AppColors.darkTextTertiary : AppColors.textTertiary;
 
   /// Toggle theme mode
   Future<void> toggleTheme() async {
@@ -72,6 +76,8 @@ class ThemeProvider with ChangeNotifier {
       // If error, use default (light mode)
       _isDarkMode = false;
     }
+    // Remove splash screen after theme is loaded
+    FlutterNativeSplash.remove();
   }
 
   /// Save theme preference to SharedPreferences

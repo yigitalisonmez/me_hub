@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,19 +24,20 @@ import 'features/todo/data/models/daily_todo_model.dart';
 import 'features/routines/presentation/providers/routines_provider.dart';
 import 'features/routines/data/datasources/routine_local_datasource.dart';
 import 'features/routines/data/repositories/routine_repository_impl.dart'
-    as RoutinesRepo;
-import 'features/routines/domain/usecases/usecases.dart' as RoutinesUsecases;
-import 'features/routines/domain/entities/routine.dart' as RoutineEntities;
+    as routines_repo;
+import 'features/routines/domain/usecases/usecases.dart' as routines_usecases;
+import 'features/routines/domain/entities/routine.dart' as routine_entities;
 import 'features/water/presentation/providers/water_provider.dart';
 import 'features/mood_tracker/presentation/providers/mood_provider.dart';
 import 'features/mood_tracker/data/datasources/mood_local_datasource.dart';
 import 'features/mood_tracker/domain/entities/mood_entry.dart';
 import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
-import 'features/water/domain/usecases/usecases.dart' as WaterUsecases;
+import 'features/water/domain/usecases/usecases.dart' as water_usecases;
 import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
+import 'features/timer/presentation/providers/timer_provider.dart';
 
 import 'features/profile/presentation/pages/profile_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
@@ -47,11 +49,32 @@ import 'features/gratitude/domain/entities/gratitude_entry.dart';
 import 'features/gratitude/domain/entities/gratitude_item.dart';
 import 'features/gratitude/data/datasources/gratitude_local_datasource.dart';
 import 'features/gratitude/data/repositories/gratitude_repository_impl.dart';
-import 'features/gratitude/domain/usecases/usecases.dart' as GratitudeUsecases;
+import 'features/gratitude/domain/usecases/usecases.dart' as gratitude_usecases;
 import 'features/gratitude/presentation/providers/gratitude_provider.dart';
 
+// Challenges feature imports
+import 'features/challenges/domain/entities/challenge.dart'
+    as challenge_entities;
+import 'features/challenges/domain/entities/weekly_goal.dart'
+    as weekly_goal_entities;
+import 'features/challenges/domain/entities/badge.dart' as badge_entities;
+import 'features/challenges/domain/entities/user_progress.dart'
+    as user_progress_entities;
+import 'features/challenges/data/datasources/challenges_local_datasource.dart';
+import 'features/challenges/data/repositories/challenges_repository_impl.dart';
+import 'features/challenges/presentation/providers/challenges_provider.dart';
+
+// Calendar imports
+import 'features/calendar/presentation/providers/calendar_provider.dart';
+import 'features/calendar/data/datasources/calendar_local_datasource.dart';
+import 'features/calendar/domain/entities/calendar_event.dart';
+import 'features/calendar/domain/entities/event_category.dart';
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // Hive'ı başlat
   await Hive.initFlutter();
@@ -59,14 +82,30 @@ void main() async {
   // Hive adapter'larını kaydet
   Hive.registerAdapter(DailyTodoAdapter());
   Hive.registerAdapter(DailyTodoModelAdapter());
-  Hive.registerAdapter(RoutineEntities.RoutineItemAdapter());
-  Hive.registerAdapter(RoutineEntities.RoutineAdapter());
+  Hive.registerAdapter(routine_entities.RoutineItemAdapter());
+  Hive.registerAdapter(routine_entities.RoutineAdapter());
   Hive.registerAdapter(WaterIntakeAdapter());
   Hive.registerAdapter(WaterLogAdapter());
   Hive.registerAdapter(MoodEntryAdapter());
   Hive.registerAdapter(GratitudeEntryAdapter());
   Hive.registerAdapter(GratitudeItemAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
+
+  // Challenges adapters
+  Hive.registerAdapter(challenge_entities.ChallengeAdapter());
+  Hive.registerAdapter(challenge_entities.ChallengeCategoryAdapter());
+  Hive.registerAdapter(challenge_entities.DailyProgressAdapter());
+  Hive.registerAdapter(weekly_goal_entities.WeeklyGoalAdapter());
+  Hive.registerAdapter(weekly_goal_entities.GoalTypeAdapter());
+  Hive.registerAdapter(badge_entities.BadgeAdapter());
+  Hive.registerAdapter(badge_entities.BadgeTierAdapter());
+  Hive.registerAdapter(badge_entities.BadgeRequirementTypeAdapter());
+  Hive.registerAdapter(user_progress_entities.UserProgressAdapter());
+
+  // Calendar adapters
+  Hive.registerAdapter(CalendarEventAdapter());
+  Hive.registerAdapter(HiveReminderOffsetAdapter());
+  Hive.registerAdapter(EventCategoryAdapter());
 
   // Data source'ları başlat
   final todoDataSource = TodoLocalDataSourceImpl();
@@ -79,6 +118,9 @@ void main() async {
   await moodDataSource.init();
   final gratitudeDataSource = GratitudeLocalDataSource();
   await gratitudeDataSource.init();
+  final challengesDataSource = ChallengesLocalDataSource();
+  await challengesDataSource.init();
+  final calendarDataSource = CalendarLocalDatasource();
 
   // Notification service'i başlat
   await NotificationService().initialize();
@@ -88,32 +130,38 @@ void main() async {
   final showOnboarding = !prefs.containsKey('onboarding_completed');
 
   runApp(
-    MeHubApp(
+    KoraApp(
       todoDataSource: todoDataSource,
       routinesDataSource: routinesDataSource,
       waterDataSource: waterDataSource,
       moodDataSource: moodDataSource,
       gratitudeDataSource: gratitudeDataSource,
+      challengesDataSource: challengesDataSource,
+      calendarDataSource: calendarDataSource,
       showOnboarding: showOnboarding,
     ),
   );
 }
 
-class MeHubApp extends StatelessWidget {
+class KoraApp extends StatelessWidget {
   final TodoLocalDataSource todoDataSource;
   final RoutineLocalDataSource routinesDataSource;
   final WaterLocalDataSource waterDataSource;
   final MoodLocalDataSource moodDataSource;
   final GratitudeLocalDataSource gratitudeDataSource;
+  final ChallengesLocalDataSource challengesDataSource;
+  final CalendarLocalDatasource calendarDataSource;
   final bool showOnboarding;
 
-  const MeHubApp({
+  const KoraApp({
     super.key,
     required this.todoDataSource,
     required this.routinesDataSource,
     required this.waterDataSource,
     required this.moodDataSource,
     required this.gratitudeDataSource,
+    required this.challengesDataSource,
+    required this.calendarDataSource,
     required this.showOnboarding,
   });
 
@@ -124,9 +172,9 @@ class MeHubApp extends StatelessWidget {
         Provider<TodoRepositoryImpl>(
           create: (_) => TodoRepositoryImpl(localDataSource: todoDataSource),
         ),
-        Provider<RoutinesRepo.RoutineRepositoryImpl>(
+        Provider<routines_repo.RoutineRepositoryImpl>(
           create: (_) =>
-              RoutinesRepo.RoutineRepositoryImpl(local: routinesDataSource),
+              routines_repo.RoutineRepositoryImpl(local: routinesDataSource),
         ),
         Provider<WaterRepositoryImpl>(
           create: (_) => WaterRepositoryImpl(waterDataSource),
@@ -145,32 +193,32 @@ class MeHubApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<RoutinesProvider>(
           create: (context) => RoutinesProvider(
-            getRoutines: RoutinesUsecases.GetRoutines(
-              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            getRoutines: routines_usecases.GetRoutines(
+              context.read<routines_repo.RoutineRepositoryImpl>(),
             ),
-            addRoutine: RoutinesUsecases.AddRoutine(
-              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            addRoutine: routines_usecases.AddRoutine(
+              context.read<routines_repo.RoutineRepositoryImpl>(),
             ),
-            updateRoutine: RoutinesUsecases.UpdateRoutine(
-              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            updateRoutine: routines_usecases.UpdateRoutine(
+              context.read<routines_repo.RoutineRepositoryImpl>(),
             ),
-            deleteRoutine: RoutinesUsecases.DeleteRoutine(
-              context.read<RoutinesRepo.RoutineRepositoryImpl>(),
+            deleteRoutine: routines_usecases.DeleteRoutine(
+              context.read<routines_repo.RoutineRepositoryImpl>(),
             ),
           ),
         ),
         ChangeNotifierProvider<WaterProvider>(
           create: (context) => WaterProvider(
-            getTodayWaterIntake: WaterUsecases.GetTodayWaterIntake(
+            getTodayWaterIntake: water_usecases.GetTodayWaterIntake(
               context.read<WaterRepositoryImpl>(),
             ),
-            addWater: WaterUsecases.AddWater(
+            addWater: water_usecases.AddWater(
               context.read<WaterRepositoryImpl>(),
             ),
-            removeLastLog: WaterUsecases.RemoveLastLog(
+            removeLastLog: water_usecases.RemoveLastLog(
               context.read<WaterRepositoryImpl>(),
             ),
-            updateWaterIntake: WaterUsecases.UpdateWaterIntake(
+            updateWaterIntake: water_usecases.UpdateWaterIntake(
               context.read<WaterRepositoryImpl>(),
             ),
           ),
@@ -193,32 +241,49 @@ class MeHubApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<GratitudeProvider>(
           create: (context) => GratitudeProvider(
-            addEntry: GratitudeUsecases.AddGratitudeEntry(
+            addEntry: gratitude_usecases.AddGratitudeEntry(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            getTodayEntry: GratitudeUsecases.GetTodayGratitudeEntry(
+            getTodayEntry: gratitude_usecases.GetTodayGratitudeEntry(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            getAllEntries: GratitudeUsecases.GetAllGratitudeEntries(
+            getAllEntries: gratitude_usecases.GetAllGratitudeEntries(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            getRandomPastEntry: GratitudeUsecases.GetRandomPastGratitudeEntry(
+            getRandomPastEntry: gratitude_usecases.GetRandomPastGratitudeEntry(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            updateEntry: GratitudeUsecases.UpdateGratitudeEntry(
+            updateEntry: gratitude_usecases.UpdateGratitudeEntry(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            deleteEntry: GratitudeUsecases.DeleteGratitudeEntry(
+            deleteEntry: gratitude_usecases.DeleteGratitudeEntry(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            getStreak: GratitudeUsecases.GetGratitudeStreak(
+            getStreak: gratitude_usecases.GetGratitudeStreak(
               context.read<GratitudeRepositoryImpl>(),
             ),
-            getEmotionTagStats: GratitudeUsecases.GetEmotionTagStats(
+            getEmotionTagStats: gratitude_usecases.GetEmotionTagStats(
               context.read<GratitudeRepositoryImpl>(),
             ),
           ),
         ),
+        // Challenges Provider
+        Provider<ChallengesRepositoryImpl>(
+          create: (_) => ChallengesRepositoryImpl(challengesDataSource),
+        ),
+        ChangeNotifierProvider<ChallengesProvider>(
+          create: (context) =>
+              ChallengesProvider(context.read<ChallengesRepositoryImpl>()),
+        ),
+        // Calendar Provider
+        ChangeNotifierProvider<CalendarProvider>(
+          create: (_) => CalendarProvider(
+            datasource: calendarDataSource,
+            notificationService: NotificationService(),
+          ),
+        ),
+        // Timer Provider
+        ChangeNotifierProvider<TimerProvider>(create: (_) => TimerProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -289,23 +354,26 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Scaffold(
-      backgroundColor: themeProvider.backgroundColor,
-      extendBody: true,
-      body: Stack(
-        children: [
-          _buildPageView(),
-          _buildCelebrationOverlay(),
-          // Navbar positioned at the bottom of the Stack
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNavigationBar(),
-          ),
-        ],
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+      child: Scaffold(
+        backgroundColor: themeProvider.backgroundColor,
+        extendBody: true,
+        body: Stack(
+          children: [
+            _buildPageView(),
+            _buildCelebrationOverlay(),
+            // Navbar positioned at the bottom of the Stack
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildBottomNavigationBar(),
+            ),
+          ],
+        ),
+        // FAB removed - mic is now in navbar
       ),
-      // FAB removed - mic is now in navbar
     );
   }
 

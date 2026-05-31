@@ -2,11 +2,8 @@
 abstract class Failure {
   final String message;
   final String? code;
-  
-  const Failure({
-    required this.message,
-    this.code,
-  });
+
+  const Failure({required this.message, this.code});
 
   @override
   bool operator ==(Object other) {
@@ -23,10 +20,7 @@ abstract class Failure {
 
 /// Server error
 class ServerFailure extends Failure {
-  const ServerFailure({
-    super.message = 'A server error occurred',
-    super.code,
-  });
+  const ServerFailure({super.message = 'A server error occurred', super.code});
 }
 
 /// Network error
@@ -55,18 +49,12 @@ class ValidationFailure extends Failure {
 
 /// Authorization error
 class AuthFailure extends Failure {
-  const AuthFailure({
-    super.message = 'Authorization error',
-    super.code,
-  });
+  const AuthFailure({super.message = 'Authorization error', super.code});
 }
 
 /// Timeout error
 class TimeoutFailure extends Failure {
-  const TimeoutFailure({
-    super.message = 'Request timed out',
-    super.code,
-  });
+  const TimeoutFailure({super.message = 'Request timed out', super.code});
 }
 
 /// Unknown error

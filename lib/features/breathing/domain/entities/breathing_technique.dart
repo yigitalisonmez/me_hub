@@ -196,4 +196,17 @@ class BreathingTechnique {
       isCustom: true,
     );
   }
+
+  static IconData iconFromCodePoint(int? codePoint) {
+    if (codePoint == LucideIcons.heart.codePoint) return LucideIcons.heart;
+    if (codePoint == LucideIcons.moon.codePoint) return LucideIcons.moon;
+    if (codePoint == LucideIcons.settings.codePoint) {
+      return LucideIcons.settings;
+    }
+    if (codePoint == LucideIcons.square.codePoint) return LucideIcons.square;
+    if (codePoint == LucideIcons.waves.codePoint) return LucideIcons.waves;
+    if (codePoint == LucideIcons.zap.codePoint) return LucideIcons.zap;
+
+    return LucideIcons.settings;
+  }
 }

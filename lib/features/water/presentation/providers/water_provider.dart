@@ -124,9 +124,15 @@ class WaterProvider with ChangeNotifier {
   Future<void> undoLastLog() async {
     if (_todayIntake == null || _todayIntake!.logs.isEmpty) return;
 
+    // Capture the amount being removed before deleting
+    final removedAmount = _todayIntake!.logs.last.amountMl;
+
     try {
       await _removeLastLog(DateTime.now());
       await loadTodayWaterIntake();
+
+      // Decrement cumulative all-time water stats
+      await CumulativeStatsService.subtractWater(removedAmount);
     } catch (e) {
       _error = 'Failed to undo';
       notifyListeners();
@@ -171,6 +177,10 @@ class WaterProvider with ChangeNotifier {
       return;
     }
 
+    // Capture the amount before removing
+    final removedLog = todayIntake.logs.where((l) => l.id == logId).firstOrNull;
+    final removedAmount = removedLog?.amountMl ?? 0;
+
     // Remove the log and recalculate total
     final updatedLogs = todayIntake.logs.where((l) => l.id != logId).toList();
     final newTotal = updatedLogs.fold<int>(0, (sum, l) => sum + l.amountMl);
@@ -181,5 +191,10 @@ class WaterProvider with ChangeNotifier {
     );
 
     await updateWaterIntake(updatedIntake);
+
+    // Decrement cumulative all-time water stats
+    if (removedAmount > 0) {
+      await CumulativeStatsService.subtractWater(removedAmount);
+    }
   }
 }

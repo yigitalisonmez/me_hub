@@ -1,11 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mesh_gradient/mesh_gradient.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../challenges/domain/entities/badge.dart' as challenge_badge;
+import '../../../challenges/presentation/pages/challenges_page.dart';
+import '../../../challenges/presentation/providers/challenges_provider.dart';
+import '../../../challenges/presentation/utils/challenge_icon_lookup.dart';
 
-/// Hero section with gradient background and settings button
+/// Hero section with animated mesh gradient background and settings button
 class ProfileHeroSection extends StatelessWidget {
   final VoidCallback? onSettingsTap;
   final Widget child;
@@ -19,48 +24,79 @@ class ProfileHeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final primary = themeProvider.primaryColor;
+
+    // Define colors based on theme - using primaryColor
+    final gradientColors = themeProvider.isDarkMode
+        ? [
+            primary,
+            const Color(0xFF8B5A3C), // Dark terracotta
+            const Color(0xFF5C4033), // Deep brown
+            primary.withValues(alpha: 0.6),
+          ]
+        : [
+            primary, // Terracotta from theme
+            const Color(0xFFD4A574), // Soft tan
+            primary.withValues(alpha: 0.7),
+            const Color(0xFFF5DEB3), // Wheat
+          ];
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            themeProvider.primaryColor,
-            themeProvider.primaryColor.withValues(alpha: 0.85),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          child: Column(
-            children: [
-              // Header row with title and settings
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        children: [
+          // Animated mesh gradient background
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+              child: AnimatedMeshGradient(
+                colors: gradientColors,
+                options: AnimatedMeshGradientOptions(
+                  speed: 0.8,
+                  frequency: 3,
+                  amplitude: 80,
+                  grain: 0.0,
+                ),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+              child: Column(
                 children: [
-                  const Text(
-                    'Profile',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                  // Header row with title and settings
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      _SettingsButton(onTap: onSettingsTap),
+                    ],
                   ),
-                  _SettingsButton(onTap: onSettingsTap),
+                  const SizedBox(height: 16),
+                  child,
                 ],
               ),
-              const SizedBox(height: 16),
-              child,
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -93,9 +129,8 @@ class _SettingsButton extends StatelessWidget {
 /// Profile card with avatar and stats - using ElevatedCard pattern
 class ProfileCard extends StatelessWidget {
   final String userName;
-  final String userEmail;
+  final String profileLabel;
   final String? avatarInitials;
-  final bool isPremium;
   final int totalTasksCompleted;
   final int maxStreak;
   final int totalWaterMl;
@@ -105,9 +140,8 @@ class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
     required this.userName,
-    required this.userEmail,
+    required this.profileLabel,
     this.avatarInitials,
-    this.isPremium = false,
     required this.totalTasksCompleted,
     required this.maxStreak,
     required this.totalWaterMl,
@@ -117,163 +151,175 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedCard(
-      padding: const EdgeInsets.all(20),
-      borderRadius: 24,
-      child: Column(
-        children: [
-          // Profile header row
-          Row(
+    final initials = _buildInitials(userName);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.15 : 0.7,
+                ),
+                Colors.white.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.08 : 0.5,
+                ),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Avatar
-              Stack(
-                clipBehavior: Clip.none,
+              // Profile header row
+              Row(
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          themeProvider.primaryColor,
-                          themeProvider.primaryColor.withValues(alpha: 0.7),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: themeProvider.primaryColor.withValues(
-                            alpha: 0.3,
+                  // Avatar
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              themeProvider.primaryColor,
+                              themeProvider.primaryColor.withValues(alpha: 0.7),
+                            ],
                           ),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: themeProvider.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            avatarInitials ?? initials,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Edit button
+                      Positioned(
+                        bottom: -4,
+                        right: -4,
+                        child: GestureDetector(
+                          onTap: onEditTap,
+                          child: Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: themeProvider.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(
+                              LucideIcons.pencil,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  // User info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: themeProvider.isDarkMode
+                                ? Colors.white
+                                : themeProvider.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          profileLabel,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: themeProvider.isDarkMode
+                                ? Colors.white70
+                                : themeProvider.textSecondary,
+                          ),
                         ),
                       ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        avatarInitials ??
-                            (userName.isNotEmpty
-                                ? userName.substring(0, 2).toUpperCase()
-                                : 'U'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Edit button
-                  Positioned(
-                    bottom: -4,
-                    right: -4,
-                    child: GestureDetector(
-                      onTap: onEditTap,
-                      child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: themeProvider.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: themeProvider.surfaceColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          LucideIcons.pencil,
-                          color: Colors.white,
-                          size: 12,
-                        ),
-                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
-              // User info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: themeProvider.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      userEmail,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: themeProvider.textSecondary,
-                      ),
-                    ),
-                    if (isPremium) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: themeProvider.primaryColor.withValues(
-                            alpha: 0.15,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('✨ ', style: TextStyle(fontSize: 10)),
-                            Text(
-                              'PREMIUM',
-                              style: TextStyle(
-                                color: themeProvider.primaryColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+              const SizedBox(height: 20),
+              // Stats row - 3 total stats
+              Row(
+                children: [
+                  _MiniStat(
+                    value: '$totalTasksCompleted',
+                    label: 'Tasks Done',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _MiniStat(
+                    value: '$maxStreak',
+                    label: 'Max Streak',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _MiniStat(
+                    value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
+                    label: 'Water Logged',
+                    themeProvider: themeProvider,
+                    isGlass: true,
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Stats row - 3 total stats
-          Row(
-            children: [
-              _MiniStat(
-                value: '$totalTasksCompleted',
-                label: 'Tasks Done',
-                themeProvider: themeProvider,
-              ),
-              const SizedBox(width: 12),
-              _MiniStat(
-                value: '$maxStreak',
-                label: 'Max Streak',
-                themeProvider: themeProvider,
-              ),
-              const SizedBox(width: 12),
-              _MiniStat(
-                value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
-                label: 'Water Drinked',
-                themeProvider: themeProvider,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _buildInitials(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'U';
+
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+    }
+
+    final end = trimmed.length >= 2 ? 2 : 1;
+    return trimmed.substring(0, end).toUpperCase();
   }
 }
 
@@ -281,11 +327,13 @@ class _MiniStat extends StatelessWidget {
   final String value;
   final String label;
   final ThemeProvider themeProvider;
+  final bool isGlass;
 
   const _MiniStat({
     required this.value,
     required this.label,
     required this.themeProvider,
+    this.isGlass = false,
   });
 
   @override
@@ -294,10 +342,15 @@ class _MiniStat extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: themeProvider.isDarkMode
-              ? Colors.white.withValues(alpha: 0.05)
-              : themeProvider.backgroundColor,
+          color: isGlass
+              ? Colors.white.withValues(alpha: 0.2)
+              : (themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : themeProvider.backgroundColor),
           borderRadius: BorderRadius.circular(12),
+          border: isGlass
+              ? Border.all(color: Colors.white.withValues(alpha: 0.3))
+              : null,
         ),
         child: Column(
           children: [
@@ -314,8 +367,13 @@ class _MiniStat extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: themeProvider.textSecondary,
+                color: isGlass && !themeProvider.isDarkMode
+                    ? themeProvider.textSecondary
+                    : themeProvider.textSecondary,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -566,7 +624,7 @@ class _QuickCard extends StatelessWidget {
   }
 }
 
-/// Achievements horizontal carousel - simplified without heavy blur
+/// Achievements horizontal carousel - dynamically loads from ChallengesProvider
 class AchievementsCarousel extends StatelessWidget {
   final ThemeProvider themeProvider;
 
@@ -574,14 +632,18 @@ class AchievementsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final achievements = [
-      _Achievement('🏆', 'First Steps', true),
-      _Achievement('💪', 'Week Warrior', true),
-      _Achievement('🎯', 'Goal Crusher', true),
-      _Achievement('🌊', 'Hydration', true),
-      _Achievement('🔒', 'Zen Master', false),
-      _Achievement('🔒', '30 Day Streak', false),
-    ];
+    final challengesProvider = context.watch<ChallengesProvider>();
+    final allBadges = challengesProvider.allBadges;
+
+    // Show up to 6 badges. Prefer unlocked badges first, then locked ones.
+    final displayBadges = [...allBadges];
+    displayBadges.sort((a, b) {
+      if (a.isUnlocked && !b.isUnlocked) return -1;
+      if (!a.isUnlocked && b.isUnlocked) return 1;
+      return 0; // Keep original order otherwise
+    });
+
+    final carouselBadges = displayBadges.take(6).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,62 +659,62 @@ class AchievementsCarousel extends StatelessWidget {
                 color: themeProvider.textPrimary,
               ),
             ),
-            Text(
-              'See All',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: themeProvider.primaryColor,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChallengesPage()),
+                );
+              },
+              child: Text(
+                'See All',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: themeProvider.primaryColor,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 95,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: achievements.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final achievement = achievements[index];
-              return _AchievementCard(
-                icon: achievement.icon,
-                name: achievement.name,
-                isUnlocked: achievement.isUnlocked,
-                themeProvider: themeProvider,
-              );
-            },
+        if (carouselBadges.isEmpty)
+          const Text(
+            'No achievements yet.',
+            style: TextStyle(color: Colors.grey),
+          )
+        else
+          SizedBox(
+            height: 95,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: carouselBadges.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final badge = carouselBadges[index];
+                return _AchievementCard(
+                  badge: badge,
+                  themeProvider: themeProvider,
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
 }
 
-class _Achievement {
-  final String icon;
-  final String name;
-  final bool isUnlocked;
-
-  _Achievement(this.icon, this.name, this.isUnlocked);
-}
-
 class _AchievementCard extends StatelessWidget {
-  final String icon;
-  final String name;
-  final bool isUnlocked;
+  final challenge_badge.Badge badge;
   final ThemeProvider themeProvider;
 
-  const _AchievementCard({
-    required this.icon,
-    required this.name,
-    required this.isUnlocked,
-    required this.themeProvider,
-  });
+  const _AchievementCard({required this.badge, required this.themeProvider});
 
   @override
   Widget build(BuildContext context) {
+    final isUnlocked = badge.isUnlocked;
+    final iconData = materialIconFromCodePoint(badge.iconCodePoint);
+
     return Opacity(
       opacity: isUnlocked ? 1.0 : 0.5,
       child: Container(
@@ -697,12 +759,18 @@ class _AchievementCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(icon, style: const TextStyle(fontSize: 20)),
+                child: isUnlocked
+                    ? Icon(iconData, color: Colors.white, size: 20)
+                    : const Icon(
+                        LucideIcons.lock,
+                        color: Colors.white70,
+                        size: 18,
+                      ),
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              name,
+              badge.name,
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
@@ -724,22 +792,16 @@ class SettingsMenuSection extends StatelessWidget {
   final ThemeProvider themeProvider;
   final bool isDarkMode;
   final ValueChanged<bool> onDarkModeChanged;
-  final VoidCallback? onNotificationsTap;
   final VoidCallback? onVoiceCommandsTap;
-  final VoidCallback? onExportDataTap;
   final VoidCallback? onHelpTap;
-  final VoidCallback? onSignOutTap;
 
   const SettingsMenuSection({
     super.key,
     required this.themeProvider,
     required this.isDarkMode,
     required this.onDarkModeChanged,
-    this.onNotificationsTap,
     this.onVoiceCommandsTap,
-    this.onExportDataTap,
     this.onHelpTap,
-    this.onSignOutTap,
   });
 
   @override
@@ -779,9 +841,8 @@ class SettingsMenuSection extends StatelessWidget {
                 icon: LucideIcons.bell,
                 iconColor: const Color(0xFF4FC3F7),
                 iconBgColor: const Color(0xFF4FC3F7).withValues(alpha: 0.12),
-                title: 'Notifications',
-                subtitle: 'Reminders & alerts',
-                onTap: onNotificationsTap,
+                title: 'Reminders',
+                subtitle: 'Managed in routines & calendar',
                 themeProvider: themeProvider,
               ),
               _menuDivider(),
@@ -796,56 +857,15 @@ class SettingsMenuSection extends StatelessWidget {
               ),
               _menuDivider(),
               _SettingsMenuItem(
-                icon: LucideIcons.download,
-                iconColor: const Color(0xFF81C784),
-                iconBgColor: const Color(0xFF81C784).withValues(alpha: 0.12),
-                title: 'Export Data',
-                subtitle: 'Download your progress',
-                onTap: onExportDataTap,
-                themeProvider: themeProvider,
-              ),
-              _menuDivider(),
-              _SettingsMenuItem(
                 icon: LucideIcons.info,
                 iconColor: themeProvider.primaryColor,
                 iconBgColor: themeProvider.primaryColor.withValues(alpha: 0.12),
-                title: 'Help & Support',
-                subtitle: 'FAQ, contact us',
+                title: 'About Kora',
+                subtitle: 'Local data & app info',
                 onTap: onHelpTap,
                 themeProvider: themeProvider,
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Sign out button
-        GestureDetector(
-          onTap: onSignOutTap,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD32F2F).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  LucideIcons.logOut,
-                  color: const Color(0xFFD32F2F),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Sign Out',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFD32F2F),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ],
@@ -926,11 +946,13 @@ class _SettingsMenuItem extends StatelessWidget {
               ),
             ),
             trailing ??
-                Icon(
-                  LucideIcons.chevronRight,
-                  color: themeProvider.textSecondary,
-                  size: 16,
-                ),
+                (onTap == null
+                    ? const SizedBox.shrink()
+                    : Icon(
+                        LucideIcons.chevronRight,
+                        color: themeProvider.textSecondary,
+                        size: 16,
+                      )),
           ],
         ),
       ),

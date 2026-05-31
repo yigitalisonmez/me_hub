@@ -64,10 +64,10 @@ class _WaveProgressBarState extends State<WaveProgressBar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    
+
     // Use provided gradient or theme-based gradient
     final effectiveGradient = widget.gradient ?? themeProvider.primaryGradient;
-    
+
     // Center text style - white for visibility in dark mode
     final defaultCenterTextStyle =
         widget.centerTextStyle ??
@@ -75,7 +75,7 @@ class _WaveProgressBarState extends State<WaveProgressBar>
           color: themeProvider.textPrimary,
           fontWeight: FontWeight.bold,
         );
-    
+
     // Bottom text style - use textSecondary for better visibility
     final defaultBottomTextStyle =
         widget.bottomTextStyle ??
@@ -152,8 +152,7 @@ class _WaveProgressPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Background - use theme-aware color
-    final bgPaint = Paint()
-      ..color = backgroundColor.withValues(alpha: 0.3);
+    final bgPaint = Paint()..color = backgroundColor.withValues(alpha: 0.3);
     final bgRect = RRect.fromRectAndRadius(
       Offset.zero & size,
       const Radius.circular(10),

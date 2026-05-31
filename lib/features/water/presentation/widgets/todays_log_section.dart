@@ -1,87 +1,66 @@
 part of '../pages/water_page.dart';
 
-
 class TodaysLogSection extends StatelessWidget {
   final WaterProvider provider;
 
-  const TodaysLogSection({
-    super.key,
-    required this.provider,
-  });
+  const TodaysLogSection({super.key, required this.provider});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
     final logs = provider.todayIntake?.logs ?? [];
 
-    return ElevatedCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    LucideIcons.clock,
-                    color: themeProvider.primaryColor,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'TODAY\'S LOG',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: themeProvider.primaryColor,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              "Today's log",
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: themeProvider.textPrimary,
+                fontWeight: FontWeight.w800,
               ),
-              if (logs.isNotEmpty)
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: themeProvider.primaryColor.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${logs.length}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: themeProvider.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
+            const Spacer(),
+            Text(
+              '${logs.length} entries',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: themeProvider.textTertiary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (logs.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
+            decoration: BoxDecoration(
+              color: themeProvider.cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : AppColors.textPrimary.withValues(alpha: 0.08),
+              ),
+            ),
+            child: const EmptyStateWidget(
+              message: 'No water logs yet',
+              icon: LucideIcons.droplet,
+              subMessage: 'Drink water to reach your daily goal.',
+            ),
+          )
+        else
+          ...logs.reversed.map(
+            (log) => WaterLogItem(
+              key: ValueKey(log.id),
+              log: log,
+              provider: provider,
+            ),
           ),
-          const SizedBox(height: 20),
-          // Log Items
-          if (logs.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: EmptyStateWidget(
-                message: 'No water logs yet',
-                icon: LucideIcons.droplet,
-                subMessage: 'Drink water to reach your daily goal!',
-              ),
-            )
-          else
-            ...logs
-                .map((log) => WaterLogItem(
-                      key: ValueKey(log.id),
-                      log: log,
-                      provider: provider,
-                    ))
-                .toList()
-                .reversed, // Show newest first
-        ],
-      ),
+      ],
     );
   }
 }

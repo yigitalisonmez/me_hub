@@ -51,6 +51,7 @@ class RoutineDialogs {
     );
 
     if (confirmed == true) {
+      if (!context.mounted) return confirmed;
       final provider = context.read<RoutinesProvider>();
       try {
         await provider.deleteRoutine(routine.id);

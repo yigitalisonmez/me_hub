@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/elevated_card.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
-import '../widgets/profile_widgets.dart';
 
 /// Profile page with user info, stats, achievements, and settings
 class ProfilePage extends StatefulWidget {
@@ -21,7 +23,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with AutomaticKeepAliveClientMixin {
   String _userName = '';
-  String _userEmail = '';
   int _allTimeTasksCompleted = 0;
   int _allTimeWaterMl = 0;
   int _maxStreak = 0;
@@ -39,12 +40,10 @@ class _ProfilePageState extends State<ProfilePage>
   Future<void> _loadUserData() async {
     const secureStorage = FlutterSecureStorage();
     final userName = await secureStorage.read(key: 'user_name');
-    final userEmail = await secureStorage.read(key: 'user_email');
 
     if (mounted) {
       setState(() {
         _userName = userName ?? 'User';
-        _userEmail = userEmail ?? 'user@example.com';
       });
     }
   }
@@ -86,58 +85,17 @@ class _ProfilePageState extends State<ProfilePage>
         backgroundColor: themeProvider.backgroundColor,
         body: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
-          child: Column(
-            children: [
-              ProfileHeroSection(
-                onSettingsTap: () => _navigateToSettings(context),
-                child: ProfileCard(
-                  userName: _userName,
-                  userEmail: _userEmail,
-                  isPremium: true, // TODO: Check actual premium status
-                  totalTasksCompleted: _allTimeTasksCompleted,
-                  maxStreak: _maxStreak,
-                  totalWaterMl: _allTimeWaterMl,
-                  onEditTap: () => _showEditProfileDialog(context),
-                  themeProvider: themeProvider,
-                ),
-              ),
-
-              // Content below hero
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Streak banner
-                    StreakBanner(
-                      streakDays: _maxStreak,
-                      themeProvider: themeProvider,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Achievements carousel
-                    AchievementsCarousel(themeProvider: themeProvider),
-                    const SizedBox(height: 24),
-
-                    // Settings menu
-                    SettingsMenuSection(
-                      themeProvider: themeProvider,
-                      isDarkMode: themeProvider.isDarkMode,
-                      onDarkModeChanged: (value) =>
-                          themeProvider.setTheme(value),
-                      onNotificationsTap: () => _navigateToSettings(context),
-                      onVoiceCommandsTap: () => _navigateToSettings(context),
-                      onExportDataTap: () => _showExportDialog(context),
-                      onHelpTap: () => _showHelpDialog(context),
-                      onSignOutTap: () => _showSignOutDialog(context),
-                    ),
-
-                    SizedBox(
-                      height: LayoutConstants.getNavbarClearance(context),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          child: _ProfileRedesign(
+            userName: _userName,
+            tasksCompleted: _allTimeTasksCompleted,
+            maxStreak: _maxStreak,
+            totalWaterMl: _allTimeWaterMl,
+            themeProvider: themeProvider,
+            onSettingsTap: () => _navigateToSettings(context),
+            onEditTap: () => _showEditProfileDialog(context),
+            onDarkModeChanged: (value) => themeProvider.setTheme(value),
+            onHelpTap: () => _showHelpDialog(context),
+            bottomClearance: LayoutConstants.getNavbarClearance(context),
           ),
         ),
       ),
@@ -188,12 +146,11 @@ class _ProfilePageState extends State<ProfilePage>
                 key: 'user_name',
                 value: nameController.text,
               );
-              if (mounted) {
-                setState(() {
-                  _userName = nameController.text;
-                });
-                Navigator.pop(context);
-              }
+              if (!mounted || !context.mounted) return;
+              setState(() {
+                _userName = nameController.text;
+              });
+              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: themeProvider.primaryColor,
@@ -202,35 +159,6 @@ class _ProfilePageState extends State<ProfilePage>
               ),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showExportDialog(BuildContext context) {
-    final themeProvider = context.read<ThemeProvider>();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: themeProvider.surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Export Data',
-          style: TextStyle(color: themeProvider.textPrimary),
-        ),
-        content: Text(
-          'Export your data for backup or analysis. This feature is coming soon!',
-          style: TextStyle(color: themeProvider.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: TextStyle(color: themeProvider.primaryColor),
-            ),
           ),
         ],
       ),
@@ -246,7 +174,7 @@ class _ProfilePageState extends State<ProfilePage>
         backgroundColor: themeProvider.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Help & Support',
+          'About Kora',
           style: TextStyle(color: themeProvider.textPrimary),
         ),
         content: Column(
@@ -254,17 +182,12 @@ class _ProfilePageState extends State<ProfilePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Need help? Contact us:',
+              'Kora keeps your profile and progress on this device.',
               style: TextStyle(color: themeProvider.textSecondary),
             ),
             const SizedBox(height: 12),
             Text(
-              '📧 support@mehub.app',
-              style: TextStyle(color: themeProvider.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '🌐 www.mehub.app/help',
+              'Cloud accounts, export, and support channels will be added only when they are fully ready.',
               style: TextStyle(color: themeProvider.textPrimary),
             ),
           ],
@@ -281,54 +204,630 @@ class _ProfilePageState extends State<ProfilePage>
       ),
     );
   }
+}
 
-  void _showSignOutDialog(BuildContext context) {
-    final themeProvider = context.read<ThemeProvider>();
+class _ProfileRedesign extends StatelessWidget {
+  final String userName;
+  final int tasksCompleted;
+  final int maxStreak;
+  final int totalWaterMl;
+  final ThemeProvider themeProvider;
+  final VoidCallback onSettingsTap;
+  final VoidCallback onEditTap;
+  final ValueChanged<bool> onDarkModeChanged;
+  final VoidCallback onHelpTap;
+  final double bottomClearance;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: themeProvider.surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Sign Out',
-          style: TextStyle(color: themeProvider.textPrimary),
+  const _ProfileRedesign({
+    required this.userName,
+    required this.tasksCompleted,
+    required this.maxStreak,
+    required this.totalWaterMl,
+    required this.themeProvider,
+    required this.onSettingsTap,
+    required this.onEditTap,
+    required this.onDarkModeChanged,
+    required this.onHelpTap,
+    required this.bottomClearance,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = userName.trim().isEmpty ? 'User' : userName.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ProfileHero(
+          userName: displayName,
+          themeProvider: themeProvider,
+          onSettingsTap: onSettingsTap,
+          onEditTap: onEditTap,
         ),
-        content: Text(
-          'Are you sure you want to sign out?',
-          style: TextStyle(color: themeProvider.textSecondary),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _ProfileStatCard(
+                      icon: LucideIcons.check,
+                      value: '$tasksCompleted',
+                      label: 'Tasks done',
+                      color: AppColors.primary,
+                      tint: AppColors.terraTint,
+                      themeProvider: themeProvider,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ProfileStatCard(
+                      icon: LucideIcons.flame,
+                      value: '$maxStreak',
+                      label: 'Day streak',
+                      color: AppColors.mood,
+                      tint: AppColors.moodTint,
+                      themeProvider: themeProvider,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ProfileStatCard(
+                      icon: LucideIcons.droplet,
+                      value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
+                      label: 'Water',
+                      color: AppColors.water,
+                      tint: AppColors.waterTint,
+                      themeProvider: themeProvider,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              _ProfileInsightCard(
+                completionRate: _routineCompletionEstimate(),
+                themeProvider: themeProvider,
+              ),
+              const SizedBox(height: 22),
+              _SettingsGroupLabel('Preferences', themeProvider: themeProvider),
+              const SizedBox(height: 10),
+              _SettingsCard(
+                themeProvider: themeProvider,
+                rows: [
+                  _ProfileSettingRow(
+                    icon: LucideIcons.moon,
+                    label: 'Dark mode',
+                    color: AppColors.mindful,
+                    themeProvider: themeProvider,
+                    trailing: Switch.adaptive(
+                      value: themeProvider.isDarkMode,
+                      onChanged: onDarkModeChanged,
+                      activeColor: AppColors.primary,
+                    ),
+                  ),
+                  _ProfileSettingRow(
+                    icon: LucideIcons.bell,
+                    label: 'Reminders',
+                    value: 'On',
+                    color: AppColors.mood,
+                    themeProvider: themeProvider,
+                    onTap: onSettingsTap,
+                  ),
+                  _ProfileSettingRow(
+                    icon: LucideIcons.droplet,
+                    label: 'Water goal',
+                    value: '8 glasses',
+                    color: AppColors.water,
+                    themeProvider: themeProvider,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              _SettingsGroupLabel('General', themeProvider: themeProvider),
+              const SizedBox(height: 10),
+              _SettingsCard(
+                themeProvider: themeProvider,
+                rows: [
+                  _ProfileSettingRow(
+                    icon: LucideIcons.heart,
+                    label: 'Health sync',
+                    value: 'Local',
+                    color: AppColors.primary,
+                    themeProvider: themeProvider,
+                  ),
+                  _ProfileSettingRow(
+                    icon: LucideIcons.bookmark,
+                    label: 'Privacy',
+                    color: AppColors.routine,
+                    themeProvider: themeProvider,
+                    onTap: onSettingsTap,
+                  ),
+                  _ProfileSettingRow(
+                    icon: LucideIcons.lightbulb,
+                    label: 'Help & feedback',
+                    color: AppColors.mood,
+                    themeProvider: themeProvider,
+                    onTap: onHelpTap,
+                  ),
+                ],
+              ),
+              SizedBox(height: bottomClearance),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: themeProvider.textSecondary),
+      ],
+    );
+  }
+
+  int _routineCompletionEstimate() {
+    if (tasksCompleted <= 0 && maxStreak <= 0) return 0;
+    final score = 55 + maxStreak.clamp(0, 30);
+    return score.clamp(55, 92);
+  }
+}
+
+class _ProfileHero extends StatelessWidget {
+  final String userName;
+  final ThemeProvider themeProvider;
+  final VoidCallback onSettingsTap;
+  final VoidCallback onEditTap;
+
+  const _ProfileHero({
+    required this.userName,
+    required this.themeProvider,
+    required this.onSettingsTap,
+    required this.onEditTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 310,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/mesh-gradient.png',
+              fit: BoxFit.cover,
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Implement actual sign out logic
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Sign out functionality coming soon!'),
-                  backgroundColor: themeProvider.primaryColor,
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.05),
+                    themeProvider.backgroundColor.withValues(alpha: 0.92),
+                  ],
+                  stops: const [0.08, 0.94],
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD32F2F),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(color: Colors.white),
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profile',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: onSettingsTap,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.24),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.32),
+                        ),
+                      ),
+                      child: const Icon(
+                        LucideIcons.settings,
+                        color: Colors.white,
+                        size: 19,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 20,
+            child: Column(
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: AppColors.moodTint,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: themeProvider.cardColor,
+                      width: 4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.16),
+                        blurRadius: 28,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    'assets/images/mood_circle.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  userName,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: themeProvider.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'With Kora on this device',
+                  style: TextStyle(
+                    color: themeProvider.textSecondary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: onEditTap,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: themeProvider.cardColor,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: themeProvider.isDarkMode
+                            ? Colors.white.withValues(alpha: 0.07)
+                            : AppColors.textPrimary.withValues(alpha: 0.08),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.pencil,
+                          color: themeProvider.primaryColor,
+                          size: 13,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Edit profile',
+                          style: TextStyle(
+                            color: themeProvider.primaryColor,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileStatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  final Color tint;
+  final ThemeProvider themeProvider;
+
+  const _ProfileStatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.tint,
+    required this.themeProvider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveTint = themeProvider.isDarkMode
+        ? Color.alphaBlend(color.withValues(alpha: 0.14), AppColors.darkCard)
+        : tint;
+
+    return ElevatedCard(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+      borderRadius: 22,
+      child: Column(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: effectiveTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 17),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              color: themeProvider.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileInsightCard extends StatelessWidget {
+  final int completionRate;
+  final ThemeProvider themeProvider;
+
+  const _ProfileInsightCard({
+    required this.completionRate,
+    required this.themeProvider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = themeProvider.isDarkMode
+        ? Color.alphaBlend(
+            AppColors.routine.withValues(alpha: 0.16),
+            AppColors.darkCard,
+          )
+        : AppColors.routineTint;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.routine.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            'assets/images/analytics.png',
+            width: 82,
+            height: 82,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  completionRate == 0
+                      ? 'Your rhythm starts here'
+                      : 'Your best week yet',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: themeProvider.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  completionRate == 0
+                      ? 'Complete a few routines and Kora will surface your weekly insight.'
+                      : 'You completed $completionRate% of your core rhythm signals.',
+                  style: TextStyle(
+                    color: themeProvider.textSecondary,
+                    fontSize: 12.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 9),
+                Row(
+                  children: [
+                    Text(
+                      'See full report',
+                      style: TextStyle(
+                        color: AppColors.routineDeep,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    const Icon(
+                      LucideIcons.arrowRight,
+                      color: AppColors.routineDeep,
+                      size: 14,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsGroupLabel extends StatelessWidget {
+  final String label;
+  final ThemeProvider themeProvider;
+
+  const _SettingsGroupLabel(this.label, {required this.themeProvider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: themeProvider.textSecondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.7,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsCard extends StatelessWidget {
+  final ThemeProvider themeProvider;
+  final List<_ProfileSettingRow> rows;
+
+  const _SettingsCard({required this.themeProvider, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedCard(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      borderRadius: 24,
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            rows[i],
+            if (i != rows.length - 1)
+              Divider(
+                indent: 54,
+                height: 1,
+                color: themeProvider.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : AppColors.textPrimary.withValues(alpha: 0.07),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileSettingRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? value;
+  final Color color;
+  final ThemeProvider themeProvider;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _ProfileSettingRow({
+    required this.icon,
+    required this.label,
+    this.value,
+    required this.color,
+    required this.themeProvider,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.18 : 0.13,
+                ),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon, color: color, size: 17),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: themeProvider.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            trailing ??
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (value != null && value!.isNotEmpty)
+                      Text(
+                        value!,
+                        style: TextStyle(
+                          color: themeProvider.textSecondary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      color: themeProvider.textTertiary,
+                      size: 16,
+                    ),
+                  ],
+                ),
+          ],
+        ),
       ),
     );
   }

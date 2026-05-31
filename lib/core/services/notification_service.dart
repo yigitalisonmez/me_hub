@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import '../../features/routines/domain/entities/routine.dart';
+import '../../features/calendar/domain/entities/calendar_event.dart';
 
 // flutter_native_timezone paketi KALDIRILDI - gereksiz!
 
@@ -60,6 +61,19 @@ class NotificationService {
           'routine_reminders',
           'Rutin Hatırlatıcıları',
           description: 'Rutinleriniz için hatırlatmalar',
+          importance: Importance.max,
+          playSound: true,
+          enableVibration: true,
+          showBadge: true,
+        ),
+      );
+
+      // Takvim bildirimleri kanalı
+      await androidImplementation.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'calendar_reminders',
+          'Takvim Hatırlatıcıları',
+          description: 'Takvim etkinlikleriniz için hatırlatmalar',
           importance: Importance.max,
           playSound: true,
           enableVibration: true,
@@ -271,19 +285,6 @@ class NotificationService {
     }
   }
 
-  String _getDayName(int dayIndex) {
-    const days = [
-      'Pazartesi',
-      'Salı',
-      'Çarşamba',
-      'Perşembe',
-      'Cuma',
-      'Cumartesi',
-      'Pazar',
-    ];
-    return days[dayIndex];
-  }
-
   Future<void> cancelRoutineNotifications(String routineId) async {
     for (int day = 0; day < 7; day++) {
       final notificationId = _getNotificationId(routineId, day);
@@ -352,5 +353,126 @@ class NotificationService {
       debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
+  }
+
+  // ==================== TAKVIM BİLDİRİMLERİ ====================
+
+  /// Takvim etkinliği için bildirim zamanla
+  Future<void> scheduleCalendarEventNotification(CalendarEvent event) async {
+    if (!_initialized) await initialize();
+    if (!event.hasReminder) return;
+
+    // Geçmiş etkinlikler için bildirim zamanlamayı atla
+    final notificationTime = event.notificationTime;
+    if (notificationTime.isBefore(DateTime.now())) {
+      if (kDebugMode) {
+        debugPrint('⏭️ Takvim bildirimi atlandı (geçmiş): ${event.title}');
+      }
+      return;
+    }
+
+    try {
+      final location = _localLocation ?? tz.local;
+      final scheduledDate = tz.TZDateTime.from(notificationTime, location);
+
+      final notificationId = _getCalendarNotificationId(event.id);
+
+      final androidImplementation = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      bool canScheduleExact = false;
+      if (androidImplementation != null) {
+        final canSchedule = await androidImplementation
+            .canScheduleExactNotifications();
+        canScheduleExact = canSchedule ?? false;
+      }
+
+      const androidDetails = AndroidNotificationDetails(
+        'calendar_reminders',
+        'Takvim Hatırlatıcıları',
+        channelDescription: 'Takvim etkinlikleriniz için hatırlatmalar',
+        importance: Importance.max,
+        priority: Priority.high,
+        showWhen: true,
+        enableVibration: true,
+        playSound: true,
+        autoCancel: true,
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+      );
+
+      const notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.zonedSchedule(
+        notificationId,
+        '📅 ${event.title}',
+        event.description ?? 'Etkinlik zamanı yaklaşıyor!',
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode: canScheduleExact
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+
+      if (kDebugMode) {
+        debugPrint(
+          '✅ Takvim bildirimi zamanlandı: ${event.title} - $scheduledDate',
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ Takvim bildirimi zamanlama hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Takvim etkinliği bildirimini iptal et
+  Future<void> cancelCalendarEventNotification(String eventId) async {
+    final notificationId = _getCalendarNotificationId(eventId);
+    await _notifications.cancel(notificationId);
+
+    if (kDebugMode) {
+      debugPrint('🗑️ Takvim bildirimi iptal edildi: $eventId');
+    }
+  }
+
+  /// Tüm takvim bildirimlerini yeniden zamanla
+  Future<void> rescheduleAllCalendarNotifications(
+    List<CalendarEvent> events,
+  ) async {
+    if (!_initialized) await initialize();
+
+    // Önce mevcut takvim bildirimlerini iptal et
+    for (final event in events) {
+      await cancelCalendarEventNotification(event.id);
+    }
+
+    // Sonra hepsini yeniden zamanla
+    for (final event in events) {
+      if (event.hasReminder && !event.isCompleted && !event.isPast) {
+        await scheduleCalendarEventNotification(event);
+      }
+    }
+  }
+
+  /// Takvim etkinliği için notification ID üret
+  int _getCalendarNotificationId(String eventId) {
+    // Calendar için farklı bir prefix kullan
+    final idString = 'cal_$eventId';
+    return idString.hashCode.abs() % 2147483647;
   }
 }

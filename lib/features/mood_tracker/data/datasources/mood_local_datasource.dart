@@ -70,12 +70,18 @@ class MoodLocalDataSource {
     DateTime endDate,
   ) async {
     final allEntries = await getAllMoodEntries();
-    final normalizedStart = DateTime(startDate.year, startDate.month, startDate.day);
+    final normalizedStart = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
     final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
 
     return allEntries.where((entry) {
       final entryDate = entry.normalizedDate;
-      return entryDate.isAfter(normalizedStart.subtract(const Duration(days: 1))) &&
+      return entryDate.isAfter(
+            normalizedStart.subtract(const Duration(days: 1)),
+          ) &&
           entryDate.isBefore(normalizedEnd.add(const Duration(days: 1)));
     }).toList();
   }
@@ -85,4 +91,3 @@ class MoodLocalDataSource {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
-

@@ -26,7 +26,7 @@ class RoutineIcons {
     {'icon': LucideIcons.sun, 'name': 'noon'},
     {'icon': LucideIcons.sunset, 'name': 'evening'},
     {'icon': LucideIcons.moon, 'name': 'night'},
-    
+
     // Education & Study - Ders/Eğitim iconları
     {'icon': LucideIcons.book, 'name': 'book'},
     {'icon': LucideIcons.bookOpen, 'name': 'reading'},
@@ -39,7 +39,7 @@ class RoutineIcons {
     {'icon': LucideIcons.clipboard, 'name': 'tasks'},
     {'icon': LucideIcons.stickyNote, 'name': 'notes'},
     {'icon': LucideIcons.bookMarked, 'name': 'bookmark'},
-    
+
     // Daily Routines - Genel günlük rutinler
     {'icon': LucideIcons.droplet, 'name': 'water'},
     {'icon': LucideIcons.coffee, 'name': 'coffee'},
@@ -48,7 +48,7 @@ class RoutineIcons {
     {'icon': LucideIcons.briefcase, 'name': 'work'},
     {'icon': LucideIcons.laptop, 'name': 'laptop'},
     {'icon': LucideIcons.monitor, 'name': 'computer'},
-    
+
     // Food & Drink
     {'icon': LucideIcons.droplets, 'name': 'hydration'},
     {'icon': LucideIcons.utensilsCrossed, 'name': 'dinner'},
@@ -67,12 +67,12 @@ class RoutineIcons {
     {'icon': LucideIcons.wine, 'name': 'wine'},
     {'icon': LucideIcons.glassWater, 'name': 'glass water'},
     {'icon': LucideIcons.soup, 'name': 'soup'},
-    
+
     // Sleep & Rest
     {'icon': LucideIcons.bed, 'name': 'sleep'},
     {'icon': LucideIcons.bedDouble, 'name': 'rest'},
     {'icon': LucideIcons.bedSingle, 'name': 'nap'},
-    
+
     // Health & Fitness
     {'icon': LucideIcons.dumbbell, 'name': 'fitness'},
     {'icon': LucideIcons.heart, 'name': 'health'},
@@ -85,7 +85,7 @@ class RoutineIcons {
     {'icon': LucideIcons.award, 'name': 'achievement'},
     {'icon': LucideIcons.move, 'name': 'workout'},
     {'icon': LucideIcons.bike, 'name': 'cycling'},
-    
+
     // Time & Planning
     {'icon': LucideIcons.clock, 'name': 'clock'},
     {'icon': LucideIcons.timer, 'name': 'timer'},
@@ -95,7 +95,7 @@ class RoutineIcons {
     {'icon': LucideIcons.calendarCheck, 'name': 'schedule'},
     {'icon': LucideIcons.hourglass, 'name': 'hourglass'},
     {'icon': LucideIcons.watch, 'name': 'watch'},
-    
+
     // Weather & Nature
     {'icon': LucideIcons.sun, 'name': 'sun'},
     {'icon': LucideIcons.sunrise, 'name': 'sunrise'},
@@ -112,7 +112,7 @@ class RoutineIcons {
     {'icon': LucideIcons.leaf, 'name': 'leaf'},
     {'icon': LucideIcons.mountain, 'name': 'mountain'},
     {'icon': LucideIcons.waves, 'name': 'waves'},
-    
+
     // Communication
     {'icon': LucideIcons.messageCircle, 'name': 'message'},
     {'icon': LucideIcons.messageSquare, 'name': 'chat'},
@@ -124,7 +124,7 @@ class RoutineIcons {
     {'icon': LucideIcons.bellRing, 'name': 'reminder'},
     {'icon': LucideIcons.megaphone, 'name': 'announcement'},
     {'icon': LucideIcons.mic, 'name': 'recording'},
-    
+
     // Home & Living
     {'icon': LucideIcons.house, 'name': 'home'},
     {'icon': LucideIcons.armchair, 'name': 'chair'},
@@ -138,7 +138,7 @@ class RoutineIcons {
     {'icon': LucideIcons.microwave, 'name': 'microwave'},
     {'icon': LucideIcons.refrigerator, 'name': 'fridge'},
     {'icon': LucideIcons.trash, 'name': 'trash'},
-    
+
     // Entertainment
     {'icon': LucideIcons.music, 'name': 'music'},
     {'icon': LucideIcons.headphones, 'name': 'headphones'},
@@ -151,7 +151,7 @@ class RoutineIcons {
     {'icon': LucideIcons.palette, 'name': 'art'},
     {'icon': LucideIcons.paintbrush, 'name': 'painting'},
     {'icon': LucideIcons.scissors, 'name': 'crafting'},
-    
+
     // Shopping & Money
     {'icon': LucideIcons.shoppingCart, 'name': 'shopping'},
     {'icon': LucideIcons.shoppingBag, 'name': 'shopping bag'},
@@ -163,7 +163,7 @@ class RoutineIcons {
     {'icon': LucideIcons.gift, 'name': 'gift'},
     {'icon': LucideIcons.tag, 'name': 'tag'},
     {'icon': LucideIcons.percent, 'name': 'discount'},
-    
+
     // Transportation
     {'icon': LucideIcons.car, 'name': 'car'},
     {'icon': LucideIcons.bus, 'name': 'bus'},
@@ -174,7 +174,7 @@ class RoutineIcons {
     {'icon': LucideIcons.map, 'name': 'map'},
     {'icon': LucideIcons.compass, 'name': 'compass'},
     {'icon': LucideIcons.navigation, 'name': 'navigate'},
-    
+
     // Wellness & Care
     {'icon': LucideIcons.pill, 'name': 'medicine'},
     {'icon': LucideIcons.stethoscope, 'name': 'doctor'},
@@ -185,7 +185,7 @@ class RoutineIcons {
     {'icon': LucideIcons.smile, 'name': 'happy'},
     {'icon': LucideIcons.frown, 'name': 'sad'},
     {'icon': LucideIcons.meh, 'name': 'neutral'},
-    
+
     // Productivity
     {'icon': LucideIcons.circleCheck, 'name': 'check'},
     {'icon': LucideIcons.checkCheck, 'name': 'done'},
@@ -199,7 +199,7 @@ class RoutineIcons {
     {'icon': LucideIcons.lockOpen, 'name': 'unlock'},
     {'icon': LucideIcons.eye, 'name': 'view'},
     {'icon': LucideIcons.eyeOff, 'name': 'hide'},
-    
+
     // Tech & Tools
     {'icon': LucideIcons.smartphone, 'name': 'phone'},
     {'icon': LucideIcons.tablet, 'name': 'tablet'},
@@ -212,7 +212,7 @@ class RoutineIcons {
     {'icon': LucideIcons.settings, 'name': 'settings'},
     {'icon': LucideIcons.wrench, 'name': 'tool'},
     {'icon': LucideIcons.hammer, 'name': 'hammer'},
-    
+
     // Social & People
     {'icon': LucideIcons.user, 'name': 'user'},
     {'icon': LucideIcons.users, 'name': 'people'},
@@ -221,7 +221,7 @@ class RoutineIcons {
     {'icon': LucideIcons.userRound, 'name': 'profile'},
     {'icon': LucideIcons.baby, 'name': 'baby'},
     {'icon': LucideIcons.crown, 'name': 'crown'},
-    
+
     // Miscellaneous
     {'icon': LucideIcons.infinity, 'name': 'infinite'},
     {'icon': LucideIcons.shield, 'name': 'protect'},

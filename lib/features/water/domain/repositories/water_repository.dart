@@ -13,4 +13,3 @@ abstract class WaterRepository {
   /// Update water intake
   Future<void> updateWaterIntake(WaterIntake waterIntake);
 }
-

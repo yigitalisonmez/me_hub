@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 part 'affirmation_session.g.dart';
 
 /// Represents a saved affirmation recording session
-@HiveType(typeId: 10)
+@HiveType(typeId: 12)
 class AffirmationSession extends HiveObject {
   @HiveField(0)
   final String id;

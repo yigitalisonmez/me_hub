@@ -18,4 +18,3 @@ class TodoHeaderWidget extends StatelessWidget {
     );
   }
 }
-

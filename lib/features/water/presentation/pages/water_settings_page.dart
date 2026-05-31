@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
@@ -173,55 +174,10 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Settings',
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: themeProvider.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Customize your tracker',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: themeProvider.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: themeProvider.surfaceColor,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              LucideIcons.chevronLeft,
-              color: themeProvider.primaryColor,
-              size: 20,
-            ),
-          ),
-        ),
-      ],
+    return const PageHeader(
+      title: 'Water Settings',
+      subtitle: 'Customize your tracker',
+      showBackButton: true,
     );
   }
 
@@ -451,7 +407,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isSelected
-                              ? themeProvider.textPrimary
+                              ? Colors.white
                               : themeProvider.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -607,13 +563,16 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: themeProvider.primaryColor,
-                      foregroundColor: themeProvider.textPrimary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       disabledBackgroundColor: themeProvider.primaryColor
                           .withValues(alpha: 0.5),
+                      disabledForegroundColor: Colors.white.withValues(
+                        alpha: 0.7,
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -725,7 +684,7 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             onPressed: _saveSettings,
             style: ElevatedButton.styleFrom(
               backgroundColor: themeProvider.primaryColor,
-              foregroundColor: themeProvider.textPrimary,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -733,16 +692,12 @@ class _WaterSettingsPageState extends State<WaterSettingsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  LucideIcons.save,
-                  size: 20,
-                  color: themeProvider.textPrimary,
-                ),
+                Icon(LucideIcons.save, size: 20, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
                   'Save Changes',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: themeProvider.textPrimary,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

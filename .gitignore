@@ -48,3 +48,11 @@ app.*.map.json
 dataset/
 linux/
 windows/
+
+# Local Obsidian workspace settings
+docs/.obsidian/
+
+# Android release signing — never commit these
+android/key.properties
+android/*.jks
+android/*.keystore

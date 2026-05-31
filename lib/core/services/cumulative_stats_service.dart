@@ -18,24 +18,32 @@ class CumulativeStatsService {
     final prefs = await SharedPreferences.getInstance();
     final migrated = prefs.getBool(_statsMigratedKey) ?? false;
 
-    debugPrint(
-      'CumulativeStats: initializeIfNeeded called, migrated=$migrated',
-    );
+    if (kDebugMode) {
+      debugPrint(
+        'CumulativeStats: initializeIfNeeded called, migrated=$migrated',
+      );
+    }
 
     if (!migrated) {
-      debugPrint('CumulativeStats: First time, migrating data...');
+      if (kDebugMode) {
+        debugPrint('CumulativeStats: First time, migrating data...');
+      }
       await _migrateExistingData(prefs);
     } else {
       // Check if stats are still 0 but data exists - re-migrate
       final currentWater = prefs.getInt(_allTimeWaterKey) ?? 0;
       final currentTasks = prefs.getInt(_allTimeTasksKey) ?? 0;
 
-      debugPrint(
-        'CumulativeStats: Current values - water=$currentWater, tasks=$currentTasks',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'CumulativeStats: Current values - water=$currentWater, tasks=$currentTasks',
+        );
+      }
 
       if (currentWater == 0 || currentTasks == 0) {
-        debugPrint('CumulativeStats: Values are 0, trying to recalculate...');
+        if (kDebugMode) {
+          debugPrint('CumulativeStats: Values are 0, trying to recalculate...');
+        }
         await _tryRecalculateFromHive(prefs, currentWater, currentTasks);
       }
     }
@@ -48,26 +56,32 @@ class CumulativeStatsService {
     int currentTasks,
   ) async {
     try {
-      debugPrint(
-        'CumulativeStats: water_intake box open=${Hive.isBoxOpen('water_intake')}',
-      );
-      debugPrint(
-        'CumulativeStats: daily_todos box open=${Hive.isBoxOpen('daily_todos')}',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'CumulativeStats: water_intake box open=${Hive.isBoxOpen('water_intake')}',
+        );
+        debugPrint(
+          'CumulativeStats: daily_todos box open=${Hive.isBoxOpen('daily_todos')}',
+        );
+      }
 
       // Recalculate water if it's 0
       if (currentWater == 0 && Hive.isBoxOpen('water_intake')) {
         final waterBox = Hive.box<WaterIntake>('water_intake');
         int totalWaterMl = 0;
-        debugPrint(
-          'CumulativeStats: water_intake has ${waterBox.length} entries',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'CumulativeStats: water_intake has ${waterBox.length} entries',
+          );
+        }
         for (final intake in waterBox.values) {
           totalWaterMl += intake.amountMl;
         }
-        debugPrint(
-          'CumulativeStats: Calculated total water = $totalWaterMl ml',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'CumulativeStats: Calculated total water = $totalWaterMl ml',
+          );
+        }
         if (totalWaterMl > 0) {
           await prefs.setInt(_allTimeWaterKey, totalWaterMl);
         }
@@ -78,24 +92,28 @@ class CumulativeStatsService {
         final todoBox = Hive.box<DailyTodo>('daily_todos');
         int totalTasks = 0;
         int completedCount = 0;
-        debugPrint(
-          'CumulativeStats: daily_todos has ${todoBox.length} entries',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'CumulativeStats: daily_todos has ${todoBox.length} entries',
+          );
+        }
         for (final todo in todoBox.values) {
           totalTasks++;
           if (todo.isCompleted) {
             completedCount++;
           }
         }
-        debugPrint(
-          'CumulativeStats: Total todos=$totalTasks, completed=$completedCount',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'CumulativeStats: Total todos=$totalTasks, completed=$completedCount',
+          );
+        }
         if (completedCount > 0) {
           await prefs.setInt(_allTimeTasksKey, completedCount);
         }
       }
     } catch (e) {
-      debugPrint('CumulativeStats: Error in recalculate: $e');
+      if (kDebugMode) debugPrint('CumulativeStats: Error in recalculate: $e');
     }
   }
 
@@ -143,6 +161,14 @@ class CumulativeStatsService {
     final prefs = await SharedPreferences.getInstance();
     final current = prefs.getInt(_allTimeWaterKey) ?? 0;
     await prefs.setInt(_allTimeWaterKey, current + amountMl);
+  }
+
+  /// Subtract water from the cumulative total (for undo/delete)
+  static Future<void> subtractWater(int amountMl) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getInt(_allTimeWaterKey) ?? 0;
+    final updated = (current - amountMl).clamp(0, 999999999);
+    await prefs.setInt(_allTimeWaterKey, updated);
   }
 
   /// Get all-time tasks completed

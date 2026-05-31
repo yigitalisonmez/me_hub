@@ -16,4 +16,3 @@ class DailyGoalService {
     await prefs.setInt(_key, goalMl);
   }
 }
-

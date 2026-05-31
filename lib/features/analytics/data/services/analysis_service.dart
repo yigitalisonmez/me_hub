@@ -3,7 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../mood_tracker/domain/entities/mood_entry.dart';
 import '../../../water/domain/entities/water_intake.dart';
 
-
 class AnalysisService {
   // Singleton pattern
   static final AnalysisService _instance = AnalysisService._internal();
@@ -18,13 +17,15 @@ class AnalysisService {
     final n = x.length;
     final sumX = x.reduce((a, b) => a + b);
     final sumY = y.reduce((a, b) => a + b);
-    
+
     final sumXY = List.generate(n, (i) => x[i] * y[i]).reduce((a, b) => a + b);
     final sumX2 = x.map((e) => e * e).reduce((a, b) => a + b);
     final sumY2 = y.map((e) => e * e).reduce((a, b) => a + b);
 
     final numerator = (n * sumXY) - (sumX * sumY);
-    final denominator = sqrt(((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)));
+    final denominator = sqrt(
+      ((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)),
+    );
 
     if (denominator == 0) return 0; // Avoid division by zero
     return numerator / denominator;
@@ -76,7 +77,10 @@ class AnalysisService {
         }
       }
 
-      final correlation = _calculatePearsonCorrelation(alignedWater, alignedMoods);
+      final correlation = _calculatePearsonCorrelation(
+        alignedWater,
+        alignedMoods,
+      );
 
       if (correlation == null) return null;
 
@@ -100,24 +104,24 @@ class AnalysisService {
     try {
       final moodBox = await Hive.openBox<MoodEntry>('mood_entries');
       final moods = moodBox.values.toList();
-      
+
       if (moods.length < 5) return null; // Need some data
 
       // 0=Mon, ..., 6=Sun
       final Map<int, List<double>> dayMoods = {};
-      
+
       for (var m in moods) {
         final date = DateTime.fromMillisecondsSinceEpoch(m.dateTimestamp);
         final weekday = date.weekday - 1;
         dayMoods.putIfAbsent(weekday, () => []).add(m.score.toDouble());
       }
-      
+
       // Calculate averages
       int bestDay = -1;
       double bestAvg = -1;
       int worstDay = -1;
       double worstAvg = 11;
-      
+
       dayMoods.forEach((day, scores) {
         final avg = scores.reduce((a, b) => a + b) / scores.length;
         if (avg > bestAvg) {
@@ -129,15 +133,31 @@ class AnalysisService {
           worstDay = day;
         }
       });
-      
+
       if (bestDay != -1 && bestAvg >= 7.0) {
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const days = [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday',
+        ];
         return "📈 Trend: You tend to be happiest on ${days[bestDay]}s (Avg: ${bestAvg.toStringAsFixed(1)}/10).";
       } else if (worstDay != -1 && worstAvg <= 5.0) {
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const days = [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday',
+        ];
         return "📉 Trend: ${days[worstDay]}s seem tough for you (Avg: ${worstAvg.toStringAsFixed(1)}/10). Be kind to yourself!";
       }
-      
+
       return null;
     } catch (e) {
       return null;
@@ -149,7 +169,7 @@ class AnalysisService {
     try {
       final moodBox = await Hive.openBox<MoodEntry>('mood_entries');
       final moods = moodBox.values.toList();
-      
+
       if (moods.length < 5) return null;
 
       final Map<String, List<double>> timeMoods = {
@@ -161,7 +181,7 @@ class AnalysisService {
       for (var m in moods) {
         final date = DateTime.fromMillisecondsSinceEpoch(m.dateTimestamp);
         final hour = date.hour;
-        
+
         if (hour >= 5 && hour < 12) {
           timeMoods['Morning']!.add(m.score.toDouble());
         } else if (hour >= 12 && hour < 17) {
