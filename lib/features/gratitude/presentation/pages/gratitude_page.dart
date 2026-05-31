@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/elevated_card.dart';
 import '../../../../core/widgets/page_header.dart';
@@ -92,9 +93,7 @@ class _GratitudePageState extends State<GratitudePage> {
 
   void _navigateToEntry(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GratitudeEntryPage(entryType: _selectedEntryType),
-      ),
+      AppRoute(page: GratitudeEntryPage(entryType: _selectedEntryType)),
     );
   }
 

@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/widgets/elevated_card.dart';
 import '../../domain/entities/badge.dart';
 import '../../data/constants/badge_definitions.dart';
@@ -161,9 +162,7 @@ class _ChallengesPageState extends State<ChallengesPage>
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const SettingsPage(),
-              ),
+              AppRoute(page: const SettingsPage()),
             );
           },
         ),

@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/affirmation_provider.dart';
 import '../widgets/record_step.dart';
@@ -252,9 +253,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
   Widget _buildSleepCta(BuildContext context, ThemeProvider tp) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const _SleepAffirmationsFlowPage(),
-        ),
+        AppRoute(page: const _SleepAffirmationsFlowPage()),
       ),
       child: Container(
         width: double.infinity,

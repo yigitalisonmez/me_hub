@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../main.dart'; // For MainScreen navigation
 
 class OnboardingPage extends StatefulWidget {
@@ -59,7 +60,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (mounted) {
       Navigator.of(
         context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
+      ).pushReplacement(AppFadeRoute(page: const MainScreen()));
     }
   }
 

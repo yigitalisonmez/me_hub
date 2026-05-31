@@ -17,6 +17,7 @@ import '../../data/services/daily_goal_service.dart';
 import '../../data/services/quick_add_amounts_service.dart';
 import '../../data/models/quick_add_amount.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/utils/app_route.dart';
 import 'water_goal_page.dart';
 import 'water_settings_page.dart';
 

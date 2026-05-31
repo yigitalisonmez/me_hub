@@ -5,6 +5,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../domain/entities/routine.dart';
 import '../providers/routines_provider.dart';
 import '../widgets/add_item_dialog.dart';
+import '../../../../core/utils/app_route.dart';
 import '../pages/edit_routine_page.dart';
 import '../pages/create_routine_page.dart';
 
@@ -34,9 +35,7 @@ class RoutineDialogs {
   ) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditRoutinePage(routine: routine),
-      ),
+      AppRoute(page: EditRoutinePage(routine: routine)),
     );
   }
 
@@ -83,7 +82,7 @@ class RoutineDialogs {
   static Future<void> showAddRoutine(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CreateRoutinePage()),
+      AppRoute(page: const CreateRoutinePage()),
     );
   }
 }

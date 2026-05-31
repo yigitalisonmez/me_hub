@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_route.dart';
 import '../providers/breathing_provider.dart';
 import '../../data/models/breathing_technique.dart';
 import 'breathing_session_page.dart';
@@ -144,7 +145,7 @@ class _BreathingPageState extends State<BreathingPage> {
 
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const BreathingSessionPage()));
+    ).push(AppRoute(page: const BreathingSessionPage()));
   }
 
   void _showStatsSheet(BuildContext context) {

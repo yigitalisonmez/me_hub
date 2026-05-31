@@ -67,7 +67,7 @@ class TodaysProgressCard extends StatelessWidget {
   Future<void> _openGoalSettings(BuildContext context) async {
     final result = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const WaterGoalPage()));
+    ).push(AppRoute(page: const WaterGoalPage()));
 
     if (result == true && context.mounted) {
       final goal = await DailyGoalService.getDailyGoal();

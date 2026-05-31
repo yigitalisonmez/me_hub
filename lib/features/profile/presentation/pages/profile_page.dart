@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/elevated_card.dart';
@@ -105,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage>
   void _navigateToSettings(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SettingsPage()),
+      AppRoute(page: const SettingsPage()),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/services/quote_cache_service.dart';
 import '../../../../core/services/quote_service.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -133,43 +134,43 @@ class _HomePageState extends State<HomePage> {
             ExploreSection(
               onTasksTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const TodoPage()),
+                AppRoute(page: const TodoPage()),
               ),
               onRoutinesTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const RoutinesPage()),
+                AppRoute(page: const RoutinesPage()),
               ),
               onPomodoroTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const TimerPage()),
+                AppRoute(page: const TimerPage()),
               ),
               onGoalsTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ChallengesPage()),
+                AppRoute(page: const ChallengesPage()),
               ),
               onCalendarTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CalendarPage()),
+                AppRoute(page: const CalendarPage()),
               ),
               onWaterTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const WaterPage()),
+                AppRoute(page: const WaterPage()),
               ),
               onMoodTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const MoodPage()),
+                AppRoute(page: const MoodPage()),
               ),
               onAffirmationsTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AffirmationsPage()),
+                AppRoute(page: const AffirmationsPage()),
               ),
               onBreathingTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const BreathingPage()),
+                AppRoute(page: const BreathingPage()),
               ),
               onGratitudeTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const GratitudePage()),
+                AppRoute(page: const GratitudePage()),
               ),
             ),
             const SizedBox(height: 24),

@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mesh_gradient/mesh_gradient.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../../../core/widgets/elevated_card.dart';
 import '../../../challenges/domain/entities/badge.dart' as challenge_badge;
 import '../../../challenges/presentation/pages/challenges_page.dart';
@@ -663,7 +664,7 @@ class AchievementsCarousel extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ChallengesPage()),
+                  AppRoute(page: const ChallengesPage()),
                 );
               },
               child: Text(
