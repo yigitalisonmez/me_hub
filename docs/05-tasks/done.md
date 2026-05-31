@@ -3,6 +3,15 @@
 Completed work should be summarized here with date, changed files, and test
 results.
 
+## 2026-05-31 (Mood Design Match + Affirmations Glow/Button)
+
+- **Mood FAB**: `FloatingActionButton` (moodDeep, +) added to Scaffold. Visible when no today mood; tapping saves the current entry.
+- **Mood divider**: thin `Divider` between scale and factors section (matches design `m3-divider`).
+- **Mood label**: "What is shaping it" → "What's shaping it".
+- **Mood note**: Redesigned as blockquote — amber large `"` prefix + italic `TextField` inside a Container (no more filled OutlineInputBorder).
+- **WelcomeStep glow**: `ImageFilter.blur` sigma 22→38, circle 200px, alpha 0.55 — glow now spreads wide.
+- **WelcomeStep button**: Removed `MediaQuery.padding.bottom` from CTA padding (SafeArea already handles nav bar) — button now sits just above Android nav area.
+
 ## 2026-05-31 (Affirmations Flow — Black Screen + Glow + RecordStep Redesign)
 
 - **Black screen fix**: `_SleepAffirmationsFlowPage` Scaffold was `Colors.transparent` → RecordStep/SessionStep had no background. Restored to `themeProvider.backgroundColor`.
