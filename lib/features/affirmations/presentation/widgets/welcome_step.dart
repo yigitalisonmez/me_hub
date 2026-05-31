@@ -151,12 +151,7 @@ class _WelcomeStepState extends State<WelcomeStep>
 
   Widget _buildCta(BuildContext context, ThemeProvider tp) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        10,
-        20,
-        MediaQuery.of(context).padding.bottom + 16,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: SizedBox(
         width: double.infinity,
         height: 54,
@@ -202,15 +197,15 @@ class _FloatingHero extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Blurred glow (CSS filter:blur equivalent — spreads outside bounds)
+            // Blurred glow — large sigma makes it spread wide like CSS blur
             ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              imageFilter: ImageFilter.blur(sigmaX: 38, sigmaY: 38),
               child: Container(
-                width: 180,
-                height: 180,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.mindful.withValues(alpha: 0.38),
+                  color: AppColors.mindful.withValues(alpha: 0.55),
                 ),
               ),
             ),

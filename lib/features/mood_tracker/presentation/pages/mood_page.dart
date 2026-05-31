@@ -61,6 +61,16 @@ class _MoodPageState extends State<MoodPage>
 
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
+      floatingActionButton: !moodProvider.hasTodayMood
+          ? FloatingActionButton(
+              onPressed: () => _saveMood(moodProvider, themeProvider),
+              backgroundColor: AppColors.moodDeep,
+              foregroundColor: Colors.white,
+              elevation: 8,
+              shape: const CircleBorder(),
+              child: const Icon(LucideIcons.plus, size: 24),
+            )
+          : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -232,8 +242,13 @@ class _MoodEntryCard extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         _MoodScale(score: score, onChanged: onScoreChanged),
-        const SizedBox(height: 22),
-        _SectionLabel('What is shaping it'),
+        const SizedBox(height: 16),
+        Divider(
+          height: 1,
+          color: themeProvider.borderColor.withValues(alpha: 0.28),
+        ),
+        const SizedBox(height: 14),
+        _SectionLabel("What's shaping it"),
         const SizedBox(height: 10),
         Wrap(
           spacing: 9,
@@ -276,58 +291,55 @@ class _MoodEntryCard extends StatelessWidget {
         const SizedBox(height: 22),
         _SectionLabel("Today's note"),
         const SizedBox(height: 10),
-        TextField(
-          controller: noteController,
-          minLines: 3,
-          maxLines: 5,
-          style: TextStyle(color: themeProvider.textPrimary, fontSize: 15),
-          decoration: InputDecoration(
-            hintText: 'A slow, kind start to the day...',
-            hintStyle: TextStyle(
-              color: themeProvider.textSecondary.withValues(alpha: 0.55),
-            ),
-            filled: true,
-            fillColor: themeProvider.cardColor,
-            contentPadding: const EdgeInsets.all(18),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: BorderSide(
-                color: themeProvider.borderColor.withValues(alpha: 0.35),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: BorderSide(
-                color: themeProvider.borderColor.withValues(alpha: 0.35),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: const BorderSide(color: AppColors.mood, width: 1.5),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
+        // Note input styled as blockquote (design spec m3-note)
+        Container(
           width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: onSave,
-            icon: const Icon(LucideIcons.check, color: Colors.white, size: 18),
-            label: const Text(
-              'Save mood',
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.moodDeep,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
+          decoration: BoxDecoration(
+            color: themeProvider.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: themeProvider.borderColor.withValues(alpha: 0.28),
             ),
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16, top: 10),
+                child: Text(
+                  '“',
+                  style: TextStyle(
+                    color: AppColors.mood.withValues(alpha: 0.60),
+                    fontSize: 34,
+                    height: 0.85,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              TextField(
+                controller: noteController,
+                minLines: 2,
+                maxLines: 4,
+                style: TextStyle(
+                  color: themeProvider.textPrimary,
+                  fontSize: 14.5,
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'A slow, kind start to the day...',
+                  hintStyle: TextStyle(
+                    color: themeProvider.textSecondary.withValues(alpha: 0.45),
+                    fontStyle: FontStyle.italic,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                ),
+              ),
+            ],
+          ),
         ),
+        const SizedBox(height: 80), // space for FAB
       ],
     );
   }
