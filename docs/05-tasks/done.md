@@ -3,6 +3,28 @@
 Completed work should be summarized here with date, changed files, and test
 results.
 
+## 2026-05-31 (Post-Redesign Animation & Architecture Fixes)
+
+**Mood page:**
+- Scale buttons: removed continuous pulse (was causing full-page bounce). Now AnimatedContainer snap only (48→58px on select).
+- Big orb: fixed layout shift — switched from variable `width/height` to `SizedBox(160×160)` + `Transform.scale`. Page no longer moves during pulse.
+- Mood face icons: replaced all Lucide icons (frown/meh/smile/laugh/sparkles) with SVG face widget (`_MoodFaceWidget` via flutter_svg). Each mood has two eye circles + unique mouth path per design spec.
+
+**Breathing page:**
+- Orb centering: wrapped `_BreathingStage` in `SizedBox(width: double.infinity)` so orb centers across full screen.
+- Vertical float: image now rises (`-4` → `-18px`) during inhale and descends on exhale — creates the organic "alive" breathing feel.
+- Animation: `CurvedAnimation(easeInOut)`, 4s cycle (was 8s linear), scale 0.78→1.02.
+
+**Affirmations architecture:**
+- `AffirmationsPage` redesigned as standalone Daily Card (was broken: card + step indicator + pageview stacked together).
+- New flow: "Sleep Affirmations" CTA button pushes `_SleepAffirmationsFlowPage` (separate `Navigator.push`).
+- `_SleepAffirmationsFlowPage` manages the 3-step PageView (WelcomeStep → RecordStep → SessionStep) with pop-guard dialog.
+
+**Calendar add-event sheet:**
+- Full redesign: type selector (Task/Event/Routine), day-of-week repeat picker, reminder chips (At time/15 min/1 hour/1 day + live preview text), Add note collapsible row.
+
+**`flutter analyze`:** passes cleanly.
+
 ## 2026-05-31 (Kora Redesign — Full UI Overhaul)
 
 Comprehensive redesign of all major feature screens. Branch: `temp/kora-redesign-claude`, merged to `main`.
