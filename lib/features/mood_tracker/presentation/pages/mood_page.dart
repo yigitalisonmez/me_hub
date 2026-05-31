@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -418,7 +419,7 @@ class _TodayMoodCard extends StatelessWidget {
               shape: BoxShape.circle,
               color: level.color.withValues(alpha: 0.20),
             ),
-            child: Icon(level.icon, color: level.deep, size: 44),
+            child: _MoodFaceWidget(level: level, size: 44),
           ),
           const SizedBox(height: 16),
           Text(
@@ -651,7 +652,7 @@ class _MoodLogTimeline extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: level.color.withValues(alpha: 0.18),
                           ),
-                          child: Icon(level.icon, color: level.deep, size: 19),
+                          child: _MoodFaceWidget(level: level, size: 19),
                         ),
                         if (index != items.length - 1)
                           Container(
@@ -771,7 +772,7 @@ class _MoodLevel {
   final int score;
   final String label;
   final String caption;
-  final IconData icon;
+  final String mouthPath;
   final Color color;
   final Color deep;
 
@@ -779,7 +780,7 @@ class _MoodLevel {
     required this.score,
     required this.label,
     required this.caption,
-    required this.icon,
+    required this.mouthPath,
     required this.color,
     required this.deep,
   });
@@ -789,7 +790,7 @@ class _MoodLevel {
       score: 2,
       label: 'Awful',
       caption: 'Heavy and low.',
-      icon: LucideIcons.frown,
+      mouthPath: 'M8.4 16c1-1.6 2.3-2.2 3.6-2.2s2.6.6 3.6 2.2',
       color: Color(0xFFB96D74),
       deep: Color(0xFF934A54),
     ),
@@ -797,7 +798,7 @@ class _MoodLevel {
       score: 4,
       label: 'Low',
       caption: 'A little tender.',
-      icon: LucideIcons.meh,
+      mouthPath: 'M8.8 15.4c.9-1 1.9-1.4 3.2-1.4s2.3.4 3.2 1.4',
       color: Color(0xFFD58A62),
       deep: Color(0xFFA9603C),
     ),
@@ -805,7 +806,7 @@ class _MoodLevel {
       score: 6,
       label: 'Okay',
       caption: 'Neutral and steady.',
-      icon: LucideIcons.smile,
+      mouthPath: 'M8.8 15h6.4',
       color: AppColors.mood,
       deep: AppColors.moodDeep,
     ),
@@ -813,7 +814,7 @@ class _MoodLevel {
       score: 8,
       label: 'Good',
       caption: 'A calm, steady kind of good.',
-      icon: LucideIcons.laugh,
+      mouthPath: 'M8.8 14.7c.9 1.1 1.9 1.6 3.2 1.6s2.3-.5 3.2-1.6',
       color: Color(0xFFB9BF79),
       deep: Color(0xFF788443),
     ),
@@ -821,7 +822,7 @@ class _MoodLevel {
       score: 10,
       label: 'Great',
       caption: 'Light and open.',
-      icon: LucideIcons.sparkles,
+      mouthPath: 'M8.4 14.2c1 1.7 2.3 2.3 3.6 2.3s2.6-.6 3.6-2.3',
       color: AppColors.routine,
       deep: AppColors.routineDeep,
     ),
@@ -833,6 +834,40 @@ class _MoodLevel {
     if (score <= 6) return scale[2];
     if (score <= 8) return scale[3];
     return scale[4];
+  }
+}
+
+String _colorHex(Color c) {
+  final r = (c.r * 255).round().toRadixString(16).padLeft(2, '0');
+  final g = (c.g * 255).round().toRadixString(16).padLeft(2, '0');
+  final b = (c.b * 255).round().toRadixString(16).padLeft(2, '0');
+  return '#$r$g$b';
+}
+
+class _MoodFaceWidget extends StatelessWidget {
+  final _MoodLevel level;
+  final double size;
+  final Color? overrideColor;
+
+  const _MoodFaceWidget({
+    required this.level,
+    this.size = 26,
+    this.overrideColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hex = _colorHex(overrideColor ?? level.deep);
+    return SvgPicture.string(
+      '<svg viewBox="0 0 24 24" width="24" height="24" fill="none"'
+      ' stroke="$hex" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
+      '<circle cx="9" cy="10" r="1.05" fill="$hex" stroke="none"/>'
+      '<circle cx="15" cy="10" r="1.05" fill="$hex" stroke="none"/>'
+      '<path d="${level.mouthPath}"/>'
+      '</svg>',
+      width: size,
+      height: size,
+    );
   }
 }
 
@@ -903,11 +938,7 @@ class _PulsingMoodOrbState extends State<_PulsingMoodOrb>
                     width: 2,
                   ),
                 ),
-                child: Icon(
-                  widget.level.icon,
-                  size: 48,
-                  color: widget.level.deep,
-                ),
+                child: _MoodFaceWidget(level: widget.level, size: 48),
               ),
             ),
           ),
@@ -998,10 +1029,10 @@ class _PulsingMoodButtonState extends State<_PulsingMoodButton>
                     ]
                   : null,
             ),
-            child: Icon(
-              widget.level.icon,
-              color: widget.selected ? Colors.white : widget.level.deep,
+            child: _MoodFaceWidget(
+              level: widget.level,
               size: widget.selected ? 24.0 + (t * 4.0) : 22.0,
+              overrideColor: widget.selected ? Colors.white : null,
             ),
           );
         },
