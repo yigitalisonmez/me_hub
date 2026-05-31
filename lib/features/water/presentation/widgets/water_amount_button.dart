@@ -5,6 +5,7 @@ class WaterAmountButton extends StatefulWidget {
   final String label;
   final ThemeData theme;
   final ThemeProvider themeProvider;
+  final bool isSelected;
   final VoidCallback onTap;
 
   const WaterAmountButton({
@@ -14,6 +15,7 @@ class WaterAmountButton extends StatefulWidget {
     required this.theme,
     required this.themeProvider,
     required this.onTap,
+    this.isSelected = false,
   });
 
   @override
@@ -29,13 +31,13 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 160),
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -45,51 +47,94 @@ class _WaterAmountButtonState extends State<WaterAmountButton>
   }
 
   Future<void> _handleTap() async {
-    // Press animation
-    _controller.forward();
-
-    // Call the onTap callback
+    await _controller.forward();
     widget.onTap();
-
-    // Wait a bit then reverse
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    if (mounted) {
-      _controller.reverse();
-    }
+    await Future.delayed(const Duration(milliseconds: 80));
+    if (mounted) _controller.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
+    final selected = widget.isSelected;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: ElevatedCard(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-            borderRadius: 20,
-            backgroundColor: widget.themeProvider.primaryColor,
-            onTap: _handleTap,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(LucideIcons.droplet, color: Colors.white, size: 28),
-                const SizedBox(height: 12),
-                Text(
-                  '${widget.amount}ml',
-                  style: widget.theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                  ),
+          child: Material(
+            color: selected ? AppColors.water : widget.themeProvider.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: _handleTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 11,
+                  horizontal: 4,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.label,
-                  style: widget.theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: selected
+                        ? Colors.transparent
+                        : widget.themeProvider.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : AppColors.textPrimary.withValues(alpha: 0.08),
+                    width: 1.5,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: selected
+                          ? AppColors.water.withValues(alpha: 0.26)
+                          : Colors.black.withValues(
+                              alpha: widget.themeProvider.isDarkMode
+                                  ? 0.20
+                                  : 0.04,
+                            ),
+                      blurRadius: selected ? 18 : 14,
+                      offset: const Offset(0, 8),
+                      spreadRadius: selected ? -6 : -10,
+                    ),
+                  ],
                 ),
-              ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.droplet,
+                      color: selected ? Colors.white : AppColors.waterDeep,
+                      size: 17,
+                      fill: selected ? 1.0 : 0.0,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: widget.theme.textTheme.labelMedium?.copyWith(
+                        color: selected
+                            ? Colors.white
+                            : widget.themeProvider.textPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${widget.amount} ml',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: widget.theme.textTheme.labelSmall?.copyWith(
+                        color: selected
+                            ? Colors.white.withValues(alpha: 0.82)
+                            : widget.themeProvider.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         );

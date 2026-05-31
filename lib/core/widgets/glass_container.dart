@@ -1,5 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/theme_provider.dart';
+import '../theme/app_colors.dart';
 
 class GlassContainer extends StatelessWidget {
   final Widget child;
@@ -21,23 +25,20 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         boxShadow: [
-          // Diffused white glow (Lighting effect)
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.3),
-            blurRadius: 15,
-            spreadRadius: 1,
-            offset: const Offset(-2, -2),
-          ),
-          // Soft depth shadow
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            spreadRadius: 1,
-            offset: const Offset(4, 4),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.34)
+                : const Color(0xFF7C5E42).withValues(alpha: 0.09),
+            blurRadius: 26,
+            spreadRadius: -10,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -51,10 +52,20 @@ class GlassContainer extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.4),
-                  Colors.white.withValues(alpha: 0.1),
-                ],
+                colors: isDark
+                    ? [
+                        AppColors.darkCard.withValues(alpha: 0.72),
+                        AppColors.darkSurface.withValues(alpha: 0.48),
+                      ]
+                    : [
+                        AppColors.surface.withValues(alpha: 0.78),
+                        Colors.white.withValues(alpha: 0.48),
+                      ],
+              ),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: borderOpacity * 0.35)
+                    : Colors.white.withValues(alpha: borderOpacity + 0.25),
               ),
               borderRadius: borderRadius,
             ),

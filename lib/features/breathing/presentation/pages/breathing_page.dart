@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../core/widgets/elevated_card.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/breathing_provider.dart';
 import '../../data/models/breathing_technique.dart';
 import 'breathing_session_page.dart';
 
-/// Main page for the Breathing Exercise feature
+/// Main page for the Breathing Exercise feature.
 class BreathingPage extends StatefulWidget {
   const BreathingPage({super.key});
 
@@ -18,7 +19,8 @@ class BreathingPage extends StatefulWidget {
 }
 
 class _BreathingPageState extends State<BreathingPage> {
-  String _selectedCategory = 'all';
+  BreathingTechnique _selectedTechnique = BreathingTechnique.presets.first;
+  String _selectedAmbient = 'rain';
 
   @override
   void initState() {
@@ -32,163 +34,113 @@ class _BreathingPageState extends State<BreathingPage> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final breathingProvider = context.watch<BreathingProvider>();
+    final techniques = [
+      ...BreathingTechnique.presets,
+      ...breathingProvider.customTechniques,
+    ];
+
+    if (!techniques.any((technique) => technique.id == _selectedTechnique.id)) {
+      _selectedTechnique = techniques.first;
+    }
 
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Gradient header - using app's primary color (terracotta)
-          SliverAppBar(
-            expandedHeight: 140,
-            pinned: true,
-            backgroundColor: themeProvider.backgroundColor,
-            leading: IconButton(
-              icon: Icon(LucideIcons.arrowLeft, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            actions: [
-              // Stats button
-              IconButton(
-                icon: Icon(LucideIcons.chartBar, color: Colors.white),
-                onPressed: () => _showStatsSheet(context),
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Breathing',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      themeProvider.primaryColor,
-                      themeProvider.primaryColor.withValues(alpha: 0.7),
-                      themeProvider.backgroundColor,
-                    ],
-                    stops: const [0.0, 0.6, 1.0],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: -20,
-                      right: -20,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 60,
-                      right: 40,
-                      child: Icon(
-                        LucideIcons.wind,
-                        size: 32,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    Positioned(
-                      top: 40,
-                      right: 100,
-                      child: Icon(
-                        LucideIcons.sparkles,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.25),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      bottomNavigationBar: Container(
+        color: themeProvider.backgroundColor,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SafeArea(
+          top: false,
+          child: _StartBreathingButton(
+            technique: _selectedTechnique,
+            onTap: () => _startSession(_selectedTechnique),
           ),
-
-          // Content with staggered animation
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                AnimationConfiguration.toStaggeredList(
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              themeProvider.isDarkMode
+                  ? AppColors.mindfulTint.withValues(alpha: 0.12)
+                  : AppColors.mindfulTint,
+              themeProvider.backgroundColor,
+              themeProvider.backgroundColor,
+            ],
+            stops: const [0, 0.58, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            child: AnimationLimiter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: AnimationConfiguration.toStaggeredList(
                   duration: const Duration(milliseconds: 375),
                   childAnimationBuilder: (widget) => SlideAnimation(
-                    verticalOffset: 50.0,
+                    verticalOffset: 36,
                     child: FadeInAnimation(child: widget),
                   ),
                   children: [
-                    // Stats summary
-                    _StatsRow(
-                      totalMinutes: breathingProvider.totalMindfulMinutes,
-                      streak: breathingProvider.currentStreak,
-                      sessions: breathingProvider.sessionHistory.length,
+                    _BreathingTopBar(
+                      onStatsTap: () => _showStatsSheet(context),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Category buttons
-                    _CategorySelector(
-                      selectedCategory: _selectedCategory,
-                      onCategoryChanged: (category) {
-                        setState(() => _selectedCategory = category);
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _BreathStatPill(
+                            icon: LucideIcons.clock,
+                            value: '${breathingProvider.totalMindfulMinutes}',
+                            label: 'min this week',
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _BreathStatPill(
+                            icon: LucideIcons.flame,
+                            value: '${breathingProvider.currentStreak}',
+                            label: 'day streak',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    _BreathingStage(technique: _selectedTechnique),
+                    const SizedBox(height: 18),
+                    _TechniquePicker(
+                      techniques: techniques,
+                      selectedTechnique: _selectedTechnique,
+                      onSelected: (technique) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedTechnique = technique);
                       },
                     ),
-                    const SizedBox(height: 24),
-
-                    // Technique cards - filtered by category
-                    _TechniqueGrid(
-                      techniques: _getFilteredTechniques(),
-                      customTechniques: breathingProvider.customTechniques,
-                      onTap: (technique) => _startSession(technique),
+                    const SizedBox(height: 16),
+                    _AmbientPicker(
+                      selectedAmbient: _selectedAmbient,
+                      onSelected: (value) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedAmbient = value);
+                      },
                     ),
+                    const SizedBox(height: 16),
+                    const _BreathIntent(),
                   ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
-      // SOS Floating Action Button - using app primary color
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _startQuickSession(),
-        backgroundColor: themeProvider.primaryColor,
-        icon: const Icon(LucideIcons.heartPulse, color: Colors.white),
-        label: const Text(
-          'SOS',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
-  List<BreathingTechnique> _getFilteredTechniques() {
-    if (_selectedCategory == 'all') {
-      return BreathingTechnique.presets;
-    }
-    return BreathingTechnique.presets
-        .where((t) => t.category == _selectedCategory)
-        .toList();
-  }
-
   void _startSession(BreathingTechnique technique) {
     final provider = context.read<BreathingProvider>();
     provider.selectTechnique(technique);
-
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const BreathingSessionPage()));
-  }
-
-  void _startQuickSession() {
-    final provider = context.read<BreathingProvider>();
-    provider.startQuickSession();
 
     Navigator.of(
       context,
@@ -227,29 +179,29 @@ class _BreathingPageState extends State<BreathingPage> {
               style: TextStyle(
                 color: themeProvider.textPrimary,
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 20),
-            _StatItem(
+            _StatsSheetRow(
               icon: LucideIcons.clock,
               label: 'Total Time',
               value: '${provider.totalMindfulMinutes} min',
-              color: themeProvider.primaryColor,
+              color: AppColors.mindfulDeep,
             ),
             const SizedBox(height: 12),
-            _StatItem(
+            _StatsSheetRow(
               icon: LucideIcons.flame,
               label: 'Daily Streak',
               value: '${provider.currentStreak} days',
-              color: const Color(0xFFFF7043),
+              color: AppColors.moodDeep,
             ),
             const SizedBox(height: 12),
-            _StatItem(
+            _StatsSheetRow(
               icon: LucideIcons.activity,
               label: 'Total Sessions',
               value: '${provider.sessionHistory.length}',
-              color: const Color(0xFF42A5F5),
+              color: AppColors.waterDeep,
             ),
             const SizedBox(height: 24),
           ],
@@ -259,16 +211,10 @@ class _BreathingPageState extends State<BreathingPage> {
   }
 }
 
-class _StatsRow extends StatelessWidget {
-  final int totalMinutes;
-  final int streak;
-  final int sessions;
+class _BreathingTopBar extends StatelessWidget {
+  final VoidCallback onStatsTap;
 
-  const _StatsRow({
-    required this.totalMinutes,
-    required this.streak,
-    required this.sessions,
-  });
+  const _BreathingTopBar({required this.onStatsTap});
 
   @override
   Widget build(BuildContext context) {
@@ -276,72 +222,139 @@ class _StatsRow extends StatelessWidget {
 
     return Row(
       children: [
+        _BreathRoundButton(
+          icon: LucideIcons.chevronLeft,
+          onTap: () {
+            if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+          },
+        ),
         Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.clock,
-            value: '$totalMinutes',
-            label: 'minutes',
-            color: themeProvider.primaryColor,
+          child: Text(
+            'Breathing',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: themeProvider.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.flame,
-            value: '$streak',
-            label: 'day streak',
-            color: const Color(0xFFFF7043),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MiniStatCard(
-            icon: LucideIcons.activity,
-            value: '$sessions',
-            label: 'sessions',
-            color: const Color(0xFF42A5F5),
-          ),
+        _BreathRoundButton(
+          icon: LucideIcons.chartBar,
+          color: AppColors.mindfulDeep,
+          onTap: onStatsTap,
         ),
       ],
     );
   }
 }
 
-class _MiniStatCard extends StatelessWidget {
+class _BreathRoundButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Color? color;
+
+  const _BreathRoundButton({required this.icon, this.onTap, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Material(
+      color: themeProvider.cardColor,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: themeProvider.isDarkMode
+                  ? Colors.white.withValues(alpha: 0.07)
+                  : AppColors.textPrimary.withValues(alpha: 0.08),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.18 : 0.04,
+                ),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: color ?? themeProvider.textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BreathStatPill extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
-  final Color color;
 
-  const _MiniStatCard({
+  const _BreathStatPill({
     required this.icon,
     required this.value,
     required this.label,
-    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return ElevatedCard(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      borderRadius: 16,
-      child: Column(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: themeProvider.isDarkMode
+              ? Colors.white.withValues(alpha: 0.07)
+              : AppColors.textPrimary.withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: themeProvider.isDarkMode ? 0.18 : 0.04,
+            ),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
+          Icon(icon, size: 15, color: AppColors.mindfulDeep),
+          const SizedBox(width: 6),
           Text(
             value,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: themeProvider.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(color: themeProvider.textSecondary, fontSize: 11),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: themeProvider.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -349,84 +362,164 @@ class _MiniStatCard extends StatelessWidget {
   }
 }
 
-class _CategorySelector extends StatelessWidget {
-  final String selectedCategory;
-  final void Function(String) onCategoryChanged;
+class _BreathingStage extends StatelessWidget {
+  final BreathingTechnique technique;
 
-  const _CategorySelector({
-    required this.selectedCategory,
-    required this.onCategoryChanged,
-  });
+  const _BreathingStage({required this.technique});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    final categories = [
-      ('all', 'All', LucideIcons.grid3x3),
-      ('sleep', 'Sleep', LucideIcons.moon),
-      ('focus', 'Focus', LucideIcons.target),
-      ('relax', 'Relax', LucideIcons.heart),
-      ('energy', 'Energy', LucideIcons.zap),
-    ];
-
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (id, label, icon) = categories[index];
-          final isSelected = selectedCategory == id;
-
-          return GestureDetector(
-            onTap: () => onCategoryChanged(id),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    return Column(
+      children: [
+        _BreathingOrb(color: technique.primaryColor),
+        const SizedBox(height: 14),
+        Text(
+          'Breathe in',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: AppColors.mindfulDeep,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 6,
+          runSpacing: 6,
+          children: technique.phases.map((phase) {
+            final isFirst = phase == technique.phases.first;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? themeProvider.primaryColor
-                    : themeProvider.cardColor,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: themeProvider.primaryColor.withValues(
-                            alpha: 0.3,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                color: isFirst
+                    ? AppColors.mindfulTint
+                    : context.watch<ThemeProvider>().cardColor,
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(
+                  color: isFirst
+                      ? AppColors.mindful
+                      : context.watch<ThemeProvider>().textTertiary.withValues(
+                          alpha: 0.16,
                         ),
-                      ]
-                    : null,
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    icon,
-                    size: 16,
-                    color: isSelected
-                        ? Colors.white
-                        : themeProvider.textSecondary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : themeProvider.textSecondary,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      fontSize: 13,
+              child: Text(
+                '${_shortPhase(phase.label)} · ${phase.duration}',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: isFirst
+                      ? AppColors.mindfulDeep
+                      : context.watch<ThemeProvider>().textTertiary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _BreathingOrb extends StatefulWidget {
+  final Color color;
+
+  const _BreathingOrb({required this.color});
+
+  @override
+  State<_BreathingOrb> createState() => _BreathingOrbState();
+}
+
+class _BreathingOrbState extends State<_BreathingOrb>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 210,
+      height: 210,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final scale = 0.86 + (_controller.value * 0.19);
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.mindful.withValues(alpha: 0.42),
+                      width: 1.5,
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              Transform.scale(
+                scale: 0.78 + (_controller.value * 0.14),
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.mindful.withValues(alpha: 0.28),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 30,
+                left: 34,
+                child: _Spark(
+                  size: 8,
+                  opacity: 0.65 + _controller.value * 0.25,
+                ),
+              ),
+              Positioned(
+                top: 54,
+                right: 24,
+                child: _Spark(size: 6, opacity: 0.45 + _controller.value * 0.3),
+              ),
+              Positioned(
+                bottom: 42,
+                left: 54,
+                child: _Spark(
+                  size: 5,
+                  opacity: 0.36 + _controller.value * 0.25,
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(0, -8),
+                child: Transform.scale(
+                  scale: scale,
+                  child: Image.asset(
+                    'assets/images/breathing.png',
+                    width: 162,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -434,132 +527,277 @@ class _CategorySelector extends StatelessWidget {
   }
 }
 
-class _TechniqueGrid extends StatelessWidget {
-  final List<BreathingTechnique> techniques;
-  final List<BreathingTechnique> customTechniques;
-  final void Function(BreathingTechnique) onTap;
+class _Spark extends StatelessWidget {
+  final double size;
+  final double opacity;
 
-  const _TechniqueGrid({
+  const _Spark({required this.size, required this.opacity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.mindful.withValues(alpha: opacity),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _TechniquePicker extends StatelessWidget {
+  final List<BreathingTechnique> techniques;
+  final BreathingTechnique selectedTechnique;
+  final ValueChanged<BreathingTechnique> onSelected;
+
+  const _TechniquePicker({
     required this.techniques,
-    required this.customTechniques,
+    required this.selectedTechnique,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (techniques.isEmpty) return const SizedBox.shrink();
+
+    return GridView.builder(
+      itemCount: techniques.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        mainAxisExtent: 78,
+      ),
+      itemBuilder: (context, index) {
+        final technique = techniques[index];
+        final selected = technique.id == selectedTechnique.id;
+        return _TechniquePickCard(
+          technique: technique,
+          selected: selected,
+          onTap: () => onSelected(technique),
+        );
+      },
+    );
+  }
+}
+
+class _TechniquePickCard extends StatelessWidget {
+  final BreathingTechnique technique;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TechniquePickCard({
+    required this.technique,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final allTechniques = [...techniques, ...customTechniques];
+    final themeProvider = context.watch<ThemeProvider>();
 
-    if (allTechniques.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            'No techniques in this category',
-            style: TextStyle(
-              color: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-              fontSize: 14,
+    return Material(
+      color: selected ? AppColors.mindfulTint : themeProvider.cardColor,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected
+                  ? AppColors.mindful
+                  : themeProvider.isDarkMode
+                  ? Colors.white.withValues(alpha: 0.07)
+                  : AppColors.textPrimary.withValues(alpha: 0.08),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: themeProvider.isDarkMode ? 0.18 : 0.04,
+                ),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+                spreadRadius: -12,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _pattern(technique),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: themeProvider.textPrimary,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _categoryLabel(technique.category),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: themeProvider.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
+}
+
+class _AmbientPicker extends StatelessWidget {
+  final String selectedAmbient;
+  final ValueChanged<String> onSelected;
+
+  const _AmbientPicker({
+    required this.selectedAmbient,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = const [
+      ('rain', 'Rain', LucideIcons.droplet),
+      ('waves', 'Waves', LucideIcons.wind),
+      ('forest', 'Forest', LucideIcons.leaf),
+      ('off', 'Off', LucideIcons.moon),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final technique in allTechniques) ...[
-          _TechniqueCard(technique: technique, onTap: () => onTap(technique)),
-          const SizedBox(height: 12),
-        ],
+        Text(
+          'AMBIENT SOUND',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: context.watch<ThemeProvider>().textSecondary,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+          ),
+        ),
+        const SizedBox(height: 9),
+        Row(
+          children: items.map((item) {
+            final selected = selectedAmbient == item.$1;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: item == items.last ? 0 : 8),
+                child: _AmbientChip(
+                  label: item.$2,
+                  icon: item.$3,
+                  selected: selected,
+                  onTap: () => onSelected(item.$1),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
 }
 
-class _TechniqueCard extends StatelessWidget {
-  final BreathingTechnique technique;
+class _AmbientChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _TechniqueCard({required this.technique, required this.onTap});
+  const _AmbientChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    // Format timing pattern
-    final pattern = [
-      technique.inhaleSeconds,
-      if (technique.holdAfterInhaleSeconds > 0)
-        technique.holdAfterInhaleSeconds,
-      technique.exhaleSeconds,
-      if (technique.holdAfterExhaleSeconds > 0)
-        technique.holdAfterExhaleSeconds,
-    ].join('-');
-
-    return ElevatedCard(
-      borderRadius: 20,
-      onTap: onTap,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Icon container
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: technique.primaryColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              technique.icon,
-              color: technique.primaryColor,
-              size: 28,
+    return Material(
+      color: selected ? AppColors.mindfulTint : themeProvider.cardColor,
+      borderRadius: BorderRadius.circular(99),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(99),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: selected
+                  ? AppColors.mindful
+                  : themeProvider.textTertiary.withValues(alpha: 0.16),
+              width: 1.5,
             ),
           ),
-          const SizedBox(width: 16),
-
-          // Text content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  technique.nameEn,
-                  style: TextStyle(
-                    color: themeProvider.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  technique.descriptionEn,
-                  style: TextStyle(
-                    color: themeProvider.textSecondary,
-                    fontSize: 12,
-                  ),
-                  maxLines: 2,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 13,
+                color: selected
+                    ? AppColors.mindfulDeep
+                    : themeProvider.textSecondary,
+              ),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: selected
+                        ? AppColors.mindfulDeep
+                        : themeProvider.textSecondary,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
 
-          // Timing badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: technique.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
+class _BreathIntent extends StatelessWidget {
+  const _BreathIntent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            LucideIcons.sparkles,
+            size: 14,
+            color: AppColors.mindfulDeep,
+          ),
+          const SizedBox(width: 8),
+          Flexible(
             child: Text(
-              pattern,
-              style: TextStyle(
-                color: technique.primaryColor,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+              'Let each breath soften the day.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.mindfulDeep,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -569,13 +807,43 @@ class _TechniqueCard extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StartBreathingButton extends StatelessWidget {
+  final BreathingTechnique technique;
+  final VoidCallback onTap;
+
+  const _StartBreathingButton({required this.technique, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: FilledButton.icon(
+        onPressed: onTap,
+        icon: const Icon(LucideIcons.play, size: 18, fill: 1.0),
+        label: Text('Start ${technique.cyclesInDuration(3)} cycles'),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.mindfulDeep,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          textStyle: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatsSheetRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
 
-  const _StatItem({
+  const _StatsSheetRow({
     required this.icon,
     required this.label,
     required this.value,
@@ -591,7 +859,7 @@ class _StatItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
+            color: color.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -608,10 +876,37 @@ class _StatItem extends StatelessWidget {
           style: TextStyle(
             color: themeProvider.textPrimary,
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ],
     );
   }
+}
+
+String _pattern(BreathingTechnique technique) {
+  return [
+    technique.inhaleSeconds,
+    if (technique.holdAfterInhaleSeconds > 0) technique.holdAfterInhaleSeconds,
+    technique.exhaleSeconds,
+    if (technique.holdAfterExhaleSeconds > 0) technique.holdAfterExhaleSeconds,
+  ].join('-');
+}
+
+String _shortPhase(String phase) {
+  return switch (phase) {
+    'Breathe In' => 'In',
+    'Breathe Out' => 'Out',
+    _ => phase,
+  };
+}
+
+String _categoryLabel(String category) {
+  return switch (category) {
+    'sleep' => 'Calm',
+    'focus' => 'Focus',
+    'energy' => 'Energy',
+    'relax' => 'Relax',
+    _ => 'Custom',
+  };
 }

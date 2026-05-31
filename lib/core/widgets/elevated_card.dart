@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../theme/app_colors.dart';
 import '../providers/theme_provider.dart';
 
 class ElevatedCard extends StatelessWidget {
@@ -12,6 +13,8 @@ class ElevatedCard extends StatelessWidget {
   final bool isSurface; // If true, uses surfaceColor default, else cardColor
   final double? width;
   final double? height;
+  final Color? borderColor;
+  final Gradient? gradient;
 
   const ElevatedCard({
     super.key,
@@ -24,6 +27,8 @@ class ElevatedCard extends StatelessWidget {
     this.isSurface = false,
     this.width,
     this.height,
+    this.borderColor,
+    this.gradient,
   });
 
   @override
@@ -35,25 +40,32 @@ class ElevatedCard extends StatelessWidget {
         backgroundColor ??
         (isSurface ? themeProvider.surfaceColor : themeProvider.cardColor);
 
+    final hairline =
+        borderColor ??
+        (isDark
+            ? Colors.white.withValues(alpha: 0.07)
+            : AppColors.textPrimary.withValues(alpha: 0.08));
+
     final decoration = BoxDecoration(
       color: baseColor,
+      gradient: gradient,
       borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(color: hairline),
       boxShadow: [
-        // Neumorphic: Light shadow (top-left) - ışık kaynağı
         BoxShadow(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.03)
-              : Colors.white.withValues(alpha: 0.5),
-          offset: const Offset(-3, -3),
-          blurRadius: 6,
+              ? Colors.black.withValues(alpha: 0.34)
+              : const Color(0xFF7C5E42).withValues(alpha: 0.08),
+          offset: const Offset(0, 12),
+          blurRadius: 28,
+          spreadRadius: -10,
         ),
-        // Neumorphic: Dark shadow (bottom-right) - gölge
         BoxShadow(
           color: isDark
-              ? Colors.black.withValues(alpha: 0.4)
-              : Colors.black.withValues(alpha: 0.12),
-          offset: const Offset(3, 3),
-          blurRadius: 6,
+              ? Colors.black.withValues(alpha: 0.18)
+              : Colors.white.withValues(alpha: 0.7),
+          offset: const Offset(0, 1),
+          blurRadius: 1,
         ),
       ],
     );
