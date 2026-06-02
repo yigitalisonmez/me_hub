@@ -86,13 +86,13 @@ class AnalysisService {
 
       // Interpret correlation
       if (correlation > 0.5) {
-        return "💡 Strong Insight: On days you drink more water, your mood tends to be significantly better (+${(correlation * 100).toStringAsFixed(0)}% correlation).";
+        return "💡 There's a clear pattern in your data: the more water you drink, the better your mood. Hydration really matters for you.";
       } else if (correlation > 0.3) {
-        return "💡 Insight: There is a positive link between your hydration and mood. Keep drinking water!";
+        return "💡 You tend to feel better on days you drink more water. Worth keeping that up.";
       } else if (correlation < -0.3) {
-        return "🤔 Interesting: Your data shows a slight negative link between water and mood. Maybe you drink more when stressed?";
+        return "🤔 You seem to drink more water on lower-mood days. Maybe you reach for it when you're stressed?";
       } else {
-        return "📊 Analysis: No strong link found between water and mood yet. Keep tracking!";
+        return "📊 No clear link between water and mood yet — keep logging and the pattern will show.";
       }
     } catch (e) {
       return null;
@@ -144,7 +144,7 @@ class AnalysisService {
           'Saturday',
           'Sunday',
         ];
-        return "📈 Trend: You tend to be happiest on ${days[bestDay]}s (Avg: ${bestAvg.toStringAsFixed(1)}/10).";
+        return "📈 ${days[bestDay]}s are your best day — you tend to feel your happiest then.";
       } else if (worstDay != -1 && worstAvg <= 5.0) {
         const days = [
           'Monday',
@@ -155,7 +155,7 @@ class AnalysisService {
           'Saturday',
           'Sunday',
         ];
-        return "📉 Trend: ${days[worstDay]}s seem tough for you (Avg: ${worstAvg.toStringAsFixed(1)}/10). Be kind to yourself!";
+        return "📉 ${days[worstDay]}s are often tough for you. Worth being a little gentler with yourself on those days.";
       }
 
       return null;
@@ -205,7 +205,7 @@ class AnalysisService {
       });
 
       if (bestTime.isNotEmpty && bestAvg >= 0) {
-        return "🌅 Insight: You feel best in the $bestTime (Avg: ${bestAvg.toStringAsFixed(1)}/10).";
+        return "🌅 You tend to feel your best in the $bestTime. Try to protect that time for things that matter.";
       }
 
       return null;

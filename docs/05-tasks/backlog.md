@@ -21,7 +21,7 @@
 - [ ] Improve calendar reminder UX.
 - [ ] Expand analytics cards.
 - [ ] Improve voice command confirmation flow.
-- [ ] Wire real AnalysisCard into Home or relabel static insight as a tip.
+- [x] Wire real AnalysisCard into Home. (ADR-002 Phase 3 — done 2026-06-02)
 - [ ] Implement voice timer command or remove it from supported NLP actions.
 
 ## Deferred / Later

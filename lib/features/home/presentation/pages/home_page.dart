@@ -28,6 +28,7 @@ import '../../../calendar/presentation/providers/calendar_provider.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
+import '../../../analytics/presentation/widgets/analysis_card.dart';
 
 /// Home page - Dashboard with daily overview and quick actions
 class HomePage extends StatefulWidget {
@@ -125,41 +126,38 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 22),
 
             // Daily Progress Section
-            const DailyProgressSection(),
+            DailyProgressSection(
+              onTasksTap: () =>
+                  Navigator.push(context, AppRoute(page: const TodoPage())),
+              onWaterTap: () =>
+                  Navigator.push(context, AppRoute(page: const WaterPage())),
+              onMoodTap: () =>
+                  Navigator.push(context, AppRoute(page: const MoodPage())),
+              onRoutinesTap: () =>
+                  Navigator.push(context, AppRoute(page: const RoutinesPage())),
+            ),
             const SizedBox(height: 18),
 
             _buildQuoteCard(themeProvider),
             const SizedBox(height: 24),
 
             ExploreSection(
-              onTasksTap: () => Navigator.push(
-                context,
-                AppRoute(page: const TodoPage()),
-              ),
-              onRoutinesTap: () => Navigator.push(
-                context,
-                AppRoute(page: const RoutinesPage()),
-              ),
-              onPomodoroTap: () => Navigator.push(
-                context,
-                AppRoute(page: const TimerPage()),
-              ),
+              onTasksTap: () =>
+                  Navigator.push(context, AppRoute(page: const TodoPage())),
+              onRoutinesTap: () =>
+                  Navigator.push(context, AppRoute(page: const RoutinesPage())),
+              onPomodoroTap: () =>
+                  Navigator.push(context, AppRoute(page: const TimerPage())),
               onGoalsTap: () => Navigator.push(
                 context,
                 AppRoute(page: const ChallengesPage()),
               ),
-              onCalendarTap: () => Navigator.push(
-                context,
-                AppRoute(page: const CalendarPage()),
-              ),
-              onWaterTap: () => Navigator.push(
-                context,
-                AppRoute(page: const WaterPage()),
-              ),
-              onMoodTap: () => Navigator.push(
-                context,
-                AppRoute(page: const MoodPage()),
-              ),
+              onCalendarTap: () =>
+                  Navigator.push(context, AppRoute(page: const CalendarPage())),
+              onWaterTap: () =>
+                  Navigator.push(context, AppRoute(page: const WaterPage())),
+              onMoodTap: () =>
+                  Navigator.push(context, AppRoute(page: const MoodPage())),
               onAffirmationsTap: () => Navigator.push(
                 context,
                 AppRoute(page: const AffirmationsPage()),
@@ -177,6 +175,7 @@ class _HomePageState extends State<HomePage> {
 
             // Daily Tip Card
             const InsightsCard(),
+            const AnalysisCard(),
 
             SizedBox(height: LayoutConstants.getNavbarClearance(context)),
           ],
