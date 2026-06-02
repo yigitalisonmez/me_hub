@@ -41,3 +41,10 @@ v1 does not imply features that are not implemented yet.
   account-like escape hatch.
 - [ ] Decide whether the old affirmation Hive repository should be kept,
   migrated, or removed now that the concrete typeId conflict is fixed.
+
+- [ ] After Phase 4 T1 fix: track set of previously-scheduled routine notification IDs in SharedPreferences so deleted routines’ notifications get cancelled on next reschedule. Currently, deleting a routine leaves its weekly reminder firing forever. Effort: S. Depends on: Phase 4 shipped.
+
+## Post-v1 Notifications
+
+- [ ] Wire notification tap → Home navigation (v1.1). Add GlobalKey<NavigatorState> to NotificationService, wire _onNotificationTapped to push Home route. Depends on: Phase 4 shipped. Effort: S. Context: deferred in ADR-002 CEO review 2026-06-02 because NavigatorKey complexity isn't worth v1 tradeoff.
+- [ ] Notification v2 — cycle all 3 insight types. Extend weekly insight notification to pick whichever of (water/mood correlation, best weekday, best time of day) has the strongest signal. Currently v1 uses water/mood only. Effort: S. Context: ADR-002 explicitly defers to v2; all three are already computed by AnalysisCard.

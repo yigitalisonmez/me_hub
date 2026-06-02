@@ -36,6 +36,8 @@ import 'features/water/data/repositories/water_repository_impl.dart';
 import 'features/water/domain/usecases/usecases.dart' as water_usecases;
 import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
+import 'features/analytics/domain/usecases/compute_weekly_insight.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 import 'features/timer/presentation/providers/timer_provider.dart';
 
@@ -124,6 +126,21 @@ void main() async {
 
   // Notification service'i başlat
   await NotificationService().initialize();
+
+  // Weekly insight notification — reschedule on every app open.
+  // Wrapped in try/catch: failure must never crash startup.
+  try {
+    final insight = await ComputeWeeklyInsight()();
+    final name =
+        await const FlutterSecureStorage().read(key: 'user_name') ?? 'there';
+    if (insight != null) {
+      await NotificationService().scheduleWeeklyInsight(insight, name);
+    } else {
+      await NotificationService().cancelNotification(9001);
+    }
+  } catch (e) {
+    debugPrint('Weekly insight notification skipped: $e');
+  }
 
   // Check onboarding status
   final prefs = await SharedPreferences.getInstance();

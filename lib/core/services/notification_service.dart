@@ -3,17 +3,23 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import '../../features/routines/domain/entities/routine.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../../features/calendar/domain/entities/calendar_event.dart';
 
-// flutter_native_timezone paketi KALDIRILDI - gereksiz!
-
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
+  static final NotificationService _instance = NotificationService._withPlugin(
+    FlutterLocalNotificationsPlugin(),
+  );
   factory NotificationService() => _instance;
-  NotificationService._internal();
+  NotificationService._withPlugin(this._notifications);
 
-  final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
+  /// Creates an isolated instance for testing — does not affect the singleton.
+  @visibleForTesting
+  static NotificationService createForTesting(
+    FlutterLocalNotificationsPlugin plugin,
+  ) => NotificationService._withPlugin(plugin);
+
+  FlutterLocalNotificationsPlugin _notifications;
 
   bool _initialized = false;
   tz.Location? _localLocation;
@@ -23,12 +29,16 @@ class NotificationService {
 
     tz.initializeTimeZones();
 
-    // Türkiye timezone'u direkt kullan - daha basit ve güvenilir
-    _localLocation = tz.getLocation('Europe/Istanbul');
+    try {
+      final String deviceTimezone = await FlutterTimezone.getLocalTimezone();
+      _localLocation = tz.getLocation(deviceTimezone);
+    } catch (_) {
+      _localLocation = tz.UTC;
+    }
     tz.setLocalLocation(_localLocation!);
 
     if (kDebugMode) {
-      debugPrint('✅ Timezone ayarlandı: Europe/Istanbul');
+      debugPrint('✅ Timezone set: ${_localLocation!.name}');
     }
 
     const androidSettings = AndroidInitializationSettings(
@@ -81,6 +91,19 @@ class NotificationService {
         ),
       );
 
+      // Haftalık içgörü bildirimleri kanalı
+      await androidImplementation.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'kora_insights',
+          'Kora Öngörüleri',
+          description: 'Kora uygulamasından haftalık kişisel öngörüler',
+          importance: Importance.defaultImportance,
+          playSound: true,
+          enableVibration: false,
+          showBadge: false,
+        ),
+      );
+
       await androidImplementation.requestNotificationsPermission();
 
       final canScheduleExactAlarms = await androidImplementation
@@ -101,7 +124,11 @@ class NotificationService {
   Future<void> rescheduleAllRoutineNotifications(List<Routine> routines) async {
     if (!_initialized) await initialize();
 
-    await cancelAllNotifications();
+    // Cancel only routine-specific IDs — do NOT use cancelAllNotifications()
+    // which would also wipe calendar and insight notifications.
+    for (final routine in routines) {
+      await cancelRoutineNotifications(routine.id);
+    }
 
     for (final routine in routines) {
       if (routine.time != null) {
@@ -296,6 +323,11 @@ class NotificationService {
     await _notifications.cancelAll();
   }
 
+  Future<void> cancelNotification(int id) async {
+    if (!_initialized) await initialize();
+    await _notifications.cancel(id);
+  }
+
   Future<void> checkPendingNotifications() async {
     if (!_initialized) await initialize();
     // Removed verbose logging
@@ -352,6 +384,97 @@ class NotificationService {
       debugPrint('❌ Test bildirimi hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
+    }
+  }
+
+  // ==================== HAFTALIK İÇGÖRÜ BİLDİRİMİ ====================
+
+  /// Schedules (or reschedules) the weekly insight notification for next Sunday
+  /// at 20:00 in the device timezone. Call on every app open after computing
+  /// the current correlation. If [insight] has meaningful content, schedules;
+  /// caller should call cancelNotification(9001) when insight is null.
+  ///
+  /// Notification ID 9001 is reserved exclusively for this insight.
+  Future<void> scheduleWeeklyInsight(String insight, String userName) async {
+    if (!_initialized) await initialize();
+
+    const insightNotificationId = 9001;
+
+    final location = _localLocation ?? tz.local;
+    final now = tz.TZDateTime.now(location);
+
+    // Calculate next Sunday 20:00 in local timezone.
+    // Dart DateTime.weekday: 1=Monday … 7=Sunday
+    final daysUntilSunday = (DateTime.sunday - now.weekday) % 7;
+    var nextSunday = tz.TZDateTime(
+      location,
+      now.year,
+      now.month,
+      now.day,
+      20,
+      0,
+      0,
+    ).add(Duration(days: daysUntilSunday));
+
+    if (nextSunday.isBefore(now)) {
+      nextSunday = nextSunday.add(const Duration(days: 7));
+    }
+
+    final androidImplementation = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
+    bool canScheduleExact = false;
+    if (androidImplementation != null) {
+      canScheduleExact =
+          (await androidImplementation.canScheduleExactNotifications()) ??
+          false;
+    }
+
+    const androidDetails = AndroidNotificationDetails(
+      'kora_insights',
+      'Kora Öngörüleri',
+      channelDescription: 'Kora uygulamasından haftalık kişisel öngörüler',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      showWhen: true,
+      enableVibration: false,
+      playSound: true,
+      autoCancel: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: true,
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Cancel any previously scheduled insight notification before rescheduling.
+    await _notifications.cancel(insightNotificationId);
+
+    await _notifications.zonedSchedule(
+      insightNotificationId,
+      'Kora Öngörüsü',
+      '$userName, bu hafta: $insight',
+      nextSunday,
+      notificationDetails,
+      androidScheduleMode: canScheduleExact
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
+
+    if (kDebugMode) {
+      debugPrint('✅ Haftalık öngörü bildirimi zamanlandı: $nextSunday');
+      debugPrint('   İçerik: $insight');
     }
   }
 
