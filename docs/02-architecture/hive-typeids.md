@@ -9,7 +9,7 @@ Hive adapter type IDs must be unique across all registered adapters.
 | 0 | DailyTodo | `lib/features/todo/domain/entities/daily_todo.dart` |
 | 1 | DailyTodoModel | `lib/features/todo/data/models/daily_todo_model.dart` |
 | 10 | RoutineItem | `lib/features/routines/domain/entities/routine.dart` |
-| 12 | AffirmationSession | `lib/features/affirmations/data/models/affirmation_session.dart` |
+| 12 | ~~AffirmationSession~~ | **REMOVED** — dead Hive path deleted 2026-06-02 (ADR-002 Phase 5). TypeId 12 is free. |
 | 11 | Routine | `lib/features/routines/domain/entities/routine.dart` |
 | 20 | WaterIntake | `lib/features/water/domain/entities/water_intake.dart` |
 | 21 | WaterLog | `lib/features/water/domain/entities/water_intake.dart` |
@@ -33,9 +33,9 @@ Hive adapter type IDs must be unique across all registered adapters.
 ## Resolved Conflicts
 
 `typeId: 10` appeared in both `RoutineItem` and the original `AffirmationSession`.
-This was resolved by moving `AffirmationSession` to `typeId: 12`. The repository
-now guards registration with `if (!Hive.isAdapterRegistered(12))` to prevent
-duplicate registration.
+This was resolved by moving `AffirmationSession` to `typeId: 12`. The entire
+affirmation Hive path (repository + domain layer + model) was subsequently
+deleted in ADR-002 Phase 5 (2026-06-02). TypeId 12 is free for reuse.
 
 ## Reserved Ranges
 
