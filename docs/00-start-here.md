@@ -17,6 +17,7 @@ planning and AI-assisted development.
 - App startup: `02-architecture/app-startup.md`
 - Data storage: `02-architecture/data-storage.md`
 - Hive type IDs: `02-architecture/hive-typeids.md`
+- Future ideas: `01-product/future-ideas.md`
 - Active tasks: `05-tasks/active.md`
 - Backlog: `05-tasks/backlog.md`
 - Done log: `05-tasks/done.md`

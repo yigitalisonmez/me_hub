@@ -9,6 +9,8 @@ import '../../domain/usecases/toggle_todo_completion.dart';
 import '../../../../core/utils/result.dart';
 import '../../../../core/services/completion_tracker_service.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 /// Todo state management provider
 class TodoProvider with ChangeNotifier {
@@ -18,6 +20,7 @@ class TodoProvider with ChangeNotifier {
   final UpdateTodo _updateTodo;
   final DeleteTodo _deleteTodo;
   final ToggleTodoCompletion _toggleTodoCompletion;
+  final ReminderCoordinator? _reminders;
 
   TodoProvider({
     required GetTodayTodos getTodayTodos,
@@ -26,12 +29,14 @@ class TodoProvider with ChangeNotifier {
     required UpdateTodo updateTodo,
     required DeleteTodo deleteTodo,
     required ToggleTodoCompletion toggleTodoCompletion,
+    ReminderCoordinator? reminders,
   }) : _getTodayTodos = getTodayTodos,
        _getAllTodos = getAllTodos,
        _addTodo = addTodo,
        _updateTodo = updateTodo,
        _deleteTodo = deleteTodo,
-       _toggleTodoCompletion = toggleTodoCompletion;
+       _toggleTodoCompletion = toggleTodoCompletion,
+       _reminders = reminders;
 
   // State
   List<DailyTodo> _todos = [];
@@ -82,6 +87,7 @@ class TodoProvider with ChangeNotifier {
     if (result is Success) {
       _todos = result.data ?? [];
       notifyListeners();
+      await _reconcileReminders();
     } else {
       _setError(result.errorMessage ?? 'Todo\'lar yüklenemedi');
     }
@@ -125,6 +131,7 @@ class TodoProvider with ChangeNotifier {
         _todos.add(result.data!);
       }
       notifyListeners();
+      await _reconcileReminders();
       return true;
     } else {
       _setError(result.errorMessage ?? 'Failed to add todo');
@@ -146,6 +153,7 @@ class TodoProvider with ChangeNotifier {
         _todos[index] = result.data!;
         notifyListeners();
       }
+      await _reconcileReminders();
       return true;
     } else {
       _setError(result.errorMessage ?? 'Todo güncellenemedi');
@@ -175,6 +183,7 @@ class TodoProvider with ChangeNotifier {
       }
 
       notifyListeners();
+      await _reconcileReminders();
       return true;
     } else {
       _setError(result.errorMessage ?? 'Todo silinemedi');
@@ -220,6 +229,7 @@ class TodoProvider with ChangeNotifier {
 
         // Completion tracking
         await _checkCompletionStatus();
+        await _reconcileReminders();
       }
       return true;
     } else {
@@ -246,6 +256,17 @@ class TodoProvider with ChangeNotifier {
   void clearError() {
     _clearError();
     notifyListeners();
+  }
+
+  Future<void> _reconcileReminders() async {
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.todo,
+      completedToday: allTodosCompleted,
+      actionable: incompleteTodos.isNotEmpty,
+      title: 'Tasks for today',
+      body: 'A quick review can help you close the day with less on your mind.',
+      payload: 'kora://todo',
+    );
   }
 
   /// Loading durumunu ayarla

@@ -59,6 +59,7 @@ class EmptyStateWidget extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: themeProvider.textPrimary,
+                decoration: TextDecoration.none,
               ),
             ),
             if (subMessage != null) ...[
@@ -70,6 +71,7 @@ class EmptyStateWidget extends StatelessWidget {
                   fontSize: 14,
                   color: themeProvider.textSecondary,
                   height: 1.5,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ],

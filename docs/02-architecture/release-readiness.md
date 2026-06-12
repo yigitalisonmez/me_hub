@@ -1,13 +1,14 @@
 # Release Readiness
 
-Last audited: 2026-05-30.
+Last audited: 2026-06-01.
+
+> **Do not publish to Play Store until all items in "Remaining Work" are complete.**
 
 ## Current Status
 
-Not live-ready.
-
-The app has useful local-first product functionality, but Android release build,
-release signing, and test coverage need work before a public launch.
+Release build verified. The Android APK is built and signed. The app is
+local-only and passes static analysis and the current test suite. Remaining
+work before a public launch is documented below.
 
 ## Verification Baseline
 
@@ -18,59 +19,86 @@ Result: passes with no issues.
 
 ```text
 flutter test
-Result: passes.
+Result: passes — 46 tests.
 ```
 
-Important: the only test is `test/widget_test.dart`, which contains a disabled
-placeholder assertion. This is not meaningful release coverage.
+Important: all 46 tests are entity-level unit tests. There are no provider,
+repository, or widget integration tests. This is not meaningful release
+coverage.
 
 ```text
 flutter build apk --release
-Result: fails.
+Result: succeeds (verified 2026-05-30).
+APK: build/app/outputs/flutter-apk/app-release.apk — 204.5 MB
+Signing: kora-release.jks, SHA-256 26aaae075f5d9b195808518f35817becaac16ad371fc1da188efcd152aaff21f
 ```
 
-First failure:
+## Remaining Work Before Public Launch
 
-- dynamic `IconData(...)` calls block icon tree shaking.
+1. **Notification timezone** — timezone was hardcoded to `Europe/Istanbul`.
+   Fix in progress: reading device timezone via `flutter_timezone` at startup.
+2. **Test coverage** — 46 entity-level unit tests exist. Provider, repository,
+   and widget integration tests are needed before a public release is safe.
+3. **Affirmation Hive repository** — the data-layer Hive repository for
+   affirmations (typeId 12) is registered but never called by the active
+   provider flow. Decide: keep, migrate, or remove.
+4. **iOS signing** — not configured. If iOS v1 is in scope, Xcode signing
+   and App Store provisioning must be set up first.
+5. **Voice command stubs** — several parsed command types return a silent no-op
+   instead of surfacing an "unsupported" message to the user.
 
-```text
-flutter build apk --release --no-tree-shake-icons
-Result: fails.
-```
+## P1 Risks
 
-Resolved follow-up:
+- `AnalysisCard` (Pearson correlation, mood × water) is built but not wired to
+  any screen. Home uses a static Daily Tip card.
+- Voice commands have no confirmation step before executing actions.
+- `MoodLocalDataSource.init()` previously deleted the box on any open failure.
+  Fix applied (2026-06-01): now narrows to `HiveError` only and creates a
+  backup before deleting.
 
-- `home_widget` pulls AndroidX Glance/remote dependencies requiring compileSdk
-  37 and Android Gradle Plugin 9.1.0+.
-- Home widget support is disabled for v1 so the dependency no longer blocks
-  release verification.
+## Resolved Blockers
 
-## P0 Release Blockers
+All resolved on 2026-05-30.
 
-1. Re-run a controlled release build for final verification.
-2. Configure real release signing.
-3. Keep auth strategy local-only, or implement real sign-in.
-4. Decide whether to keep/remove the unused affirmation Hive repository path.
-5. Add meaningful tests around storage/provider/release-critical flows.
+### Release APK Did Not Build
 
-## P1 Release Risks
+Fixed:
+- Dynamic `IconData(...)` reconstruction replaced with stable icon lookup
+  mappings in breathing and challenges.
+- `home_widget` dependency removed for v1 (runtime service is a no-op stub).
 
-- Notifications use fixed `Europe/Istanbul` timezone.
-- iOS has microphone and speech recognition usage text.
-- Voice command start-timer path only shows a success message and does not start
-  the actual timer.
-- Home "AI Insight" card is static; the real analytics card is not wired into
-  Home.
-- Water all-time stats increment on add but undo/delete paths do not decrement.
+### Release Signing Was Debug
+
+Fixed:
+- Keystore generated: `android/kora-release.jks` (alias: kora, CN=Yigit).
+- `android/key.properties` created and gitignored.
+- `android/app/build.gradle.kts` reads `key.properties` and applies release
+  signing; falls back to debug signing when the file is absent.
+
+### Auth/Profile UI Was Misleading
+
+Fixed:
+- `lib/features/auth/` folders exist but are empty; profile is local-only.
+- Fake fallback email, hardcoded Premium badge, coming-soon Export Data, and
+  nonfunctional Sign Out were all removed from `ProfilePage`.
+
+### Android Release Missing INTERNET Permission
+
+Fixed:
+- `android.permission.INTERNET` added to the main manifest for ZenQuotes API.
+
+### Hive typeId Conflict
+
+Fixed:
+- `RoutineItem` and `AffirmationSession` both used typeId 10.
+- `AffirmationSession` moved to typeId 12.
+- Repository guards registration with `if (!Hive.isAdapterRegistered(12))`.
 
 ## Release Decision
 
 Recommended v1 direction: local-only.
 
-That means:
-
-- remove sign-in/sign-out language
-- keep local profile editing
-- hide premium/export until implemented
-- make all persistence and privacy copy honest
-- ship only after Android release build and core local flows are verified
+- No sign-in/sign-out language.
+- Local profile editing only.
+- Premium/export hidden until implemented.
+- All persistence and privacy copy is honest.

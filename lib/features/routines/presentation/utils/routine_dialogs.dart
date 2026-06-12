@@ -80,10 +80,7 @@ class RoutineDialogs {
   }
 
   static Future<void> showAddRoutine(BuildContext context) async {
-    await Navigator.push(
-      context,
-      AppRoute(page: const CreateRoutinePage()),
-    );
+    await Navigator.push(context, AppRoute(page: const CreateRoutinePage()));
   }
 }
 

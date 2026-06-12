@@ -147,10 +147,7 @@ class _RecordStepState extends State<RecordStep> {
             children: [
               const Text(
                 'Use selected for session',
-                style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
               ),
               const SizedBox(width: 8),
               Icon(
@@ -304,10 +301,7 @@ class _WaveBarsState extends State<_WaveBars>
             children: List.generate(21, (i) {
               final base = 14.0 + math.sin(i * 0.9).abs() * 32 + (i % 3) * 6;
               final pulse = widget.active
-                  ? math
-                            .sin((_ctrl.value * math.pi * 2) + i * 0.55)
-                            .abs() *
-                        20
+                  ? math.sin((_ctrl.value * math.pi * 2) + i * 0.55).abs() * 20
                   : 0;
               return Container(
                 width: 4,
@@ -398,10 +392,7 @@ class _RecordControls extends StatelessWidget {
           GestureDetector(
             onTap: provider.stopRecording,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.mindfulDeep,
                 borderRadius: BorderRadius.circular(12),
@@ -625,6 +616,12 @@ class _RecordingsList extends StatelessWidget {
               final recording = entry.value;
               final selected = provider.selectedRecordingIndex == index;
               final previewing = provider.previewingRecordingIndex == index;
+              final selectedTileColor = tp.isDarkMode
+                  ? Color.alphaBlend(
+                      AppColors.mindful.withValues(alpha: 0.22),
+                      tp.cardColor,
+                    )
+                  : AppColors.mindfulTint;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 9),
@@ -637,7 +634,7 @@ class _RecordingsList extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: selected ? AppColors.mindfulTint : tp.cardColor,
+                      color: selected ? selectedTileColor : tp.cardColor,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                         color: selected
@@ -659,9 +656,7 @@ class _RecordingsList extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              previewing
-                                  ? LucideIcons.pause
-                                  : LucideIcons.play,
+                              previewing ? LucideIcons.pause : LucideIcons.play,
                               color: Colors.white,
                               size: 15,
                             ),
@@ -743,8 +738,7 @@ class _RecordingsList extends StatelessWidget {
     );
   }
 
-  String _fmt(int s) =>
-      '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+  String _fmt(int s) => '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
 
   void _confirmDelete(
     BuildContext context,
@@ -768,10 +762,7 @@ class _RecordingsList extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: tp.textSecondary),
-            ),
+            child: Text('Cancel', style: TextStyle(color: tp.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {

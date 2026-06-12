@@ -10,7 +10,13 @@ void main() {
     String id = 'item-1',
     String title = 'Wake up',
     DateTime? lastCheckedDate,
-  }) => RoutineItem(id: id, title: title, lastCheckedDate: lastCheckedDate);
+    int? durationMinutes,
+  }) => RoutineItem(
+    id: id,
+    title: title,
+    lastCheckedDate: lastCheckedDate,
+    durationMinutes: durationMinutes,
+  );
 
   Routine buildRoutine({
     String id = 'routine-1',
@@ -55,6 +61,15 @@ void main() {
       final tomorrow = today.add(const Duration(days: 1));
       final item = buildItem(lastCheckedDate: tomorrow);
       expect(item.isCheckedToday(today), isFalse);
+    });
+  });
+
+  group('RoutineItem.copyWith', () {
+    test('preserves and updates the guided step duration', () {
+      final item = buildItem(durationMinutes: 5);
+
+      expect(item.copyWith(title: 'Drink water').durationMinutes, 5);
+      expect(item.copyWith(durationMinutes: 8).durationMinutes, 8);
     });
   });
 

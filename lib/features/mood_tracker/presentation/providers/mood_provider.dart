@@ -3,11 +3,15 @@ import '../../domain/entities/mood_entry.dart';
 import '../../data/datasources/mood_local_datasource.dart';
 import '../utils/mood_utils.dart';
 import '../../../home_widget/data/home_widget_service.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 class MoodProvider with ChangeNotifier {
   final MoodLocalDataSource _dataSource;
+  final ReminderCoordinator? _reminders;
 
-  MoodProvider(this._dataSource);
+  MoodProvider(this._dataSource, {ReminderCoordinator? reminders})
+    : _reminders = reminders;
 
   MoodEntry? _todayMood;
   List<MoodEntry> _allMoods = [];
@@ -25,6 +29,7 @@ class MoodProvider with ChangeNotifier {
 
     try {
       _todayMood = await _dataSource.getTodayMood();
+      await _reconcileReminders();
     } catch (e) {
       debugPrint('Error loading today mood: $e');
     } finally {
@@ -78,6 +83,7 @@ class MoodProvider with ChangeNotifier {
         moodEmoji: MoodUtils.getEmojiForScore(score),
         moodLabel: MoodUtils.getLabelForScore(score),
       );
+      await _reconcileReminders();
     } catch (e) {
       debugPrint('Error saving mood: $e');
       rethrow;
@@ -109,6 +115,7 @@ class MoodProvider with ChangeNotifier {
           moodLabel: 'Track Mood',
         );
       }
+      await _reconcileReminders();
     } catch (e) {
       debugPrint('Error deleting mood: $e');
       rethrow;
@@ -135,5 +142,16 @@ class MoodProvider with ChangeNotifier {
   /// Check if mood exists for a specific date
   bool hasMoodForDate(DateTime date) {
     return getMoodForDate(date) != null;
+  }
+
+  Future<void> _reconcileReminders() async {
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.mood,
+      completedToday: hasTodayMood,
+      actionable: true,
+      title: 'How are you feeling?',
+      body: 'Take a quiet moment to check in with yourself.',
+      payload: 'kora://mood',
+    );
   }
 }

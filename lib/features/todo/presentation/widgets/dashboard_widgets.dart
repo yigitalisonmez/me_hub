@@ -12,7 +12,18 @@ import '../providers/todo_provider.dart';
 
 /// Bento daily summary inspired by the Claude Design handoff.
 class DailyProgressSection extends StatelessWidget {
-  const DailyProgressSection({super.key});
+  final VoidCallback? onTasksTap;
+  final VoidCallback? onWaterTap;
+  final VoidCallback? onMoodTap;
+  final VoidCallback? onRoutinesTap;
+
+  const DailyProgressSection({
+    super.key,
+    this.onTasksTap,
+    this.onWaterTap,
+    this.onMoodTap,
+    this.onRoutinesTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +79,7 @@ class DailyProgressSection extends StatelessWidget {
                           color: AppColors.primary,
                           isDark: themeProvider.isDarkMode,
                           largeAsset: true,
+                          onTap: onTasksTap,
                         ),
                       ),
                       SizedBox(width: gap),
@@ -86,6 +98,7 @@ class DailyProgressSection extends StatelessWidget {
                               tint: AppColors.waterTint,
                               color: AppColors.water,
                               isDark: themeProvider.isDarkMode,
+                              onTap: onWaterTap,
                             ),
                             SizedBox(height: gap),
                             _SummaryAssetCard(
@@ -98,6 +111,7 @@ class DailyProgressSection extends StatelessWidget {
                               tint: AppColors.moodTint,
                               color: AppColors.mood,
                               isDark: themeProvider.isDarkMode,
+                              onTap: onMoodTap,
                             ),
                           ],
                         ),
@@ -119,6 +133,7 @@ class DailyProgressSection extends StatelessWidget {
                     color: AppColors.routine,
                     isDark: themeProvider.isDarkMode,
                     wide: true,
+                    onTap: onRoutinesTap,
                   ),
                 ],
               );
@@ -167,6 +182,7 @@ class _SummaryAssetCard extends StatelessWidget {
   final bool largeAsset;
   final bool wide;
   final double? height;
+  final VoidCallback? onTap;
 
   const _SummaryAssetCard({
     required this.imagePath,
@@ -180,6 +196,7 @@ class _SummaryAssetCard extends StatelessWidget {
     this.largeAsset = false,
     this.wide = false,
     this.height,
+    this.onTap,
   });
 
   @override
@@ -194,6 +211,7 @@ class _SummaryAssetCard extends StatelessWidget {
       borderRadius: 22,
       backgroundColor: effectiveTint,
       borderColor: color.withValues(alpha: isDark ? 0.16 : 0.14),
+      onTap: onTap,
       child: Stack(
         children: [
           Positioned(

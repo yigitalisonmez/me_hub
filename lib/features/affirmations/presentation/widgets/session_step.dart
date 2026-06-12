@@ -85,7 +85,10 @@ class SessionStep extends StatelessWidget {
                   children: [
                     _SessionPlayer(provider: provider),
                     const SizedBox(height: 18),
-                    _PlaybackControls(provider: provider, onComplete: onComplete),
+                    _PlaybackControls(
+                      provider: provider,
+                      onComplete: onComplete,
+                    ),
                     const SizedBox(height: 20),
                     _BackgroundSounds(provider: provider),
                     const SizedBox(height: 18),
@@ -156,10 +159,8 @@ class _SessionPlayer extends StatelessWidget {
                     ),
                   ),
                 ),
-                Image.asset(
-                  'assets/images/affirmation.png',
-                  width: 130,
-                  fit: BoxFit.contain,
+                _FloatingAffirmationAsset(
+                  active: provider.playbackState == PlaybackState.playing,
                 ),
               ],
             ),
@@ -203,6 +204,73 @@ class _SessionPlayer extends StatelessWidget {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+}
+
+class _FloatingAffirmationAsset extends StatefulWidget {
+  final bool active;
+
+  const _FloatingAffirmationAsset({required this.active});
+
+  @override
+  State<_FloatingAffirmationAsset> createState() =>
+      _FloatingAffirmationAssetState();
+}
+
+class _FloatingAffirmationAssetState extends State<_FloatingAffirmationAsset>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4200),
+    );
+    if (widget.active) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _FloatingAffirmationAsset oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.active && _controller.isAnimating) {
+      _controller
+        ..stop()
+        ..animateTo(0, duration: const Duration(milliseconds: 260));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      builder: (context, child) {
+        final t = _controller.value;
+        final lift = widget.active ? -10.0 * t : 0.0;
+        final scale = widget.active ? 1.0 + (0.045 * t) : 1.0;
+
+        return Transform.translate(
+          offset: Offset(0, lift),
+          child: Transform.scale(scale: scale, child: child),
+        );
+      },
+      child: Image.asset(
+        'assets/images/affirmation.png',
+        width: 130,
+        fit: BoxFit.contain,
+      ),
+    );
   }
 }
 

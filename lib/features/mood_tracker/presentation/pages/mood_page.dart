@@ -61,16 +61,6 @@ class _MoodPageState extends State<MoodPage>
 
     return Scaffold(
       backgroundColor: themeProvider.backgroundColor,
-      floatingActionButton: !moodProvider.hasTodayMood
-          ? FloatingActionButton(
-              onPressed: () => _saveMood(moodProvider, themeProvider),
-              backgroundColor: AppColors.moodDeep,
-              foregroundColor: Colors.white,
-              elevation: 8,
-              shape: const CircleBorder(),
-              child: const Icon(LucideIcons.plus, size: 24),
-            )
-          : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -93,6 +83,7 @@ class _MoodPageState extends State<MoodPage>
                     ? _TodayMoodCard(
                         key: const ValueKey('today_mood'),
                         mood: moodProvider.todayMood!,
+                        insight: _buildMoodInsight(moodProvider.allMoods),
                         onReset: () async {
                           await moodProvider.deleteTodayMood();
                           if (mounted) {
@@ -167,6 +158,27 @@ class _MoodPageState extends State<MoodPage>
       );
     }
   }
+
+  String _buildMoodInsight(List<MoodEntry> moods) {
+    final recent = [...moods]..sort((a, b) => b.date.compareTo(a.date));
+    final sample = recent.take(5).toList();
+    if (sample.isEmpty) {
+      return 'Your check-in is a useful beginning. Patterns grow with time.';
+    }
+    if (sample.length == 1) {
+      return 'Your first check-in is a useful beginning. Patterns grow with time.';
+    }
+
+    final goodDays = sample.where((entry) => entry.score >= 7).length;
+    if (goodDays > 0) {
+      return '$goodDays of your last ${sample.length} check-ins felt good or brighter.';
+    }
+
+    final average =
+        sample.fold<int>(0, (total, entry) => total + entry.score) /
+        sample.length;
+    return 'Your recent average is ${average.toStringAsFixed(1)}/10. Keep checking in gently.';
+  }
 }
 
 class _MoodEntryCard extends StatelessWidget {
@@ -220,23 +232,7 @@ class _MoodEntryCard extends StatelessWidget {
             children: [
               _PulsingMoodOrb(level: level),
               const SizedBox(height: 14),
-              Text(
-                level.label,
-                style: TextStyle(
-                  color: level.deep,
-                  fontSize: 25,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                level.caption,
-                style: TextStyle(
-                  color: themeProvider.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              _AnimatedMoodCopy(level: level),
             ],
           ),
         ),
@@ -255,91 +251,33 @@ class _MoodEntryCard extends StatelessWidget {
           runSpacing: 9,
           children: _MoodPageState._factors.map((factor) {
             final selected = selectedFactors.contains(factor);
-            return GestureDetector(
+            return _MoodFactorChip(
+              label: factor,
+              selected: selected,
               onTap: () => onFactorTap(factor),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.moodTint
-                      : themeProvider.cardColor,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: selected
-                        ? AppColors.mood
-                        : themeProvider.borderColor.withValues(alpha: 0.45),
-                  ),
-                ),
-                child: Text(
-                  factor,
-                  style: TextStyle(
-                    color: selected
-                        ? AppColors.moodDeep
-                        : themeProvider.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
             );
           }).toList(),
         ),
         const SizedBox(height: 22),
-        _SectionLabel("Today's note"),
-        const SizedBox(height: 10),
-        // Note input styled as blockquote (design spec m3-note)
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: themeProvider.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: themeProvider.borderColor.withValues(alpha: 0.28),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SectionLabel("Today's note"),
+                const SizedBox(height: 10),
+                _MoodNoteInput(noteController: noteController),
+              ],
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16, top: 10),
-                child: Text(
-                  '“',
-                  style: TextStyle(
-                    color: AppColors.mood.withValues(alpha: 0.60),
-                    fontSize: 34,
-                    height: 0.85,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              TextField(
-                controller: noteController,
-                minLines: 2,
-                maxLines: 4,
-                style: TextStyle(
-                  color: themeProvider.textPrimary,
-                  fontSize: 14.5,
-                  fontStyle: FontStyle.italic,
-                  height: 1.5,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'A slow, kind start to the day...',
-                  hintStyle: TextStyle(
-                    color: themeProvider.textSecondary.withValues(alpha: 0.45),
-                    fontStyle: FontStyle.italic,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                ),
-              ),
-            ],
-          ),
+            Positioned(
+              top: -18,
+              right: 0,
+              child: _MoodSaveButton(onPressed: onSave),
+            ),
+          ],
         ),
-        const SizedBox(height: 80), // space for FAB
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -373,6 +311,212 @@ class _MoodEntryCard extends StatelessWidget {
   }
 }
 
+class _AnimatedMoodCopy extends StatelessWidget {
+  final _MoodLevel level;
+
+  const _AnimatedMoodCopy({required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.12, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: Column(
+        key: ValueKey(level.score),
+        children: [
+          Text(
+            level.label,
+            style: TextStyle(
+              color: level.deep,
+              fontSize: 25,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            level.caption,
+            style: TextStyle(
+              color: themeProvider.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoodFactorChip extends StatefulWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _MoodFactorChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  State<_MoodFactorChip> createState() => _MoodFactorChipState();
+}
+
+class _MoodFactorChipState extends State<_MoodFactorChip> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.95 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: widget.selected
+                ? AppColors.moodTint
+                : themeProvider.cardColor,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: widget.selected
+                  ? AppColors.mood
+                  : themeProvider.borderColor.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: widget.selected
+                  ? AppColors.moodDeep
+                  : themeProvider.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MoodNoteInput extends StatelessWidget {
+  final TextEditingController noteController;
+
+  const _MoodNoteInput({required this.noteController});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return Container(
+      width: double.infinity,
+      height: 94,
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: themeProvider.borderColor.withValues(alpha: 0.28),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 14,
+            top: 9,
+            child: Text(
+              '“',
+              style: TextStyle(
+                color: AppColors.mood.withValues(alpha: 0.62),
+                fontSize: 31,
+                height: 0.9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: TextField(
+              controller: noteController,
+              keyboardType: TextInputType.multiline,
+              minLines: null,
+              maxLines: null,
+              expands: true,
+              textAlignVertical: TextAlignVertical.center,
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontSize: 14.5,
+                fontStyle: FontStyle.italic,
+                height: 1.45,
+              ),
+              decoration: InputDecoration(
+                hintText: 'A slow, kind start to the day...',
+                hintStyle: TextStyle(
+                  color: themeProvider.textSecondary.withValues(alpha: 0.50),
+                  fontStyle: FontStyle.italic,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.fromLTRB(22, 18, 18, 15),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoodSaveButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _MoodSaveButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Save mood',
+      child: Material(
+        color: AppColors.mood,
+        elevation: 10,
+        shadowColor: AppColors.moodDeep.withValues(alpha: 0.34),
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(18),
+          child: const SizedBox(
+            width: 56,
+            height: 56,
+            child: Icon(LucideIcons.plus, color: Colors.white, size: 27),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MoodScale extends StatelessWidget {
   final int score;
   final ValueChanged<int> onChanged;
@@ -399,9 +543,15 @@ class _MoodScale extends StatelessWidget {
 
 class _TodayMoodCard extends StatelessWidget {
   final MoodEntry mood;
+  final String insight;
   final Future<void> Function() onReset;
 
-  const _TodayMoodCard({super.key, required this.mood, required this.onReset});
+  const _TodayMoodCard({
+    super.key,
+    required this.mood,
+    required this.insight,
+    required this.onReset,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -453,7 +603,47 @@ class _TodayMoodCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: themeProvider.cardColor.withValues(alpha: 0.74),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: level.color.withValues(alpha: 0.22)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 29,
+                  height: 29,
+                  decoration: BoxDecoration(
+                    color: level.color.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    LucideIcons.sparkles,
+                    color: level.deep,
+                    size: 15,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    insight,
+                    style: TextStyle(
+                      color: themeProvider.textSecondary,
+                      fontSize: 12.5,
+                      height: 1.4,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
           TextButton.icon(
             onPressed: onReset,
             icon: const Icon(LucideIcons.rotateCcw, size: 17),
@@ -893,82 +1083,149 @@ class _PulsingMoodOrb extends StatefulWidget {
 }
 
 class _PulsingMoodOrbState extends State<_PulsingMoodOrb>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _pulseAnim;
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late AnimationController _faceController;
+  late Animation<double> _faceAnimation;
+  late Animation<double> _faceOpacity;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat(reverse: true);
-    _pulseAnim = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 4500),
+    )..repeat();
+    _faceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+      value: 1,
+    );
+    _faceAnimation = CurvedAnimation(
+      parent: _faceController,
+      curve: Curves.easeOutBack,
+    );
+    _faceOpacity = CurvedAnimation(
+      parent: _faceController,
+      curve: Curves.easeOut,
     );
   }
 
   @override
+  void didUpdateWidget(covariant _PulsingMoodOrb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.level.score != widget.level.score) {
+      _faceController.forward(from: 0);
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _pulseController.dispose();
+    _faceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Fixed SizedBox so layout doesn't shift during animation
+    final themeProvider = context.watch<ThemeProvider>();
+
     return SizedBox(
       width: 160,
       height: 160,
-      child: AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (context, child) {
-          final t = _pulseAnim.value;
-          return Transform.scale(
-            scale: 1.0 + (t * 0.09),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.level.color.withValues(alpha: 0.10 + t * 0.10),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.level.color.withValues(
-                      alpha: 0.10 + t * 0.18,
-                    ),
-                    blurRadius: 28 + (t * 22),
-                    spreadRadius: 2 + (t * 8),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              return CustomPaint(
+                size: const Size.square(160),
+                painter: _MoodPulsePainter(
+                  progress: _pulseController.value,
+                  color: widget.level.color,
+                ),
+              );
+            },
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            width: 132,
+            height: 132,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: const Alignment(0, -0.24),
+                colors: [
+                  Color.alphaBlend(
+                    widget.level.color.withValues(alpha: 0.26),
+                    themeProvider.cardColor,
                   ),
+                  themeProvider.cardColor,
                 ],
               ),
-              child: Center(
-                child: Transform.scale(
-                  scale: 1.0 + (t * 0.06),
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: widget.level.color.withValues(alpha: 0.20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.45),
-                        width: 2,
-                      ),
-                    ),
-                    child: _MoodFaceWidget(level: widget.level, size: 48),
-                  ),
+              border: Border.all(
+                color: themeProvider.borderColor.withValues(alpha: 0.34),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.level.color.withValues(alpha: 0.20),
+                  blurRadius: 26,
+                  offset: const Offset(0, 12),
+                  spreadRadius: -8,
+                ),
+              ],
+            ),
+            child: Center(
+              child: ScaleTransition(
+                scale: Tween<double>(
+                  begin: 0.6,
+                  end: 1,
+                ).animate(_faceAnimation),
+                child: FadeTransition(
+                  opacity: _faceOpacity,
+                  child: _MoodFaceWidget(level: widget.level, size: 60),
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
-class _PulsingMoodButton extends StatelessWidget {
+class _MoodPulsePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  const _MoodPulsePainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final normalized = (progress / 0.7).clamp(0.0, 1.0);
+    final eased = Curves.easeOut.transform(normalized);
+    final opacity = 0.40 * (1 - eased);
+    if (opacity <= 0) return;
+
+    canvas.drawCircle(
+      size.center(Offset.zero),
+      66 + (22 * eased),
+      Paint()
+        ..color = color.withValues(alpha: opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _MoodPulsePainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
+}
+
+class _PulsingMoodButton extends StatefulWidget {
   final _MoodLevel level;
   final bool selected;
   final VoidCallback onTap;
@@ -981,34 +1238,60 @@ class _PulsingMoodButton extends StatelessWidget {
   });
 
   @override
+  State<_PulsingMoodButton> createState() => _PulsingMoodButtonState();
+}
+
+class _PulsingMoodButtonState extends State<_PulsingMoodButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        width: selected ? 58 : 48,
-        height: selected ? 58 : 48,
-        decoration: BoxDecoration(
-          color: selected
-              ? level.color
-              : level.color.withValues(alpha: 0.18),
-          shape: BoxShape.circle,
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: level.color.withValues(alpha: 0.34),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : null,
-        ),
-        child: Center(
-          child: _MoodFaceWidget(
-            level: level,
-            size: selected ? 27 : 22,
-            overrideColor: selected ? Colors.white : null,
+    return SizedBox(
+      width: 58,
+      height: 58,
+      child: Center(
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapCancel: () => setState(() => _pressed = false),
+          onTapUp: (_) => setState(() => _pressed = false),
+          child: AnimatedScale(
+            scale: _pressed ? 0.9 : (widget.selected ? 1.04 : 1),
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutBack,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: widget.selected ? 56 : 46,
+              height: widget.selected ? 56 : 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.selected
+                    ? widget.level.color
+                    : widget.level.color.withValues(alpha: 0.18),
+                border: Border.all(
+                  color: widget.selected
+                      ? Colors.transparent
+                      : widget.level.color.withValues(alpha: 0.22),
+                ),
+                boxShadow: widget.selected
+                    ? [
+                        BoxShadow(
+                          color: widget.level.color.withValues(alpha: 0.34),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: _MoodFaceWidget(
+                  level: widget.level,
+                  size: widget.selected ? 26 : 22,
+                  overrideColor: widget.selected ? Colors.white : null,
+                ),
+              ),
+            ),
           ),
         ),
       ),

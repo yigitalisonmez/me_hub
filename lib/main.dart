@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/services.dart';
@@ -33,9 +35,16 @@ import 'features/mood_tracker/data/datasources/mood_local_datasource.dart';
 import 'features/mood_tracker/domain/entities/mood_entry.dart';
 import 'features/water/data/datasources/water_local_datasource.dart';
 import 'features/water/data/repositories/water_repository_impl.dart';
+import 'features/water/data/services/daily_goal_service.dart';
 import 'features/water/domain/usecases/usecases.dart' as water_usecases;
 import 'features/water/domain/entities/water_intake.dart';
 import 'core/services/notification_service.dart';
+import 'core/utils/result.dart';
+import 'core/reminders/data/reminder_preferences_repository.dart';
+import 'core/reminders/domain/reminder_feature.dart';
+import 'core/reminders/presentation/reminder_settings_provider.dart';
+import 'core/reminders/services/reminder_coordinator.dart';
+import 'core/reminders/services/reminder_id_registry.dart';
 import 'features/analytics/domain/usecases/compute_weekly_insight.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
@@ -45,14 +54,25 @@ import 'features/profile/presentation/pages/profile_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
 import 'core/providers/voice_settings_provider.dart';
 import 'core/widgets/glass_nav_bar.dart';
+import 'core/utils/app_route.dart';
 import 'features/affirmations/presentation/providers/affirmation_provider.dart';
+import 'features/affirmations/presentation/pages/affirmations_page.dart';
 import 'features/breathing/presentation/providers/breathing_provider.dart';
+import 'features/breathing/presentation/pages/breathing_page.dart';
 import 'features/gratitude/domain/entities/gratitude_entry.dart';
 import 'features/gratitude/domain/entities/gratitude_item.dart';
 import 'features/gratitude/data/datasources/gratitude_local_datasource.dart';
 import 'features/gratitude/data/repositories/gratitude_repository_impl.dart';
 import 'features/gratitude/domain/usecases/usecases.dart' as gratitude_usecases;
 import 'features/gratitude/presentation/providers/gratitude_provider.dart';
+import 'features/gratitude/presentation/pages/gratitude_page.dart';
+import 'features/todo/presentation/pages/todo_page.dart';
+import 'features/water/presentation/pages/water_page.dart';
+import 'features/mood_tracker/presentation/pages/mood_page.dart';
+import 'features/routines/presentation/pages/routines_page.dart';
+import 'features/routines/presentation/pages/guided_routine_flow_page.dart';
+import 'features/challenges/presentation/pages/challenges_page.dart';
+import 'features/calendar/presentation/pages/calendar_page.dart';
 
 // Challenges feature imports
 import 'features/challenges/domain/entities/challenge.dart'
@@ -125,7 +145,122 @@ void main() async {
   final calendarDataSource = CalendarLocalDatasource();
 
   // Notification service'i başlat
-  await NotificationService().initialize();
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  final reminderCoordinator = ReminderCoordinator(
+    notifications: notificationService,
+    preferencesRepository: await ReminderPreferencesRepository.create(),
+    idRegistry: await ReminderIdRegistry.create(),
+  );
+  final routines = await routinesDataSource.getRoutines();
+  final calendarEvents = await calendarDataSource.getAllEvents();
+  await reminderCoordinator.initialize(
+    hasLegacyReminders:
+        routines.any(
+          (routine) => routine.time != null && routine.reminderEnabled,
+        ) ||
+        calendarEvents.any((event) => event.hasReminder && !event.isPast),
+  );
+  await reminderCoordinator.reconcileRoutines(routines);
+  await reminderCoordinator.reconcileCalendarEvents(calendarEvents);
+
+  final todayWater = await waterDataSource.getWaterIntake(DateTime.now());
+  final savedWaterGoal = await DailyGoalService.getDailyGoal();
+  await reminderCoordinator.reconcileWater(
+    goalReached: (todayWater?.amountMl ?? 0) >= savedWaterGoal,
+  );
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.mood,
+    completedToday: await moodDataSource.getTodayMood() != null,
+    actionable: true,
+    title: 'How are you feeling?',
+    body: 'Take a quiet moment to check in with yourself.',
+    payload: 'kora://mood',
+  );
+  final morningGratitude = await gratitudeDataSource.getEntryByDateAndType(
+    DateTime.now(),
+    EntryType.morning,
+  );
+  final eveningGratitude = await gratitudeDataSource.getEntryByDateAndType(
+    DateTime.now(),
+    EntryType.evening,
+  );
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.gratitudeMorning,
+    completedToday: morningGratitude?.isComplete ?? false,
+    actionable: true,
+    title: 'Morning gratitude',
+    body: 'Begin today by naming three things you appreciate.',
+    payload: 'kora://gratitude',
+  );
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.gratitudeEvening,
+    completedToday: eveningGratitude?.isComplete ?? false,
+    actionable: true,
+    title: 'Evening gratitude',
+    body: 'Close the day with a short reflection.',
+    payload: 'kora://gratitude',
+  );
+  final todayTodosResult = await todoDataSource.getTodayTodos();
+  final todayTodos = todayTodosResult.data ?? const <DailyTodo>[];
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.todo,
+    completedToday:
+        todayTodos.isNotEmpty && todayTodos.every((todo) => todo.isCompleted),
+    actionable: todayTodos.any((todo) => !todo.isCompleted),
+    title: 'Tasks for today',
+    body: 'A quick review can help you close the day with less on your mind.',
+    payload: 'kora://todo',
+  );
+
+  final startupPrefs = await SharedPreferences.getInstance();
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.breathing,
+    completedToday: _historyHasCompletionToday(
+      startupPrefs.getString('breathing_session_history'),
+    ),
+    actionable: true,
+    title: 'A moment to breathe',
+    body: 'A short breathing session can reset the pace of your day.',
+    payload: 'kora://breathing',
+  );
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.affirmations,
+    completedToday: _historyHasCompletionToday(
+      startupPrefs.getString('affirmation_session_history'),
+    ),
+    actionable: true,
+    title: 'Your affirmation practice',
+    body: 'Take a few minutes for the words you want to carry today.',
+    payload: 'kora://affirmations',
+  );
+
+  final startupChallengesRepository = ChallengesRepositoryImpl(
+    challengesDataSource,
+  );
+  final activeChallenges = await startupChallengesRepository
+      .getActiveChallenges();
+  final weeklyGoals = await startupChallengesRepository.getCurrentWeekGoals();
+  final now = DateTime.now();
+  final challengeActionable =
+      activeChallenges.any((challenge) => !challenge.isCompleted) ||
+      weeklyGoals.any((goal) => !goal.isCompleted);
+  final challengesCompletedToday =
+      challengeActionable &&
+      activeChallenges
+          .where((challenge) => !challenge.isCompleted)
+          .every((challenge) => challenge.isTodayCompleted(now)) &&
+      weeklyGoals
+          .where((goal) => !goal.isCompleted)
+          .every((goal) => goal.isTodayCompleted(now));
+  await reminderCoordinator.reconcileDailyFeature(
+    feature: ReminderFeature.challenges,
+    completedToday: challengesCompletedToday,
+    actionable: challengeActionable,
+    title: 'Today’s challenge check-in',
+    body: 'Mark today’s progress while it is still fresh.',
+    payload: 'kora://challenges',
+  );
 
   // Weekly insight notification — reschedule on every app open.
   // Wrapped in try/catch: failure must never crash startup.
@@ -134,9 +269,15 @@ void main() async {
     final name =
         await const FlutterSecureStorage().read(key: 'user_name') ?? 'there';
     if (insight != null) {
-      await NotificationService().scheduleWeeklyInsight(insight, name);
+      await reminderCoordinator.reconcileWeeklyInsight(
+        insight: insight,
+        userName: name,
+      );
     } else {
-      await NotificationService().cancelNotification(9001);
+      await reminderCoordinator.reconcileWeeklyInsight(
+        insight: null,
+        userName: name,
+      );
     }
   } catch (e) {
     debugPrint('Weekly insight notification skipped: $e');
@@ -155,10 +296,19 @@ void main() async {
       gratitudeDataSource: gratitudeDataSource,
       challengesDataSource: challengesDataSource,
       calendarDataSource: calendarDataSource,
+      reminderCoordinator: reminderCoordinator,
       showOnboarding: showOnboarding,
     ),
   );
+  _configureNotificationNavigation(
+    notificationService,
+    enabled: !showOnboarding,
+  );
 }
+
+final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<_MainScreenState> _mainScreenKey =
+    GlobalKey<_MainScreenState>();
 
 class KoraApp extends StatelessWidget {
   final TodoLocalDataSource todoDataSource;
@@ -168,6 +318,7 @@ class KoraApp extends StatelessWidget {
   final GratitudeLocalDataSource gratitudeDataSource;
   final ChallengesLocalDataSource challengesDataSource;
   final CalendarLocalDatasource calendarDataSource;
+  final ReminderCoordinator reminderCoordinator;
   final bool showOnboarding;
 
   const KoraApp({
@@ -179,6 +330,7 @@ class KoraApp extends StatelessWidget {
     required this.gratitudeDataSource,
     required this.challengesDataSource,
     required this.calendarDataSource,
+    required this.reminderCoordinator,
     required this.showOnboarding,
   });
 
@@ -206,6 +358,7 @@ class KoraApp extends StatelessWidget {
             toggleTodoCompletion: ToggleTodoCompletion(
               context.read<TodoRepositoryImpl>(),
             ),
+            reminders: reminderCoordinator,
           ),
         ),
         ChangeNotifierProvider<RoutinesProvider>(
@@ -222,6 +375,7 @@ class KoraApp extends StatelessWidget {
             deleteRoutine: routines_usecases.DeleteRoutine(
               context.read<routines_repo.RoutineRepositoryImpl>(),
             ),
+            reminders: reminderCoordinator,
           ),
         ),
         ChangeNotifierProvider<WaterProvider>(
@@ -238,20 +392,22 @@ class KoraApp extends StatelessWidget {
             updateWaterIntake: water_usecases.UpdateWaterIntake(
               context.read<WaterRepositoryImpl>(),
             ),
+            reminders: reminderCoordinator,
           ),
         ),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<MoodProvider>(
-          create: (_) => MoodProvider(moodDataSource),
+          create: (_) =>
+              MoodProvider(moodDataSource, reminders: reminderCoordinator),
         ),
         ChangeNotifierProvider<VoiceSettingsProvider>(
           create: (_) => VoiceSettingsProvider(),
         ),
         ChangeNotifierProvider<AffirmationProvider>(
-          create: (_) => AffirmationProvider(),
+          create: (_) => AffirmationProvider(reminders: reminderCoordinator),
         ),
         ChangeNotifierProvider<BreathingProvider>(
-          create: (_) => BreathingProvider(),
+          create: (_) => BreathingProvider(reminders: reminderCoordinator),
         ),
         Provider<GratitudeRepositoryImpl>(
           create: (_) => GratitudeRepositoryImpl(gratitudeDataSource),
@@ -282,6 +438,7 @@ class KoraApp extends StatelessWidget {
             getEmotionTagStats: gratitude_usecases.GetEmotionTagStats(
               context.read<GratitudeRepositoryImpl>(),
             ),
+            reminders: reminderCoordinator,
           ),
         ),
         // Challenges Provider
@@ -289,15 +446,22 @@ class KoraApp extends StatelessWidget {
           create: (_) => ChallengesRepositoryImpl(challengesDataSource),
         ),
         ChangeNotifierProvider<ChallengesProvider>(
-          create: (context) =>
-              ChallengesProvider(context.read<ChallengesRepositoryImpl>()),
+          create: (context) => ChallengesProvider(
+            context.read<ChallengesRepositoryImpl>(),
+            reminders: reminderCoordinator,
+          ),
         ),
         // Calendar Provider
         ChangeNotifierProvider<CalendarProvider>(
           create: (_) => CalendarProvider(
             datasource: calendarDataSource,
             notificationService: NotificationService(),
+            reminders: reminderCoordinator,
           ),
+        ),
+        Provider<ReminderCoordinator>.value(value: reminderCoordinator),
+        ChangeNotifierProvider<ReminderSettingsProvider>(
+          create: (_) => ReminderSettingsProvider(reminderCoordinator),
         ),
         // Timer Provider
         ChangeNotifierProvider<TimerProvider>(create: (_) => TimerProvider()),
@@ -305,6 +469,7 @@ class KoraApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp(
+            navigatorKey: _navigatorKey,
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme.copyWith(
@@ -316,7 +481,9 @@ class KoraApp extends StatelessWidget {
             themeMode: themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: showOnboarding ? const OnboardingPage() : const MainScreen(),
+            home: showOnboarding
+                ? const OnboardingPage()
+                : MainScreen(key: _mainScreenKey),
           );
         },
       ),
@@ -349,10 +516,11 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _rescheduleNotifications() async {
     try {
       final routinesProvider = context.read<RoutinesProvider>();
+      final reminderCoordinator = context.read<ReminderCoordinator>();
       await routinesProvider.loadRoutines();
       final routines = routinesProvider.routines;
       if (routines.isNotEmpty) {
-        await NotificationService().rescheduleAllRoutineNotifications(routines);
+        await reminderCoordinator.reconcileRoutines(routines);
         // Debug: Zamanlanmış bildirimleri kontrol et
         await NotificationService().checkPendingNotifications();
       }
@@ -365,6 +533,14 @@ class _MainScreenState extends State<MainScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void showHome() {
+    _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -451,4 +627,80 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildCelebrationOverlay() {
     return const SizedBox.shrink();
   }
+}
+
+bool _historyHasCompletionToday(String? rawJson) {
+  if (rawJson == null || rawJson.isEmpty) return false;
+  try {
+    final decoded = jsonDecode(rawJson);
+    if (decoded is! List) return false;
+    final now = DateTime.now();
+    return decoded.whereType<Map>().any((entry) {
+      final value = entry['completedAt'];
+      if (value is! String) return false;
+      final completedAt = DateTime.tryParse(value);
+      return completedAt != null &&
+          completedAt.year == now.year &&
+          completedAt.month == now.month &&
+          completedAt.day == now.day;
+    });
+  } catch (_) {
+    return false;
+  }
+}
+
+void _configureNotificationNavigation(
+  NotificationService notifications, {
+  required bool enabled,
+}) {
+  if (!enabled) return;
+  notifications.payloads.listen(_openNotificationPayload);
+  final pending = notifications.takePendingPayload();
+  if (pending != null) {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _openNotificationPayload(pending),
+    );
+  }
+}
+
+void _openNotificationPayload(String payload) {
+  final navigator = _navigatorKey.currentState;
+  final context = _navigatorKey.currentContext;
+  if (navigator == null || context == null) {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _openNotificationPayload(payload),
+    );
+    return;
+  }
+
+  Widget? page;
+  if (payload == 'kora://home') {
+    navigator.popUntil((route) => route.isFirst);
+    _mainScreenKey.currentState?.showHome();
+    return;
+  } else if (payload == 'kora://todo') {
+    page = const TodoPage();
+  } else if (payload == 'kora://water') {
+    page = const WaterPage();
+  } else if (payload == 'kora://mood') {
+    page = const MoodPage();
+  } else if (payload == 'kora://gratitude') {
+    page = const GratitudePage();
+  } else if (payload == 'kora://breathing') {
+    page = const BreathingPage();
+  } else if (payload == 'kora://affirmations') {
+    page = const AffirmationsPage();
+  } else if (payload == 'kora://challenges') {
+    page = const ChallengesPage(initialTab: 1);
+  } else if (payload.startsWith('kora://routine/')) {
+    final id = payload.substring('kora://routine/'.length);
+    final routine = context.read<RoutinesProvider>().getRoutineById(id);
+    page = routine == null
+        ? const RoutinesPage()
+        : GuidedRoutineFlowPage(routineId: routine.id);
+  } else if (payload.startsWith('kora://calendar')) {
+    page = const CalendarPage();
+  }
+
+  if (page != null) navigator.push(AppRoute(page: page));
 }

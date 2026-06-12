@@ -7,12 +7,16 @@ import '../../domain/entities/challenge.dart';
 import '../../domain/entities/weekly_goal.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/user_progress.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 /// Provider for managing challenges, goals, badges, and user progress
 class ChallengesProvider with ChangeNotifier {
   final ChallengesRepositoryImpl _repository;
+  final ReminderCoordinator? _reminders;
 
-  ChallengesProvider(this._repository);
+  ChallengesProvider(this._repository, {ReminderCoordinator? reminders})
+    : _reminders = reminders;
 
   // State
   List<Challenge> _activeChallenges = [];
@@ -57,6 +61,7 @@ class ChallengesProvider with ChangeNotifier {
 
       // Update available challenges
       _updateAvailableChallenges();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error initializing ChallengesProvider: $e');
@@ -101,6 +106,7 @@ class ChallengesProvider with ChangeNotifier {
       _activeChallenges.add(newChallenge);
       _updateAvailableChallenges();
       notifyListeners();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error joining challenge: $e');
@@ -124,6 +130,7 @@ class ChallengesProvider with ChangeNotifier {
       await checkAndAwardBadges();
 
       notifyListeners();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error marking challenge complete: $e');
@@ -141,6 +148,7 @@ class ChallengesProvider with ChangeNotifier {
       await _loadChallenges();
       await _loadUserProgress();
       notifyListeners();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error using streak freeze: $e');
@@ -153,6 +161,7 @@ class ChallengesProvider with ChangeNotifier {
       await _repository.createWeeklyGoal(goal);
       _weeklyGoals.add(goal);
       notifyListeners();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error creating weekly goal: $e');
@@ -175,6 +184,7 @@ class ChallengesProvider with ChangeNotifier {
       }
 
       notifyListeners();
+      await _reconcileReminders();
     } catch (e) {
       _error = e.toString();
       debugPrint('Error marking weekly goal day: $e');
@@ -218,6 +228,29 @@ class ChallengesProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Error checking badges: $e');
     }
+  }
+
+  Future<void> _reconcileReminders() async {
+    final now = DateTime.now();
+    final activeChallenges = _activeChallenges.where(
+      (challenge) => !challenge.isCompleted,
+    );
+    final activeGoals = _weeklyGoals.where((goal) => !goal.isCompleted);
+    final actionable = activeChallenges.isNotEmpty || activeGoals.isNotEmpty;
+    final completedToday =
+        actionable &&
+        activeChallenges.every(
+          (challenge) => challenge.isTodayCompleted(now),
+        ) &&
+        activeGoals.every((goal) => goal.isTodayCompleted(now));
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.challenges,
+      completedToday: completedToday,
+      actionable: actionable,
+      title: 'Today’s challenge check-in',
+      body: 'Mark today’s progress while it is still fresh.',
+      payload: 'kora://challenges',
+    );
   }
 
   /// Unlock a badge and award XP

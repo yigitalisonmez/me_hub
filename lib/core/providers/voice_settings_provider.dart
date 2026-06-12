@@ -27,7 +27,7 @@ class VoiceSettingsProvider with ChangeNotifier {
   /// Available locales for voice recognition
   static const List<Map<String, String>> availableLocales = [
     {'code': 'tr_TR', 'name': 'Türkçe', 'flag': '🇹🇷'},
-    {'code': 'en_US', 'name': 'English', 'flag': '🇬🇧'},
+    {'code': 'en_US', 'name': 'English', 'flag': '🇺🇸'},
   ];
 
   /// Set the voice recognition locale

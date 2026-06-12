@@ -1,12 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
+import '../reminders/domain/reminder_request.dart';
+import '../reminders/services/reminder_notification_gateway.dart';
 import '../../features/routines/domain/entities/routine.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import '../../features/calendar/domain/entities/calendar_event.dart';
 
-class NotificationService {
+export '../reminders/services/reminder_notification_gateway.dart'
+    show NotificationPermissionState;
+
+class NotificationService implements ReminderNotificationGateway {
   static final NotificationService _instance = NotificationService._withPlugin(
     FlutterLocalNotificationsPlugin(),
   );
@@ -20,9 +28,15 @@ class NotificationService {
   ) => NotificationService._withPlugin(plugin);
 
   FlutterLocalNotificationsPlugin _notifications;
+  static const _settingsChannel = MethodChannel('com.yigit.kora/settings');
 
   bool _initialized = false;
   tz.Location? _localLocation;
+  final StreamController<String> _payloadController =
+      StreamController<String>.broadcast();
+  String? _pendingPayload;
+
+  Stream<String> get payloads => _payloadController.stream;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -45,9 +59,9 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     const initSettings = InitializationSettings(
@@ -104,21 +118,176 @@ class NotificationService {
         ),
       );
 
-      await androidImplementation.requestNotificationsPermission();
+      await androidImplementation.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'kora_reminders',
+          'Kora Reminders',
+          description: 'Reminders for Kora features',
+          importance: Importance.defaultImportance,
+          playSound: true,
+          enableVibration: true,
+          showBadge: false,
+        ),
+      );
+    }
 
-      final canScheduleExactAlarms = await androidImplementation
-          .canScheduleExactNotifications();
-
-      if (canScheduleExactAlarms == false) {
-        await androidImplementation.requestExactAlarmsPermission();
-      }
+    final launchDetails = await _notifications
+        .getNotificationAppLaunchDetails();
+    final launchPayload = launchDetails?.notificationResponse?.payload;
+    if (launchDetails?.didNotificationLaunchApp == true &&
+        launchPayload != null &&
+        launchPayload.isNotEmpty) {
+      _pendingPayload = launchPayload;
     }
 
     _initialized = true;
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    // Navigasyon işlemleri buraya eklenebilir
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) return;
+    _pendingPayload = payload;
+    _payloadController.add(payload);
+  }
+
+  String? takePendingPayload() {
+    final payload = _pendingPayload;
+    _pendingPayload = null;
+    return payload;
+  }
+
+  @override
+  Future<NotificationPermissionState> getPermissionState() async {
+    if (!_initialized) await initialize();
+    try {
+      final android = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android != null) {
+        final enabled = await android.areNotificationsEnabled();
+        return enabled == true
+            ? NotificationPermissionState.granted
+            : NotificationPermissionState.denied;
+      }
+
+      final ios = _notifications
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) {
+        final permissions = await ios.checkPermissions();
+        return permissions?.isEnabled == true
+            ? NotificationPermissionState.granted
+            : NotificationPermissionState.denied;
+      }
+    } on MissingPluginException {
+      return NotificationPermissionState.unknown;
+    }
+    return NotificationPermissionState.granted;
+  }
+
+  @override
+  Future<NotificationPermissionState> requestPermission() async {
+    if (!_initialized) await initialize();
+    try {
+      final android = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android != null) {
+        final granted = await android.requestNotificationsPermission();
+        return granted == true
+            ? NotificationPermissionState.granted
+            : NotificationPermissionState.denied;
+      }
+
+      final ios = _notifications
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) {
+        final granted = await ios.requestPermissions(
+          alert: true,
+          sound: true,
+          badge: false,
+        );
+        return granted == true
+            ? NotificationPermissionState.granted
+            : NotificationPermissionState.denied;
+      }
+    } on MissingPluginException {
+      return NotificationPermissionState.unknown;
+    }
+    return NotificationPermissionState.granted;
+  }
+
+  @override
+  Future<void> openNotificationSettings() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await _settingsChannel.invokeMethod<void>('openNotificationSettings');
+    } on MissingPluginException {
+      // Settings deep-link is an Android enhancement. Other platforms keep the
+      // permission state visible without failing the settings page.
+    }
+  }
+
+  @override
+  Future<void> scheduleReminder(int id, ReminderRequest request) async {
+    if (!_initialized) await initialize();
+
+    final location = _localLocation ?? tz.local;
+    final scheduledDate = tz.TZDateTime.from(request.scheduledAt, location);
+    var scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+    if (request.exact) {
+      final android = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (await android?.canScheduleExactNotifications() == true) {
+        scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+      }
+    }
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'kora_reminders',
+        'Kora Reminders',
+        channelDescription: 'Reminders for Kora features',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        showWhen: true,
+        enableVibration: true,
+        playSound: true,
+        autoCancel: true,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: true,
+      ),
+    );
+
+    final matchComponents = switch (request.repeat) {
+      ReminderRepeat.none => null,
+      ReminderRepeat.daily => DateTimeComponents.time,
+      ReminderRepeat.weekly => DateTimeComponents.dayOfWeekAndTime,
+    };
+
+    await _notifications.zonedSchedule(
+      id,
+      request.title,
+      request.body,
+      scheduledDate,
+      details,
+      androidScheduleMode: scheduleMode,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: request.payload,
+      matchDateTimeComponents: matchComponents,
+    );
   }
 
   Future<void> rescheduleAllRoutineNotifications(List<Routine> routines) async {
@@ -319,10 +488,12 @@ class NotificationService {
     }
   }
 
+  @override
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
 
+  @override
   Future<void> cancelNotification(int id) async {
     if (!_initialized) await initialize();
     await _notifications.cancel(id);
@@ -335,8 +506,7 @@ class NotificationService {
   }
 
   int _getNotificationId(String routineId, int dayIndex) {
-    final idString = '${routineId}_$dayIndex';
-    return idString.hashCode.abs() % 2147483647;
+    return _stableLegacyNotificationId('${routineId}_$dayIndex');
   }
 
   Future<void> updateRoutineNotifications(Routine routine) async {
@@ -594,8 +764,20 @@ class NotificationService {
 
   /// Takvim etkinliği için notification ID üret
   int _getCalendarNotificationId(String eventId) {
-    // Calendar için farklı bir prefix kullan
-    final idString = 'cal_$eventId';
-    return idString.hashCode.abs() % 2147483647;
+    return _stableLegacyNotificationId('cal_$eventId');
   }
+}
+
+int _stableLegacyNotificationId(String input) {
+  var hash = 0x811c9dc5;
+  for (final unit in input.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xffffffff;
+  }
+  var id = hash & 0x7fffffff;
+  if (id == 0) id = 1;
+  while (id == 9001 || id == 999999) {
+    id++;
+  }
+  return id;
 }

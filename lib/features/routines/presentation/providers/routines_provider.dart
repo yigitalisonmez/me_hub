@@ -2,22 +2,26 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/routine.dart';
 import '../../domain/usecases/usecases.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 class RoutinesProvider with ChangeNotifier {
   final GetRoutines _getRoutines;
   final AddRoutine _addRoutine;
   final UpdateRoutine _updateRoutine;
   final DeleteRoutine _deleteRoutine;
+  final ReminderCoordinator? _reminders;
 
   RoutinesProvider({
     required GetRoutines getRoutines,
     required AddRoutine addRoutine,
     required UpdateRoutine updateRoutine,
     required DeleteRoutine deleteRoutine,
+    ReminderCoordinator? reminders,
   }) : _getRoutines = getRoutines,
        _addRoutine = addRoutine,
        _updateRoutine = updateRoutine,
-       _deleteRoutine = deleteRoutine;
+       _deleteRoutine = deleteRoutine,
+       _reminders = reminders;
 
   List<Routine> _routines = [];
   bool _isLoading = false;
@@ -92,17 +96,22 @@ class RoutinesProvider with ChangeNotifier {
     int? iconCodePoint,
     TimeOfDay? time,
     List<int>? selectedDays,
+    List<RoutineItem>? items,
+    bool scheduleNotifications = true,
+    int reminderMinutesBefore = 5,
   }) async {
     try {
       final routine = Routine(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         name: name,
-        items: const [],
+        items: items ?? const [],
         streakCount: 0,
         iconCodePoint: iconCodePoint,
         timeHour: time?.hour,
         timeMinute: time?.minute,
         selectedDays: selectedDays,
+        reminderEnabled: scheduleNotifications,
+        reminderMinutesBefore: reminderMinutesBefore,
       );
 
       // Önce storage'a kaydet
@@ -116,7 +125,9 @@ class RoutinesProvider with ChangeNotifier {
       }
 
       // Bildirimleri arka planda zamanla (async)
-      if (routine.time != null) {
+      if (_reminders != null) {
+        await _reminders.reconcileRoutine(savedRoutine);
+      } else if (scheduleNotifications && routine.time != null) {
         NotificationService().scheduleRoutineNotifications(routine).catchError((
           e,
         ) {
@@ -301,11 +312,15 @@ class RoutinesProvider with ChangeNotifier {
       notifyListeners();
 
       // Bildirimleri arka planda iptal et
-      NotificationService().cancelRoutineNotifications(routineId).catchError((
-        e,
-      ) {
-        debugPrint('Error canceling notifications: $e');
-      });
+      if (_reminders != null) {
+        await _reminders.removeRoutine(routineId);
+      } else {
+        NotificationService().cancelRoutineNotifications(routineId).catchError((
+          e,
+        ) {
+          debugPrint('Error canceling notifications: $e');
+        });
+      }
     } catch (e) {
       debugPrint('Error deleting routine: $e');
       // Hata durumunda state'i güncelleme - rutin hala listede kalmalı
@@ -325,7 +340,9 @@ class RoutinesProvider with ChangeNotifier {
     }
 
     // Bildirimleri güncelle (sadece zaman değiştiğinde)
-    if (routine.time != null) {
+    if (_reminders != null) {
+      await _reminders.reconcileRoutine(routine);
+    } else if (routine.time != null && routine.reminderEnabled) {
       await NotificationService().updateRoutineNotifications(routine);
     } else {
       // Eğer zaman yoksa bildirimleri iptal et

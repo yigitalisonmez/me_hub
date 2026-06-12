@@ -19,7 +19,7 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage> {
   final _introKey = GlobalKey<IntroductionScreenState>();
   final TextEditingController _nameController = TextEditingController();
-  String? _selectedFocus;
+  final Set<String> _selectedFocuses = {};
 
   @override
   void dispose() {
@@ -45,13 +45,27 @@ class _OnboardingPageState extends State<OnboardingPage> {
       return;
     }
 
+    if (_selectedFocuses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Pick at least one focus to continue'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      _introKey.currentState?.animateScroll(3);
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
 
-    // Persist the user's focus selection for personalization
-    if (_selectedFocus != null) {
-      await prefs.setString('user_primary_focus', _selectedFocus!);
-    }
+    final focuses = _selectedFocuses.toList(growable: false);
+    await prefs.setStringList('user_focus_areas', focuses);
+    await prefs.setString('user_primary_focus', focuses.first);
 
     // Securely store user name
     const secureStorage = FlutterSecureStorage();
@@ -88,9 +102,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
           showBackButton: true,
           back: const Icon(Icons.arrow_back),
           next: const Icon(Icons.arrow_forward),
-          done: const Text(
-            'Get Started',
-            style: TextStyle(fontWeight: FontWeight.w600),
+          done: Text(
+            _selectedFocuses.isEmpty
+                ? 'Pick at least one'
+                : 'Start with ${_selectedFocuses.length} '
+                      '${_selectedFocuses.length == 1 ? 'focus' : 'focuses'}',
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           curve: Curves.fastLinearToSlowEaseIn,
           controlsMargin: const EdgeInsets.all(16),
@@ -265,11 +282,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   PageViewModel _buildFocusPage(ThemeProvider themeProvider) {
     return PageViewModel(
-      title: "What's your main focus?",
+      title: 'What would you like to focus on?',
       bodyWidget: Column(
         children: [
           Text(
-            "We'll help you customize your experience.",
+            'Pick a few - you can change these anytime.',
             style: TextStyle(
               fontSize: 16.0,
               color: themeProvider.textSecondary,
@@ -287,7 +304,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
             children: [
               _buildFocusOption(
                 themeProvider,
-                'Build Habits',
+                'Tasks',
+                'assets/images/todo_tracker.png',
+                AppColors.primary,
+                'tasks',
+              ),
+              _buildFocusOption(
+                themeProvider,
+                'Routines',
                 'assets/images/routine_tracker.png',
                 AppColors.routine,
                 'routines',
@@ -308,10 +332,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
               _buildFocusOption(
                 themeProvider,
-                'Plan Better',
-                'assets/images/checklist_2.png',
-                AppColors.primary,
-                'tasks',
+                'Breathing',
+                'assets/images/breathing.png',
+                AppColors.mindful,
+                'breathing',
+              ),
+              _buildFocusOption(
+                themeProvider,
+                'Gratitude',
+                'assets/images/gratitude_2.png',
+                AppColors.mindfulDeep,
+                'gratitude',
               ),
             ],
           ),
@@ -330,10 +361,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
     Color color,
     String value,
   ) {
-    final isSelected = _selectedFocus == value;
+    final isSelected = _selectedFocuses.contains(value);
 
     return InkWell(
-      onTap: () => setState(() => _selectedFocus = value),
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedFocuses.remove(value);
+          } else {
+            _selectedFocuses.add(value);
+          }
+        });
+      },
       borderRadius: BorderRadius.circular(22),
       child: Container(
         padding: const EdgeInsets.all(14),

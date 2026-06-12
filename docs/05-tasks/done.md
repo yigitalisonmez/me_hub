@@ -1,7 +1,292 @@
 # Done
 
+## 2026-06-07 (Animated Water Metric)
+
+- Added the `animated_digit` package and a reusable, reduced-motion-aware
+  `AnimatedMetricText` core widget.
+- Replaced the Water page's main consumed-liter text with a rolling value that
+  animates on first display and after add, undo, or delete updates.
+- Extended rolling metrics to the fixed Profile and Challenges summary cards.
+  Timers and repeating list rows stay static because the package creates a
+  scroll controller and digit list for every animated digit.
+- Added widget tests for precision, value updates, semantics, and reduced
+  motion behavior, including six simultaneous low-frequency metrics.
+- **Validation**:
+  - `flutter analyze`: no issues.
+  - `flutter test`: all 87 tests passed.
+  - Android profile APK built and launched successfully on a physical 120 Hz
+    device.
+  - Eight spaced Water quick-add updates produced 417 measured animation
+    frames. UI frame work was 1.49 ms median / 3.27 ms max; raster work was
+    3.34 ms median / 6.20 ms max. No UI or raster frame exceeded the 8.33 ms
+    120 Hz budget.
+  - The embedder reported six isolated one-vsync presentation misses during
+    ADB-driven interaction. Since UI and raster work stayed within budget,
+    these did not indicate an `animated_digit` computation or painting
+    bottleneck.
+
 Completed work should be summarized here with date, changed files, and test
 results.
+
+## 2026-06-08 (Persisted Feature Reminders)
+
+- Added a versioned reminder preferences repository, stable notification ID
+  registry, pure schedule planner, platform gateway, and scoped coordinator.
+- Added global and per-feature Settings controls plus Water Goal, Routine, and
+  Calendar-owned controls.
+- Added completion-aware reminders for Water, Mood, Gratitude, Breathing,
+  Affirmations, Todo, Challenges, and weekly insights.
+- Added permission-aware blocked state, contextual permission requests, system
+  settings navigation, typed notification payload navigation, and legacy
+  migration cleanup.
+- Removed unused Android notification/service permissions and retained inexact
+  fallback for Calendar.
+- Added reminder serialization, migration, scheduling, collision, namespace,
+  permission, and master-toggle tests.
+- **Validation**:
+  - `flutter analyze`: no issues.
+  - `flutter test`: all 104 tests passed.
+  - Profile APK built, installed, and launched on a physical SM-S908E.
+  - Kora remained the focused foreground activity with no startup notification
+    permission dialog or ANR.
+
+## 2026-06-07 (Profile and Settings Accuracy Cleanup)
+
+- Removed the fabricated Profile insight percentage and its nonfunctional full
+  report affordance.
+- Removed Profile controls for dark mode, reminders, and privacy because those
+  locations did not provide matching implemented behavior.
+- Profile now shows the persisted water goal, opens Water Settings, and refreshes
+  both its label and `WaterProvider` after a successful save.
+- Static Profile rows no longer show a chevron unless they are interactive.
+- Settings now uses separate Appearance and Voice sections; dark mode remains
+  the single theme control and `en_US` uses the United States flag.
+- Removed the decorative, nonfunctional reminder controls from Water Goal.
+- Recorded the deferred reminder, privacy/data-management, analytics-report, and
+  quick-theme ideas in `01-product/future-ideas.md`.
+- Added widget coverage for Profile cleanup, water-goal synchronization,
+  Settings persistence, locale presentation, and removal of fake reminder UI.
+- **Validation**:
+  - `dart format`: completed for touched Dart files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all 81 tests passed.
+
+## 2026-06-06 (Water + Mood Interaction Polish)
+
+- **Water feedback**: Quick-add actions now animate the jug with a 500 ms pulse,
+  smoothly raise the displayed level, and show a themed floating confirmation
+  message above the bottom navigation.
+- **Water surface**: Rebuilt the jug fill with two connected, counter-moving
+  wave layers so the surface remains filled edge to edge without the old seam.
+- **Goal celebration**: Reaching the daily target now adds a water-colored glow
+  and an animated in-jug "Goal reached!" message for 2.6 seconds.
+- **Mood motion**: The mood orb keeps a stable layout size while emitting a
+  calm 4.5-second pulse ring. Selecting a mood now morphs the orb color, pops in
+  the new face, and slides/fades the label and caption.
+- **Mood controls**: Mood scale buttons and factor chips now have compact press
+  feedback without shifting the surrounding layout.
+- **Routine duration follow-up**: Guided routine timers now use the persisted
+  per-step duration, with a model test covering `RoutineItem.copyWith`.
+- **Changed files**:
+  - `lib/features/water/presentation/pages/water_page.dart`
+  - `lib/features/water/presentation/widgets/todays_progress_card.dart`
+  - `lib/features/water/presentation/widgets/quick_add_section.dart`
+  - `lib/features/mood_tracker/presentation/pages/mood_page.dart`
+  - `lib/features/routines/presentation/pages/guided_routine_flow_page.dart`
+  - `test/features/routines/routine_test.dart`
+- **Validation**:
+  - `dart format`: completed for touched Dart files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all 77 tests passed.
+
+## 2026-06-03 (Routine Icon Picker Theme)
+
+- **Select icon dialog**: Redesigned the routine step icon picker to match the
+  Kora app theme with warm surfaces, softer borders/shadows, compact search,
+  rounded icon tiles, and routine-accent selected states.
+- **Routine color support**: New routine step icon picking now uses the current
+  selected routine color; edit routine uses the routine green accent.
+- **Changed files**:
+  - `lib/features/routines/presentation/widgets/icon_picker_dialog.dart`
+  - `lib/features/routines/presentation/pages/create_routine_page.dart`
+  - `lib/features/routines/presentation/pages/edit_routine_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-06-03 (Routine Step Icons)
+
+- **Step icon selection**: New routine and edit routine screens now let each
+  step choose its own icon through the existing routine icon picker.
+- **Persisted item icons**: Created and edited routine steps save their selected
+  `RoutineItem.iconCodePoint`, while existing step ids/check state are preserved
+  on edit.
+- **Routine detail display**: Guided routine detail/start rows and next-step
+  hints now render the step icon with a safe fallback.
+- **Changed files**:
+  - `lib/features/routines/presentation/pages/create_routine_page.dart`
+  - `lib/features/routines/presentation/pages/edit_routine_page.dart`
+  - `lib/features/routines/presentation/pages/guided_routine_flow_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-06-03 (Routine Edit Redesign)
+
+- **Edit routine screen**: Replaced the old edit form/bottom-sheet habit UI with
+  the new routine design language: top action bar, live preview card, compact
+  name/icon/time/repeat controls, inline step editor, and sticky Save changes
+  CTA.
+- **Step editing**: Routine steps can now be edited inline and reordered with
+  drag handles; saved items preserve existing ids, icons, and checked dates.
+- **Delete action**: Kept routine deletion available from the redesigned top bar.
+- **Changed files**:
+  - `lib/features/routines/presentation/pages/edit_routine_page.dart`
+- **Validation**:
+  - `dart format lib/features/routines/presentation/pages/edit_routine_page.dart`
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-06-03 (Guided Routine Flow)
+
+- **Design handoff**: Fetched and read the Claude Design bundle, README, both
+  chat transcripts, `Kora Redesign.html`, `routine-flow.jsx`, and the related
+  `rfl-*` CSS sections.
+- **Routine detail/start screen**: Added a guided routine detail page with a
+  gradient hero, routine icon, schedule, step/minute/streak stats, animated step
+  rows, and a full-width Start routine CTA.
+- **Guided run player**: Added a step-by-step routine runner with progress
+  segments, timer ring/orb, pause, skip, "Mark done & next", and exit
+  confirmation.
+- **Selectable step text**: Active step titles and guidance copy use
+  `SelectableText`, so the user can select/copy the current step text without
+  disrupting the flow.
+- **Completion state**: Added a routine-complete screen with check mark,
+  completed-step stats, elapsed time, streak, and Back to routines.
+- **Routine list entry point**: Active routine cards now open the guided flow
+  from the main card body or play action; edit/delete and expand checklist
+  controls remain available.
+- **Changed files**:
+  - `lib/features/routines/presentation/pages/guided_routine_flow_page.dart`
+  - `lib/features/routines/presentation/pages/routines_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-06-01 (P0 Bug Fixes — Timezone, Mood Data Loss, Stale Docs)
+
+- **P0-3 (docs)**: Rewrote `docs/02-architecture/release-readiness.md`.
+  Replaced the stale "build fails / not live-ready" content with the accurate
+  post-signing state. Moved all five resolved P0 blockers to a "Resolved
+  Blockers" section. Added a "Remaining Work" section with genuinely open items.
+  Updated `docs/02-architecture/notifications.md` to remove the hardcoded
+  timezone live-audit note.
+- **P0-2 (timezone)**: Added `flutter_timezone: ^3.0.1` to `pubspec.yaml`.
+  Replaced the hardcoded `tz.getLocation('Europe/Istanbul')` in
+  `NotificationService.initialize()` with a runtime device-timezone lookup via
+  `FlutterTimezone.getLocalTimezone()`. Falls back to `tz.UTC` if the platform
+  channel is unavailable. Removed stale Turkish-language comments referencing
+  the previously removed `flutter_native_timezone` package.
+- **P0-1 (mood data loss)**: Rewrote `MoodLocalDataSource.init()`.
+  - Changed bare `catch (e)` to `on HiveError catch (e)` so that
+    `FileSystemException`, permission errors, and other non-schema failures
+    propagate to the caller instead of silently deleting data.
+  - Added `_backupBoxFiles()`: copies `mood_entries.hive` to a timestamped
+    backup before any delete, using `path_provider`. Best-effort — failure does
+    not block recovery.
+  - Added `_pruneOldBackups()`: keeps the 3 most recent backups, deletes older
+    ones.
+  - Adds a `mood_data_recovered` flag to SharedPreferences after recovery so
+    `MoodProvider` can surface a one-time warning to the user.
+  - Exposed `checkAndClearRecoveryFlag()` static method for `MoodProvider` to
+    consume.
+- **Changed files**:
+  - `docs/02-architecture/release-readiness.md`
+  - `docs/02-architecture/notifications.md`
+  - `pubspec.yaml`
+  - `lib/core/services/notification_service.dart`
+  - `lib/features/mood_tracker/data/datasources/mood_local_datasource.dart`
+- **Validation**:
+  - `flutter pub get`: resolved `flutter_timezone 3.0.1`.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 46/46 passed.
+
+## 2026-06-01 (Goals & Challenges Redesign)
+
+- **Design handoff**: Fetched and read the Claude Design bundle, README,
+  transcript, `Kora Redesign.html`, and the `features3.jsx`/CSS sections for
+  Goals and Challenges.
+- **Goals screen**: Rebuilt the existing Goals/Challenges route with a Goals
+  tab matching the design: analytics asset hero, Active/Done segmented control,
+  progress cards with category tints, mini progress rings, bars, and metadata.
+- **Goal creation**: Added a plus action that opens a weekly-goal template sheet
+  and persists selected goals through the existing `ChallengesProvider`.
+- **Challenges screen**: Added a separate Challenges tab with the amber active
+  challenge spotlight, 30-day dot grid, check-in button, stat cards, and
+  design-style join list.
+- **Badges**: Kept the trophy action and moved all-badges viewing into the new
+  design sheet.
+- **Changed files**:
+  - `lib/features/challenges/presentation/pages/challenges_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched file.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-05-31 (Mood Today's Note + Save Button Fix)
+
+- **Mood note input**: Rebuilt `Today's note` as a fixed-height, centered
+  writing surface with the quote mark layered inside the card instead of taking
+  its own row above the `TextField`.
+- **Mood save button**: Removed the circular `Scaffold` FAB and replaced it with
+  the design-matching 56px rounded-square plus button anchored beside the note
+  section.
+- **Changed files**:
+  - `lib/features/mood_tracker/presentation/pages/mood_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched file.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
+
+## 2026-05-31 (New Routine Flow + Final Redesign Bugfixes)
+
+- **New routine flow**: Replaced the old 3-step create routine wizard with the
+  design-spec single-screen flow:
+  - live preview card
+  - routine name field
+  - icon grid
+  - color swatches
+  - time picker
+  - repeat day selector
+  - editable routine steps
+  - reminder switch
+  - full-width Create routine CTA
+- **Routine persistence**: `RoutinesProvider.addNewRoutine` now accepts optional
+  `items` and `scheduleNotifications`, so created flow steps are saved as real
+  `RoutineItem`s and reminders can be disabled without dropping the routine time.
+- **Affirmations session animation**: `affirmation.png` now floats upward and
+  subtly scales while the session is playing.
+- **Affirmations dark mode**: Record selected tile background now uses a dark
+  blended mindful surface so text stays readable.
+- **Water jug fill**: Hydro painter fill now bleeds past the circle edges and
+  adds a lower fill rect, fixing the unfilled gap on the right side.
+- **Home daily summary navigation**: Tasks, Water, Mood, and Routines summary
+  cards now navigate to their matching feature pages.
+- **Changed files**:
+  - `lib/features/routines/presentation/pages/create_routine_page.dart`
+  - `lib/features/routines/presentation/providers/routines_provider.dart`
+  - `lib/features/affirmations/presentation/widgets/session_step.dart`
+  - `lib/features/affirmations/presentation/widgets/record_step.dart`
+  - `lib/features/water/presentation/widgets/todays_progress_card.dart`
+  - `lib/features/todo/presentation/widgets/dashboard_widgets.dart`
+  - `lib/features/home/presentation/pages/home_page.dart`
+- **Validation**:
+  - `dart format`: completed for touched files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all tests passed.
 
 ## 2026-05-31 (Mood Design Match + Affirmations Glow/Button)
 

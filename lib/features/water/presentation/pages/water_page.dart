@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/swipe_to_dismiss_wrapper.dart';
+import '../../../../core/widgets/animated_metric_text.dart';
+import '../../../../core/widgets/celebration_dialog.dart';
 import '../providers/water_provider.dart';
 import '../../domain/entities/water_intake.dart';
 import '../../data/services/daily_goal_service.dart';
@@ -36,9 +39,11 @@ class WaterPage extends StatefulWidget {
 }
 
 class _WaterPageState extends State<WaterPage>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  late AnimationController _celebrationController;
+    with AutomaticKeepAliveClientMixin {
   List<QuickAddAmount> _quickAddAmounts = [];
+  Timer? _goalCheerTimer;
+  int _waterPulseId = 0;
+  bool _showGoalCheer = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -46,11 +51,6 @@ class _WaterPageState extends State<WaterPage>
   @override
   void initState() {
     super.initState();
-    _celebrationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WaterProvider>().loadTodayWaterIntake();
       _loadQuickAddAmounts();
@@ -77,7 +77,7 @@ class _WaterPageState extends State<WaterPage>
 
   @override
   void dispose() {
-    _celebrationController.dispose();
+    _goalCheerTimer?.cancel();
     super.dispose();
   }
 
@@ -91,43 +91,6 @@ class _WaterPageState extends State<WaterPage>
       child: SafeArea(
         child: Consumer<WaterProvider>(
           builder: (context, provider, child) {
-            // Check if goal was just reached and trigger celebration
-            if (provider.justReachedGoal) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  _celebrationController.forward().then((_) {
-                    if (mounted) {
-                      _celebrationController.reverse();
-                    }
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.partyPopper,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Daily goal reached!',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              });
-            }
-
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: AnimationLimiter(
@@ -147,6 +110,9 @@ class _WaterPageState extends State<WaterPage>
                         provider: provider,
                         dailyGoal: provider.dailyGoalMl,
                         quickAddAmounts: _quickAddAmounts,
+                        pulseId: _waterPulseId,
+                        showGoalCheer: _showGoalCheer,
+                        onAddWater: (amountMl) => _addWater(provider, amountMl),
                       ),
                       const SizedBox(height: 22),
                       TodaysLogSection(provider: provider),
@@ -166,6 +132,135 @@ class _WaterPageState extends State<WaterPage>
 
   Widget _buildHeader(BuildContext context) {
     return _WaterTopBar(onSettingsTap: () => _openSettings(context));
+  }
+
+  Future<void> _addWater(WaterProvider provider, int amountMl) async {
+    final previousAmount = provider.todayAmount;
+    final wasGoalReached = provider.isGoalReached;
+
+    HapticFeedback.mediumImpact();
+    await provider.addWaterAmount(amountMl);
+    if (!mounted || provider.todayAmount <= previousAmount) return;
+
+    final reachedGoalNow =
+        provider.justReachedGoal || (!wasGoalReached && provider.isGoalReached);
+    setState(() {
+      _waterPulseId++;
+      _showGoalCheer = reachedGoalNow;
+    });
+
+    if (reachedGoalNow) {
+      HapticFeedback.heavyImpact();
+      _goalCheerTimer?.cancel();
+      _goalCheerTimer = Timer(const Duration(milliseconds: 2600), () {
+        if (mounted) setState(() => _showGoalCheer = false);
+      });
+    }
+
+    if (reachedGoalNow) {
+      await showCelebrationDialog(
+        context: context,
+        icon: LucideIcons.droplet,
+        color: AppColors.waterDeep,
+        eyebrow: 'DAILY GOAL',
+        title: 'Hydration goal complete',
+        message:
+            'You reached ${provider.dailyGoalMl} ml today. Every glass counted.',
+        actionLabel: 'Nice',
+        metric: CelebrationMetric(
+          before: '$previousAmount',
+          after: '${provider.todayAmount}',
+          label: 'ml today',
+        ),
+      );
+    } else {
+      _showWaterAddedMessage(
+        amountMl: amountMl,
+        remainingMl: (provider.dailyGoalMl - provider.todayAmount).clamp(
+          0,
+          provider.dailyGoalMl,
+        ),
+        reachedGoal: false,
+      );
+    }
+  }
+
+  void _showWaterAddedMessage({
+    required int amountMl,
+    required int remainingMl,
+    required bool reachedGoal,
+  }) {
+    final themeProvider = context.read<ThemeProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.waterTint.withValues(
+                    alpha: themeProvider.isDarkMode ? 0.16 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  reachedGoal ? LucideIcons.check : LucideIcons.droplet,
+                  size: 18,
+                  color: AppColors.waterDeep,
+                  fill: reachedGoal ? 0 : 1,
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reachedGoal
+                          ? 'Daily goal reached!'
+                          : '+$amountMl ml added',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: themeProvider.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    Text(
+                      reachedGoal
+                          ? "You completed today's water goal."
+                          : '$remainingMl ml left today',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: themeProvider.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: themeProvider.surfaceColor,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            LayoutConstants.getNavbarClearance(context) + 8,
+          ),
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: AppColors.water.withValues(alpha: 0.24)),
+          ),
+          duration: const Duration(milliseconds: 1600),
+        ),
+      );
   }
 
   Future<void> _openSettings(BuildContext context) async {

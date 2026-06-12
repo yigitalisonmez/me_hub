@@ -18,6 +18,7 @@ The current UI direction is warm, personal, and depth-based.
 - `lib/core/widgets/section_header.dart` — section title + optional action
 - `lib/core/widgets/shimmer_loading.dart` — skeleton/shimmer placeholder
 - `lib/core/widgets/stat_card.dart` — metric display card
+- `lib/core/widgets/animated_metric_text.dart` — rolling numeric metric text
 
 ## Current Style
 
@@ -34,3 +35,8 @@ The current UI direction is warm, personal, and depth-based.
 - Keep spacing and navbar clearance consistent with `LayoutConstants`.
 - Check light and dark mode.
 - Avoid one-off colors when theme/provider colors are available.
+- Use animated metric text for meaningful user-driven value changes, not
+  continuously ticking timers or decorative numbers.
+- Keep animated metrics out of long/repeating lists. A small fixed group of
+  summary counters is preferred because the package owns a scroll controller
+  and digit list for each rendered digit.

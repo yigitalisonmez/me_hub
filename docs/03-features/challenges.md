@@ -19,3 +19,6 @@ Challenges, weekly goals, badges, streak freeze behavior, and user progress.
 
 - Challenge progress can be updated from other features.
 - When changing progress rules, check badge unlock behavior.
+- The fixed three-card challenge summary uses rolling digit transitions.
+  Per-goal and per-challenge list values remain static to keep animation cost
+  bounded.

@@ -3,17 +3,21 @@ import '../../../calendar/domain/entities/calendar_event.dart';
 import '../../../calendar/domain/entities/reminder_offset.dart';
 import '../../../calendar/data/datasources/calendar_local_datasource.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 /// Takvim state management provider
 class CalendarProvider extends ChangeNotifier {
   final CalendarLocalDatasource _datasource;
   final NotificationService _notificationService;
+  final ReminderCoordinator? _reminders;
 
   CalendarProvider({
     required CalendarLocalDatasource datasource,
     required NotificationService notificationService,
+    ReminderCoordinator? reminders,
   }) : _datasource = datasource,
-       _notificationService = notificationService;
+       _notificationService = notificationService,
+       _reminders = reminders;
 
   // State
   List<CalendarEvent> _events = [];
@@ -107,7 +111,7 @@ class CalendarProvider extends ChangeNotifier {
     String? description,
     required DateTime dateTime,
     required ReminderOffset reminderOffset,
-    bool hasReminder = true,
+    bool hasReminder = false,
     String? categoryId,
   }) async {
     try {
@@ -126,7 +130,11 @@ class CalendarProvider extends ChangeNotifier {
 
       // Bildirim zamanla
       if (hasReminder) {
-        await _notificationService.scheduleCalendarEventNotification(event);
+        if (_reminders != null) {
+          await _reminders.reconcileCalendarEvent(event);
+        } else {
+          await _notificationService.scheduleCalendarEventNotification(event);
+        }
       }
 
       await loadEvents();
@@ -150,8 +158,15 @@ class CalendarProvider extends ChangeNotifier {
       await _datasource.updateEvent(event);
 
       // Bildirimi güncelle
-      await _notificationService.cancelCalendarEventNotification(event.id);
-      if (event.hasReminder && !event.isCompleted && !event.isPast) {
+      if (_reminders != null) {
+        await _reminders.reconcileCalendarEvent(event);
+      } else {
+        await _notificationService.cancelCalendarEventNotification(event.id);
+      }
+      if (_reminders == null &&
+          event.hasReminder &&
+          !event.isCompleted &&
+          !event.isPast) {
         await _notificationService.scheduleCalendarEventNotification(event);
       }
 
@@ -170,7 +185,11 @@ class CalendarProvider extends ChangeNotifier {
   Future<bool> deleteEvent(String eventId) async {
     try {
       await _datasource.deleteEvent(eventId);
-      await _notificationService.cancelCalendarEventNotification(eventId);
+      if (_reminders != null) {
+        await _reminders.removeCalendarEvent(eventId);
+      } else {
+        await _notificationService.cancelCalendarEventNotification(eventId);
+      }
 
       await loadEvents();
       await _loadSelectedDayEvents();
@@ -223,7 +242,11 @@ class CalendarProvider extends ChangeNotifier {
   /// Tüm bildirimleri yeniden zamanla
   Future<void> _rescheduleNotifications() async {
     try {
-      await _notificationService.rescheduleAllCalendarNotifications(_events);
+      if (_reminders != null) {
+        await _reminders.reconcileCalendarEvents(_events);
+      } else {
+        await _notificationService.rescheduleAllCalendarNotifications(_events);
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('❌ Bildirim zamanlama hatası: $e');

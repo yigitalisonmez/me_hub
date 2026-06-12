@@ -4,6 +4,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/reminders/presentation/reminder_settings_provider.dart';
+import '../../../../core/reminders/presentation/reminder_permission_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/calendar_event.dart';
 import '../../domain/entities/reminder_offset.dart';
@@ -89,7 +91,7 @@ class _EventBottomSheetState extends State<EventBottomSheet>
       _selectedDate = widget.initialDate ?? DateTime.now();
       _selectedTime = TimeOfDay.now();
       _selectedReminderOffset = ReminderOffset.fifteenMinutes;
-      _hasReminder = true;
+      _hasReminder = false;
     }
 
     _animController = AnimationController(
@@ -99,9 +101,10 @@ class _EventBottomSheetState extends State<EventBottomSheet>
     _slideAnim = Tween<double>(begin: 80, end: 0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
     );
-    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -144,8 +147,9 @@ class _EventBottomSheetState extends State<EventBottomSheet>
     setState(() => _isLoading = true);
 
     final calendarProvider = context.read<CalendarProvider>();
-    final note =
-        _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
+    final note = _noteController.text.trim().isEmpty
+        ? null
+        : _noteController.text.trim();
     bool success;
 
     if (isEditMode) {
@@ -287,12 +291,27 @@ class _EventBottomSheetState extends State<EventBottomSheet>
 
   Widget _buildTypeSelector(ThemeProvider themeProvider) {
     final types = [
-      (_ItemType.task, LucideIcons.check, 'Task', AppColors.primary,
-          AppColors.primaryDeep),
-      (_ItemType.event, LucideIcons.calendar, 'Event', AppColors.waterDeep,
-          AppColors.waterDeep),
-      (_ItemType.routine, LucideIcons.refreshCw, 'Routine', AppColors.routine,
-          AppColors.routineDeep),
+      (
+        _ItemType.task,
+        LucideIcons.check,
+        'Task',
+        AppColors.primary,
+        AppColors.primaryDeep,
+      ),
+      (
+        _ItemType.event,
+        LucideIcons.calendar,
+        'Event',
+        AppColors.waterDeep,
+        AppColors.waterDeep,
+      ),
+      (
+        _ItemType.routine,
+        LucideIcons.refreshCw,
+        'Routine',
+        AppColors.routine,
+        AppColors.routineDeep,
+      ),
     ];
 
     return Row(
@@ -300,9 +319,7 @@ class _EventBottomSheetState extends State<EventBottomSheet>
         final selected = _selectedType == item.$1;
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(
-              right: item == types.last ? 0 : 9,
-            ),
+            padding: EdgeInsets.only(right: item == types.last ? 0 : 9),
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.selectionClick();
@@ -402,8 +419,7 @@ class _EventBottomSheetState extends State<EventBottomSheet>
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Colors.redAccent, width: 1.5),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
             ),
           ),
         ),
@@ -520,7 +536,8 @@ class _EventBottomSheetState extends State<EventBottomSheet>
                         color: on
                             ? AppColors.waterDeep
                             : themeProvider.textSecondary.withValues(
-                                alpha: 0.12),
+                                alpha: 0.12,
+                              ),
                         width: 1.5,
                       ),
                     ),
@@ -556,9 +573,7 @@ class _EventBottomSheetState extends State<EventBottomSheet>
   }
 
   Widget _buildReminderCard(ThemeProvider themeProvider) {
-    final previewTime = _hasReminder
-        ? _reminderPreviewText()
-        : null;
+    final previewTime = _hasReminder ? _reminderPreviewText() : null;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -613,7 +628,27 @@ class _EventBottomSheetState extends State<EventBottomSheet>
               ),
               Switch.adaptive(
                 value: _hasReminder,
-                onChanged: (v) => setState(() => _hasReminder = v),
+                onChanged: (value) async {
+                  if (value) {
+                    final settings = context.read<ReminderSettingsProvider>();
+                    final explained = await explainReminderPermissionIfNeeded(
+                      context,
+                      settings,
+                    );
+                    if (!explained || !mounted) return;
+                    final allowed = await settings.setMasterEnabled(true);
+                    if (!allowed && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Notifications are blocked in system settings',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  if (mounted) setState(() => _hasReminder = value);
+                },
                 activeColor: AppColors.waterDeep,
               ),
             ],
@@ -643,8 +678,9 @@ class _EventBottomSheetState extends State<EventBottomSheet>
                                 },
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 160),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 9),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 9,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: selected
                                         ? AppColors.waterDeep.withValues(
@@ -872,8 +908,18 @@ class _EventBottomSheetState extends State<EventBottomSheet>
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}';
   }

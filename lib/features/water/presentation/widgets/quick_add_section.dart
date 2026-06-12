@@ -1,13 +1,13 @@
 part of '../pages/water_page.dart';
 
 class QuickAddSection extends StatelessWidget {
-  final WaterProvider provider;
   final List<QuickAddAmount> quickAddAmounts;
+  final Future<void> Function(int amountMl) onAddWater;
 
   const QuickAddSection({
     super.key,
-    required this.provider,
     required this.quickAddAmounts,
+    required this.onAddWater,
   });
 
   @override
@@ -40,8 +40,7 @@ class QuickAddSection extends StatelessWidget {
           themeProvider: themeProvider,
           isSelected: selected,
           onTap: () async {
-            HapticFeedback.mediumImpact();
-            await provider.addWaterAmount(quickAddAmount.amountMl);
+            await onAddWater(quickAddAmount.amountMl);
           },
         );
       },

@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../affirmations/data/models/background_sound.dart';
 import '../../data/models/breathing_technique.dart';
 import '../../data/models/breathing_session.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 /// Breathing phase during a session
 enum BreathingPhase { inhale, holdIn, exhale, holdOut }
@@ -24,6 +26,10 @@ enum SessionState {
 
 /// Provider for managing breathing exercise state
 class BreathingProvider extends ChangeNotifier {
+  final ReminderCoordinator? _reminders;
+
+  BreathingProvider({ReminderCoordinator? reminders}) : _reminders = reminders;
+
   // Audio player for background sounds
   final AudioPlayer _backgroundPlayer = AudioPlayer();
 
@@ -194,6 +200,7 @@ class BreathingProvider extends ChangeNotifier {
     await _loadSessionHistory();
     await _loadCustomTechniques();
     await _loadSettings();
+    await _reconcileReminders();
 
     // Set default background
     if (BackgroundSound.presets.isNotEmpty) {
@@ -467,6 +474,7 @@ class BreathingProvider extends ChangeNotifier {
 
     _sessionHistory.insert(0, session);
     _saveSessionHistory();
+    _reconcileReminders();
 
     _sessionState = SessionState.complete;
     notifyListeners();
@@ -608,6 +616,25 @@ class BreathingProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error saving breathing session history: $e');
     }
+  }
+
+  Future<void> _reconcileReminders() async {
+    final now = DateTime.now();
+    final completedToday = _sessionHistory.any((session) {
+      final completedAt = session.completedAt;
+      return completedAt != null &&
+          completedAt.year == now.year &&
+          completedAt.month == now.month &&
+          completedAt.day == now.day;
+    });
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.breathing,
+      completedToday: completedToday,
+      actionable: true,
+      title: 'A moment to breathe',
+      body: 'A short breathing session can reset the pace of your day.',
+      payload: 'kora://breathing',
+    );
   }
 
   Future<void> _loadCustomTechniques() async {

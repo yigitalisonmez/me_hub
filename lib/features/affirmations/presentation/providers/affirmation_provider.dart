@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/background_sound.dart';
 import '../../data/models/recording_models.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 enum RecordingState { idle, recording, paused, recorded }
 
@@ -16,6 +18,11 @@ enum PlaybackState { idle, playing, paused }
 
 /// Provider for managing 3-step affirmation flow
 class AffirmationProvider extends ChangeNotifier {
+  final ReminderCoordinator? _reminders;
+
+  AffirmationProvider({ReminderCoordinator? reminders})
+    : _reminders = reminders;
+
   // Audio players
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _voicePlayer = AudioPlayer();
@@ -106,6 +113,7 @@ class AffirmationProvider extends ChangeNotifier {
   Future<void> init() async {
     await _loadSavedRecordings();
     await _loadSessionHistory();
+    await _reconcileReminders();
 
     // Set default background
     if (BackgroundSound.presets.isNotEmpty) {
@@ -556,6 +564,7 @@ class AffirmationProvider extends ChangeNotifier {
     );
     _sessionHistory.insert(0, log);
     await _saveSessionHistory();
+    await _reconcileReminders();
 
     _playbackState = PlaybackState.idle;
     _sessionJustCompleted = true;
@@ -624,6 +633,24 @@ class AffirmationProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error saving session history: $e');
     }
+  }
+
+  Future<void> _reconcileReminders() async {
+    final now = DateTime.now();
+    final completedToday = _sessionHistory.any(
+      (session) =>
+          session.completedAt.year == now.year &&
+          session.completedAt.month == now.month &&
+          session.completedAt.day == now.day,
+    );
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.affirmations,
+      completedToday: completedToday,
+      actionable: true,
+      title: 'Your affirmation practice',
+      body: 'Take a few minutes for the words you want to carry today.',
+      payload: 'kora://affirmations',
+    );
   }
 
   // ==================== Reset ====================

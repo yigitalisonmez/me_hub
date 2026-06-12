@@ -15,11 +15,15 @@ class RoutineItem {
   @HiveField(3)
   final int? iconCodePoint; // Icon code point for Material Icons
 
+  @HiveField(4)
+  final int? durationMinutes;
+
   const RoutineItem({
     required this.id,
     required this.title,
     this.lastCheckedDate,
     this.iconCodePoint,
+    this.durationMinutes,
   });
 
   RoutineItem copyWith({
@@ -28,6 +32,8 @@ class RoutineItem {
     DateTime? lastCheckedDate,
     int? iconCodePoint,
     bool clearIconCodePoint = false,
+    int? durationMinutes,
+    bool clearDurationMinutes = false,
   }) {
     return RoutineItem(
       id: id ?? this.id,
@@ -36,6 +42,9 @@ class RoutineItem {
       iconCodePoint: clearIconCodePoint
           ? null
           : (iconCodePoint ?? this.iconCodePoint),
+      durationMinutes: clearDurationMinutes
+          ? null
+          : (durationMinutes ?? this.durationMinutes),
     );
   }
 
@@ -76,6 +85,12 @@ class Routine {
   @HiveField(8)
   final List<int>? selectedDays; // Days of week (0=Monday, 6=Sunday)
 
+  @HiveField(9)
+  final bool reminderEnabled;
+
+  @HiveField(10)
+  final int reminderMinutesBefore;
+
   const Routine({
     required this.id,
     required this.name,
@@ -86,7 +101,10 @@ class Routine {
     this.timeHour,
     this.timeMinute,
     this.selectedDays,
-  });
+    bool? reminderEnabled,
+    this.reminderMinutesBefore = 5,
+  }) : reminderEnabled =
+           reminderEnabled ?? (timeHour != null && timeMinute != null);
 
   Routine copyWith({
     String? id,
@@ -102,6 +120,8 @@ class Routine {
     bool clearTime = false,
     List<int>? selectedDays,
     bool clearSelectedDays = false,
+    bool? reminderEnabled,
+    int? reminderMinutesBefore,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -119,6 +139,9 @@ class Routine {
       selectedDays: clearSelectedDays
           ? null
           : (selectedDays ?? this.selectedDays),
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      reminderMinutesBefore:
+          reminderMinutesBefore ?? this.reminderMinutesBefore,
     );
   }
 
@@ -178,13 +201,14 @@ class RoutineItemAdapter extends TypeAdapter<RoutineItem> {
       title: fields[1] as String,
       lastCheckedDate: fields[2] as DateTime?,
       iconCodePoint: fields[3] as int?,
+      durationMinutes: fields[4] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RoutineItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -192,7 +216,9 @@ class RoutineItemAdapter extends TypeAdapter<RoutineItem> {
       ..writeByte(2)
       ..write(obj.lastCheckedDate)
       ..writeByte(3)
-      ..write(obj.iconCodePoint);
+      ..write(obj.iconCodePoint)
+      ..writeByte(4)
+      ..write(obj.durationMinutes);
   }
 }
 
@@ -216,13 +242,15 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       timeHour: fields[6] as int?,
       timeMinute: fields[7] as int?,
       selectedDays: fields[8] as List<int>?,
+      reminderEnabled: fields[9] as bool?,
+      reminderMinutesBefore: fields[10] as int? ?? 5,
     );
   }
 
   @override
   void write(BinaryWriter writer, Routine obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -240,6 +268,10 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       ..writeByte(7)
       ..write(obj.timeMinute)
       ..writeByte(8)
-      ..write(obj.selectedDays);
+      ..write(obj.selectedDays)
+      ..writeByte(9)
+      ..write(obj.reminderEnabled)
+      ..writeByte(10)
+      ..write(obj.reminderMinutesBefore);
   }
 }

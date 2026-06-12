@@ -3,6 +3,8 @@ import '../../domain/entities/gratitude_entry.dart';
 import '../../domain/entities/gratitude_item.dart';
 import '../../domain/entities/gratitude_prompt.dart';
 import '../../domain/usecases/usecases.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 /// State management for gratitude journaling
 class GratitudeProvider with ChangeNotifier {
@@ -14,6 +16,7 @@ class GratitudeProvider with ChangeNotifier {
   final DeleteGratitudeEntry _deleteEntry;
   final GetGratitudeStreak _getStreak;
   final GetEmotionTagStats _getEmotionTagStats;
+  final ReminderCoordinator? _reminders;
 
   GratitudeProvider({
     required AddGratitudeEntry addEntry,
@@ -24,6 +27,7 @@ class GratitudeProvider with ChangeNotifier {
     required DeleteGratitudeEntry deleteEntry,
     required GetGratitudeStreak getStreak,
     required GetEmotionTagStats getEmotionTagStats,
+    ReminderCoordinator? reminders,
   }) : _addEntry = addEntry,
        _getTodayEntry = getTodayEntry,
        _getAllEntries = getAllEntries,
@@ -31,7 +35,8 @@ class GratitudeProvider with ChangeNotifier {
        _updateEntry = updateEntry,
        _deleteEntry = deleteEntry,
        _getStreak = getStreak,
-       _getEmotionTagStats = getEmotionTagStats;
+       _getEmotionTagStats = getEmotionTagStats,
+       _reminders = reminders;
 
   // State
   List<GratitudeEntry> _entries = [];
@@ -89,6 +94,7 @@ class GratitudeProvider with ChangeNotifier {
         _loadEmotionStats(),
         _loadRandomPastEntry(),
       ]);
+      await _reconcileReminders();
     } catch (e) {
       _error = 'Failed to load gratitude data';
       debugPrint('GratitudeProvider error: $e');
@@ -178,6 +184,7 @@ class GratitudeProvider with ChangeNotifier {
       await _loadEmotionStats();
 
       notifyListeners();
+      await _reconcileReminders();
       return true;
     } catch (e) {
       _error = 'Failed to save gratitude entry';
@@ -205,6 +212,7 @@ class GratitudeProvider with ChangeNotifier {
 
       await _loadEmotionStats();
       notifyListeners();
+      await _reconcileReminders();
       return true;
     } catch (e) {
       _error = 'Failed to update entry';
@@ -230,6 +238,7 @@ class GratitudeProvider with ChangeNotifier {
       await _loadStreak();
       await _loadEmotionStats();
       notifyListeners();
+      await _reconcileReminders();
       return true;
     } catch (e) {
       _error = 'Failed to delete entry';
@@ -242,5 +251,24 @@ class GratitudeProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  Future<void> _reconcileReminders() async {
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.gratitudeMorning,
+      completedToday: hasTodayMorningEntry,
+      actionable: true,
+      title: 'Morning gratitude',
+      body: 'Begin today by naming three things you appreciate.',
+      payload: 'kora://gratitude',
+    );
+    await _reminders?.reconcileDailyFeature(
+      feature: ReminderFeature.gratitudeEvening,
+      completedToday: hasTodayEveningEntry,
+      actionable: true,
+      title: 'Evening gratitude',
+      body: 'Close the day with a short reflection.',
+      payload: 'kora://gratitude',
+    );
   }
 }

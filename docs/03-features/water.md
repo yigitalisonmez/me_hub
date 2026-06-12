@@ -24,3 +24,5 @@ updates.
   `CumulativeStatsService.subtractWater()` (2026-05-30).
 - `water_goal_page.dart` added as a dedicated goal-setting page.
 - UI fully redesigned as part of Kora Redesign (2026-05-31).
+- The main consumed-liter value rolls on initial display and when water logs
+  change, using the shared animated metric widget.

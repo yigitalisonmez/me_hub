@@ -21,8 +21,11 @@ and summary UI.
 - Profile currently reads user name through secure storage.
 - Profile is local-only and avoids fake account, Premium, Export Data, Sign Out,
   and support/contact promises that do not exist yet.
-- Settings has a full-page shell with back navigation, dark mode, and voice
-  language controls.
+- Profile shows the persisted water goal and opens Water Settings to edit it.
+- Profile's three cumulative summary metrics use rolling digit transitions;
+  continuously updating values remain plain text.
+- Settings has a full-page shell with separate Appearance and Voice sections.
+- Dark mode is managed only from Settings.
 - Keep dashboard navigation consistent with `MainScreen` and `GlassNavBar`.
 
 ## Live Audit Notes
@@ -32,5 +35,9 @@ and summary UI.
 - Home and Mood avoid user-facing "AI" labels unless the feature is actually
   backed by an AI flow.
 - Settings debug notification tools were removed from the user-facing screen.
+- Profile does not show reminder/privacy controls or analytics percentages until
+  those features are backed by real behavior and data.
+- Water Goal now exposes persisted reminder controls backed by the shared
+  reminder provider.
 - Home, Profile, and Onboarding pages fully redesigned as part of Kora Redesign
   (2026-05-31).

@@ -5,11 +5,15 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../core/utils/app_route.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_route.dart';
+import '../../../../core/widgets/animated_metric_text.dart';
 import '../../../../core/widgets/elevated_card.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
+import '../../../water/data/services/daily_goal_service.dart';
+import '../../../water/presentation/pages/water_settings_page.dart';
+import '../../../water/presentation/providers/water_provider.dart';
 
 /// Profile page with user info, stats, achievements, and settings
 class ProfilePage extends StatefulWidget {
@@ -27,6 +31,7 @@ class _ProfilePageState extends State<ProfilePage>
   int _allTimeTasksCompleted = 0;
   int _allTimeWaterMl = 0;
   int _maxStreak = 0;
+  int _dailyWaterGoalMl = 2000;
 
   @override
   bool get wantKeepAlive => true;
@@ -36,6 +41,7 @@ class _ProfilePageState extends State<ProfilePage>
     super.initState();
     _loadUserData();
     _loadAllTimeStats();
+    _loadDailyWaterGoal();
   }
 
   Future<void> _loadUserData() async {
@@ -68,6 +74,12 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
+  Future<void> _loadDailyWaterGoal() async {
+    final goal = await DailyGoalService.getDailyGoal();
+    if (!mounted) return;
+    setState(() => _dailyWaterGoalMl = goal);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -91,10 +103,11 @@ class _ProfilePageState extends State<ProfilePage>
             tasksCompleted: _allTimeTasksCompleted,
             maxStreak: _maxStreak,
             totalWaterMl: _allTimeWaterMl,
+            dailyWaterGoalMl: _dailyWaterGoalMl,
             themeProvider: themeProvider,
             onSettingsTap: () => _navigateToSettings(context),
             onEditTap: () => _showEditProfileDialog(context),
-            onDarkModeChanged: (value) => themeProvider.setTheme(value),
+            onWaterGoalTap: () => _openWaterSettings(context),
             onHelpTap: () => _showHelpDialog(context),
             bottomClearance: LayoutConstants.getNavbarClearance(context),
           ),
@@ -104,10 +117,23 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   void _navigateToSettings(BuildContext context) {
-    Navigator.push(
+    Navigator.push(context, AppRoute(page: const SettingsPage()));
+  }
+
+  Future<void> _openWaterSettings(BuildContext context) async {
+    final waterProvider = context.read<WaterProvider>();
+    final result = await Navigator.push<bool>(
       context,
-      AppRoute(page: const SettingsPage()),
+      AppRoute(page: const WaterSettingsPage()),
     );
+    if (result != true || !mounted) return;
+
+    final goal = await DailyGoalService.getDailyGoal();
+    if (!mounted) return;
+
+    setState(() => _dailyWaterGoalMl = goal);
+    waterProvider.setDailyGoal(goal);
+    await waterProvider.loadTodayWaterIntake();
   }
 
   void _showEditProfileDialog(BuildContext context) {
@@ -212,10 +238,11 @@ class _ProfileRedesign extends StatelessWidget {
   final int tasksCompleted;
   final int maxStreak;
   final int totalWaterMl;
+  final int dailyWaterGoalMl;
   final ThemeProvider themeProvider;
   final VoidCallback onSettingsTap;
   final VoidCallback onEditTap;
-  final ValueChanged<bool> onDarkModeChanged;
+  final VoidCallback onWaterGoalTap;
   final VoidCallback onHelpTap;
   final double bottomClearance;
 
@@ -224,10 +251,11 @@ class _ProfileRedesign extends StatelessWidget {
     required this.tasksCompleted,
     required this.maxStreak,
     required this.totalWaterMl,
+    required this.dailyWaterGoalMl,
     required this.themeProvider,
     required this.onSettingsTap,
     required this.onEditTap,
-    required this.onDarkModeChanged,
+    required this.onWaterGoalTap,
     required this.onHelpTap,
     required this.bottomClearance,
   });
@@ -254,7 +282,7 @@ class _ProfileRedesign extends StatelessWidget {
                   Expanded(
                     child: _ProfileStatCard(
                       icon: LucideIcons.check,
-                      value: '$tasksCompleted',
+                      value: tasksCompleted,
                       label: 'Tasks done',
                       color: AppColors.primary,
                       tint: AppColors.terraTint,
@@ -265,7 +293,7 @@ class _ProfileRedesign extends StatelessWidget {
                   Expanded(
                     child: _ProfileStatCard(
                       icon: LucideIcons.flame,
-                      value: '$maxStreak',
+                      value: maxStreak,
                       label: 'Day streak',
                       color: AppColors.mood,
                       tint: AppColors.moodTint,
@@ -276,7 +304,9 @@ class _ProfileRedesign extends StatelessWidget {
                   Expanded(
                     child: _ProfileStatCard(
                       icon: LucideIcons.droplet,
-                      value: '${(totalWaterMl / 1000).toStringAsFixed(1)}L',
+                      value: _roundedProfileLiters(totalWaterMl),
+                      fractionDigits: 1,
+                      suffix: 'L',
                       label: 'Water',
                       color: AppColors.water,
                       tint: AppColors.waterTint,
@@ -285,11 +315,6 @@ class _ProfileRedesign extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
-              _ProfileInsightCard(
-                completionRate: _routineCompletionEstimate(),
-                themeProvider: themeProvider,
-              ),
               const SizedBox(height: 22),
               _SettingsGroupLabel('Preferences', themeProvider: themeProvider),
               const SizedBox(height: 10),
@@ -297,30 +322,13 @@ class _ProfileRedesign extends StatelessWidget {
                 themeProvider: themeProvider,
                 rows: [
                   _ProfileSettingRow(
-                    icon: LucideIcons.moon,
-                    label: 'Dark mode',
-                    color: AppColors.mindful,
-                    themeProvider: themeProvider,
-                    trailing: Switch.adaptive(
-                      value: themeProvider.isDarkMode,
-                      onChanged: onDarkModeChanged,
-                      activeColor: AppColors.primary,
-                    ),
-                  ),
-                  _ProfileSettingRow(
-                    icon: LucideIcons.bell,
-                    label: 'Reminders',
-                    value: 'On',
-                    color: AppColors.mood,
-                    themeProvider: themeProvider,
-                    onTap: onSettingsTap,
-                  ),
-                  _ProfileSettingRow(
                     icon: LucideIcons.droplet,
                     label: 'Water goal',
-                    value: '8 glasses',
+                    value:
+                        '$dailyWaterGoalMl ml · ${dailyWaterGoalMl ~/ 250} glasses',
                     color: AppColors.water,
                     themeProvider: themeProvider,
+                    onTap: onWaterGoalTap,
                   ),
                 ],
               ),
@@ -338,13 +346,6 @@ class _ProfileRedesign extends StatelessWidget {
                     themeProvider: themeProvider,
                   ),
                   _ProfileSettingRow(
-                    icon: LucideIcons.bookmark,
-                    label: 'Privacy',
-                    color: AppColors.routine,
-                    themeProvider: themeProvider,
-                    onTap: onSettingsTap,
-                  ),
-                  _ProfileSettingRow(
                     icon: LucideIcons.lightbulb,
                     label: 'Help & feedback',
                     color: AppColors.mood,
@@ -359,12 +360,6 @@ class _ProfileRedesign extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  int _routineCompletionEstimate() {
-    if (tasksCompleted <= 0 && maxStreak <= 0) return 0;
-    final score = 55 + maxStreak.clamp(0, 30);
-    return score.clamp(55, 92);
   }
 }
 
@@ -551,7 +546,9 @@ class _ProfileHero extends StatelessWidget {
 
 class _ProfileStatCard extends StatelessWidget {
   final IconData icon;
-  final String value;
+  final num value;
+  final int fractionDigits;
+  final String? suffix;
   final String label;
   final Color color;
   final Color tint;
@@ -560,6 +557,8 @@ class _ProfileStatCard extends StatelessWidget {
   const _ProfileStatCard({
     required this.icon,
     required this.value,
+    this.fractionDigits = 0,
+    this.suffix,
     required this.label,
     required this.color,
     required this.tint,
@@ -587,14 +586,18 @@ class _ProfileStatCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 17),
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: themeProvider.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          AnimatedMetricText(
+            value: value,
+            fractionDigits: fractionDigits,
+            suffix: suffix,
+            semanticLabel:
+                '${value.toStringAsFixed(fractionDigits)}${suffix ?? ''} $label',
+            style:
+                Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: themeProvider.textPrimary,
+                  fontWeight: FontWeight.w800,
+                ) ??
+                const TextStyle(),
           ),
           const SizedBox(height: 2),
           Text(
@@ -614,92 +617,7 @@ class _ProfileStatCard extends StatelessWidget {
   }
 }
 
-class _ProfileInsightCard extends StatelessWidget {
-  final int completionRate;
-  final ThemeProvider themeProvider;
-
-  const _ProfileInsightCard({
-    required this.completionRate,
-    required this.themeProvider,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = themeProvider.isDarkMode
-        ? Color.alphaBlend(
-            AppColors.routine.withValues(alpha: 0.16),
-            AppColors.darkCard,
-          )
-        : AppColors.routineTint;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.routine.withValues(alpha: 0.14)),
-      ),
-      child: Row(
-        children: [
-          Image.asset(
-            'assets/images/analytics.png',
-            width: 82,
-            height: 82,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  completionRate == 0
-                      ? 'Your rhythm starts here'
-                      : 'Your best week yet',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: themeProvider.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  completionRate == 0
-                      ? 'Complete a few routines and Kora will surface your weekly insight.'
-                      : 'You completed $completionRate% of your core rhythm signals.',
-                  style: TextStyle(
-                    color: themeProvider.textSecondary,
-                    fontSize: 12.5,
-                    height: 1.35,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 9),
-                Row(
-                  children: [
-                    Text(
-                      'See full report',
-                      style: TextStyle(
-                        color: AppColors.routineDeep,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    const Icon(
-                      LucideIcons.arrowRight,
-                      color: AppColors.routineDeep,
-                      size: 14,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+num _roundedProfileLiters(int ml) => num.parse((ml / 1000).toStringAsFixed(1));
 
 class _SettingsGroupLabel extends StatelessWidget {
   final String label;
@@ -760,7 +678,6 @@ class _ProfileSettingRow extends StatelessWidget {
   final String? value;
   final Color color;
   final ThemeProvider themeProvider;
-  final Widget? trailing;
   final VoidCallback? onTap;
 
   const _ProfileSettingRow({
@@ -769,7 +686,6 @@ class _ProfileSettingRow extends StatelessWidget {
     this.value,
     required this.color,
     required this.themeProvider,
-    this.trailing,
     this.onTap,
   });
 
@@ -806,27 +722,28 @@ class _ProfileSettingRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            trailing ??
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (value != null && value!.isNotEmpty)
-                      Text(
-                        value!,
-                        style: TextStyle(
-                          color: themeProvider.textSecondary,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      LucideIcons.chevronRight,
-                      color: themeProvider.textTertiary,
-                      size: 16,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (value != null && value!.isNotEmpty)
+                  Text(
+                    value!,
+                    style: TextStyle(
+                      color: themeProvider.textSecondary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
-                ),
+                  ),
+                if (onTap != null) ...[
+                  const SizedBox(width: 6),
+                  Icon(
+                    LucideIcons.chevronRight,
+                    color: themeProvider.textTertiary,
+                    size: 16,
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),

@@ -4,22 +4,26 @@ import '../../domain/usecases/usecases.dart';
 import '../../data/services/daily_goal_service.dart';
 import '../../../home_widget/data/home_widget_service.dart';
 import '../../../../core/services/cumulative_stats_service.dart';
+import '../../../../core/reminders/services/reminder_coordinator.dart';
 
 class WaterProvider with ChangeNotifier {
   final GetTodayWaterIntake _getTodayWaterIntake;
   final AddWater _addWater;
   final RemoveLastLog _removeLastLog;
   final UpdateWaterIntake _updateWaterIntake;
+  final ReminderCoordinator? _reminders;
 
   WaterProvider({
     required GetTodayWaterIntake getTodayWaterIntake,
     required AddWater addWater,
     required RemoveLastLog removeLastLog,
     required UpdateWaterIntake updateWaterIntake,
+    ReminderCoordinator? reminders,
   }) : _getTodayWaterIntake = getTodayWaterIntake,
        _addWater = addWater,
        _removeLastLog = removeLastLog,
-       _updateWaterIntake = updateWaterIntake;
+       _updateWaterIntake = updateWaterIntake,
+       _reminders = reminders;
 
   WaterIntake? _todayIntake;
   bool _isLoading = false;
@@ -55,6 +59,7 @@ class WaterProvider with ChangeNotifier {
         waterGoal: _dailyGoalMl,
       );
     }
+    _reconcileReminders();
   }
 
   /// Check if goal was just reached (for celebration)
@@ -87,6 +92,7 @@ class WaterProvider with ChangeNotifier {
           waterGoal: _dailyGoalMl,
         );
       }
+      await _reconcileReminders();
     }
   }
 
@@ -114,6 +120,7 @@ class WaterProvider with ChangeNotifier {
           waterGoal: _dailyGoalMl,
         );
       }
+      await _reconcileReminders();
     } catch (e) {
       _error = 'Failed to add water';
       notifyListeners();
@@ -145,6 +152,7 @@ class WaterProvider with ChangeNotifier {
         waterGoal: _dailyGoalMl,
       );
     }
+    await _reconcileReminders();
   }
 
   /// Update water intake (for deleting specific logs)
@@ -164,6 +172,7 @@ class WaterProvider with ChangeNotifier {
         waterGoal: _dailyGoalMl,
       );
     }
+    await _reconcileReminders();
   }
 
   /// Delete a specific water log
@@ -196,5 +205,10 @@ class WaterProvider with ChangeNotifier {
     if (removedAmount > 0) {
       await CumulativeStatsService.subtractWater(removedAmount);
     }
+    await _reconcileReminders();
+  }
+
+  Future<void> _reconcileReminders() async {
+    await _reminders?.reconcileWater(goalReached: isGoalReached);
   }
 }

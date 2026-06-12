@@ -3,6 +3,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/reminders/domain/reminder_feature.dart';
+import '../../../../core/reminders/domain/reminder_preferences.dart';
+import '../../../../core/reminders/presentation/reminder_permission_prompt.dart';
+import '../../../../core/reminders/presentation/reminder_settings_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/services/daily_goal_service.dart';
 
@@ -99,8 +103,8 @@ class _WaterGoalPageState extends State<WaterGoalPage> {
               ),
               const SizedBox(height: 18),
               const _HydrationNote(),
-              const SizedBox(height: 16),
-              const _ReminderCard(),
+              const SizedBox(height: 18),
+              const _WaterReminderSettings(),
             ],
           ),
         ),
@@ -154,6 +158,136 @@ class _WaterGoalPageState extends State<WaterGoalPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WaterReminderSettings extends StatelessWidget {
+  const _WaterReminderSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    final provider = context.watch<ReminderSettingsProvider>();
+    final preferences = provider.preferences;
+    final enabled = preferences.isEnabled(ReminderFeature.water);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.textTertiary.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(
+              LucideIcons.bellRing,
+              color: AppColors.waterDeep,
+            ),
+            title: const Text(
+              'Reminders',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              '${preferences.waterStart.label}-${preferences.waterEnd.label} · '
+              'Every ${preferences.waterIntervalHours} hours',
+            ),
+            value: enabled,
+            onChanged: provider.busy
+                ? null
+                : (value) async {
+                    if (value &&
+                        !await explainReminderPermissionIfNeeded(
+                          context,
+                          provider,
+                        )) {
+                      return;
+                    }
+                    await provider.setFeatureEnabled(
+                      ReminderFeature.water,
+                      value,
+                    );
+                  },
+          ),
+          if (enabled) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _WaterTimeButton(
+                    label: 'Start',
+                    time: preferences.waterStart,
+                    onChanged: (time) => provider.setWaterSettings(
+                      start: time,
+                      end: preferences.waterEnd,
+                      intervalHours: preferences.waterIntervalHours,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _WaterTimeButton(
+                    label: 'End',
+                    time: preferences.waterEnd,
+                    onChanged: (time) => provider.setWaterSettings(
+                      start: preferences.waterStart,
+                      end: time,
+                      intervalHours: preferences.waterIntervalHours,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final hours in const [2, 3, 4])
+                  ChoiceChip(
+                    label: Text('$hours hours'),
+                    selected: preferences.waterIntervalHours == hours,
+                    onSelected: (_) => provider.setWaterSettings(
+                      start: preferences.waterStart,
+                      end: preferences.waterEnd,
+                      intervalHours: hours,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WaterTimeButton extends StatelessWidget {
+  final String label;
+  final ReminderTime time;
+  final ValueChanged<ReminderTime> onChanged;
+
+  const _WaterTimeButton({
+    required this.label,
+    required this.time,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () async {
+        final selected = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay(hour: time.hour, minute: time.minute),
+        );
+        if (selected == null) return;
+        onChanged(ReminderTime(hour: selected.hour, minute: selected.minute));
+      },
+      child: Text('$label ${time.label}'),
     );
   }
 }
@@ -510,141 +644,6 @@ class _HydrationNote extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ReminderCard extends StatelessWidget {
-  const _ReminderCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: themeProvider.isDarkMode
-              ? Colors.white.withValues(alpha: 0.07)
-              : AppColors.textPrimary.withValues(alpha: 0.08),
-        ),
-      ),
-      child: Column(
-        children: const [
-          _ReminderRow(
-            icon: LucideIcons.bell,
-            label: 'Reminders',
-            trailing: _ReminderSwitch(),
-          ),
-          Divider(height: 1),
-          _ReminderRow(
-            icon: LucideIcons.clock,
-            label: 'Every',
-            trailing: _ReminderValue(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReminderRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Widget trailing;
-
-  const _ReminderRow({
-    required this.icon,
-    required this.label,
-    required this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppColors.waterTint,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(icon, size: 17, color: AppColors.waterDeep),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: themeProvider.textPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          trailing,
-        ],
-      ),
-    );
-  }
-}
-
-class _ReminderSwitch extends StatelessWidget {
-  const _ReminderSwitch();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 26,
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: AppColors.water,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Container(
-        width: 20,
-        height: 20,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
-      ),
-    );
-  }
-}
-
-class _ReminderValue extends StatelessWidget {
-  const _ReminderValue();
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '2 hours',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: themeProvider.textSecondary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Icon(
-          LucideIcons.chevronRight,
-          size: 15,
-          color: themeProvider.textTertiary,
-        ),
-      ],
     );
   }
 }

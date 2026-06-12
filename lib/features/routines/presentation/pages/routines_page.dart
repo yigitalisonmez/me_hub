@@ -11,7 +11,9 @@ import '../../../../core/constants/layout_constants.dart';
 import '../../../../core/constants/routine_icons.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_route.dart';
 import '../../domain/entities/routine.dart';
+import 'guided_routine_flow_page.dart';
 import '../providers/routines_provider.dart';
 import '../utils/routine_dialogs.dart';
 
@@ -127,6 +129,10 @@ class _RoutinesPageState extends State<RoutinesPage>
                             provider: provider,
                             accent: _routineAccent(entry.key),
                             isExpanded: expanded,
+                            onOpen: () => _openGuidedFlow(
+                              entry.value,
+                              _routineAccent(entry.key),
+                            ),
                             onToggleExpanded: () =>
                                 _toggleRoutineExpansion(entry.value, expanded),
                           );
@@ -142,6 +148,7 @@ class _RoutinesPageState extends State<RoutinesPage>
                             accent: AppColors.mindful,
                             isInactive: true,
                             isExpanded: false,
+                            onOpen: null,
                             onToggleExpanded: () {},
                           ),
                         ),
@@ -178,6 +185,20 @@ class _RoutinesPageState extends State<RoutinesPage>
         _expandedRoutines.add(routine.id);
       }
     });
+  }
+
+  void _openGuidedFlow(Routine routine, Color accent) {
+    if (routine.items.isEmpty) {
+      RoutineDialogs.showAddItem(context, routine);
+      return;
+    }
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      AppRoute(
+        page: GuidedRoutineFlowPage(routineId: routine.id, accent: accent),
+      ),
+    );
   }
 
   void _showRoutineCompletedOverlay(String routineName) {
@@ -641,6 +662,7 @@ class _RoutineCard extends StatelessWidget {
   final Color accent;
   final bool isExpanded;
   final bool isInactive;
+  final VoidCallback? onOpen;
   final VoidCallback onToggleExpanded;
 
   const _RoutineCard({
@@ -648,6 +670,7 @@ class _RoutineCard extends StatelessWidget {
     required this.provider,
     required this.accent,
     required this.isExpanded,
+    required this.onOpen,
     required this.onToggleExpanded,
     this.isInactive = false,
   });
@@ -660,7 +683,6 @@ class _RoutineCard extends StatelessWidget {
     final done = routine.items
         .where((item) => item.isCheckedToday(today))
         .length;
-    final progress = total == 0 ? 0.0 : done / total;
     final icon = routine.iconCodePoint != null
         ? RoutineIcons.getIconFromCodePoint(routine.iconCodePoint!)
         : null;
@@ -704,79 +726,102 @@ class _RoutineCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: tint,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(
-                  icon ?? LucideIcons.repeat,
-                  color: accent,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      routine.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: isInactive
-                            ? themeProvider.textPrimary.withValues(alpha: 0.62)
-                            : themeProvider.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        if (time != null) ...[
-                          Icon(
-                            LucideIcons.clock,
-                            size: 12,
-                            color: themeProvider.textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            time,
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(
-                                  color: themeProvider.textSecondary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '·',
-                            style: TextStyle(color: themeProvider.textTertiary),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Expanded(
-                          child: Text(
-                            isInactive
-                                ? 'Starts later today'
-                                : '$done of $total done',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(
-                                  color: themeProvider.textSecondary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: isInactive ? null : onOpen,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: tint,
+                          borderRadius: BorderRadius.circular(13),
                         ),
-                      ],
-                    ),
-                  ],
+                        child: Icon(
+                          icon ?? LucideIcons.repeat,
+                          color: accent,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              routine.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: isInactive
+                                        ? themeProvider.textPrimary.withValues(
+                                            alpha: 0.62,
+                                          )
+                                        : themeProvider.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                if (time != null) ...[
+                                  Icon(
+                                    LucideIcons.clock,
+                                    size: 12,
+                                    color: themeProvider.textSecondary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    time,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: themeProvider.textSecondary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '·',
+                                    style: TextStyle(
+                                      color: themeProvider.textTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    isInactive
+                                        ? 'Starts later today'
+                                        : '$done of $total done',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: themeProvider.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              if (!isInactive) ...[
+                const SizedBox(width: 10),
+                _RoutinePlayButton(accent: accent, onTap: onOpen),
+              ],
               if (isInactive)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -804,9 +849,7 @@ class _RoutineCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                )
-              else
-                _MiniRing(progress: progress, color: accent),
+                ),
               PopupMenuButton<String>(
                 icon: Icon(
                   LucideIcons.ellipsisVertical,
@@ -860,6 +903,30 @@ class _RoutineCard extends StatelessWidget {
               sizeCurve: Curves.easeOutCubic,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _RoutinePlayButton extends StatelessWidget {
+  final Color accent;
+  final VoidCallback? onTap;
+
+  const _RoutinePlayButton({required this.accent, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: accent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: const SizedBox(
+          width: 34,
+          height: 34,
+          child: Icon(LucideIcons.play, color: Colors.white, size: 15),
+        ),
       ),
     );
   }

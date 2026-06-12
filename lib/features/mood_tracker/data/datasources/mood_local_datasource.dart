@@ -1,31 +1,73 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/mood_entry.dart';
 
 class MoodLocalDataSource {
   static const String _boxName = 'mood_entries';
+  static const String _recoveryFlagKey = 'mood_data_recovered';
   Box<MoodEntry>? _box;
 
-  /// Initialize Hive box
   Future<void> init() async {
     try {
       _box = await Hive.openBox<MoodEntry>(_boxName);
-    } catch (e) {
-      // If there's a format error (old data format), delete the box and recreate it
+    } on HiveError catch (e) {
+      // Only handle known Hive schema/format errors, not I/O or permission
+      // failures — those should propagate so the caller can surface them.
+      debugPrint('mood_entries schema error — recovering: $e');
+      await _backupBoxFiles();
       try {
-        // Close the box if it's open
-        if (_box != null && _box!.isOpen) {
-          await _box!.close();
-        }
-        // Delete the box files
+        if (_box != null && _box!.isOpen) await _box!.close();
         await Hive.deleteBoxFromDisk(_boxName);
       } catch (deleteError) {
-        // Ignore delete errors (file might not exist)
-        debugPrint('Error deleting old mood box: $deleteError');
+        debugPrint('Error deleting mood box during recovery: $deleteError');
       }
-      // Recreate the box
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_recoveryFlagKey, true);
+      } catch (_) {}
       _box = await Hive.openBox<MoodEntry>(_boxName);
     }
+  }
+
+  /// Returns true once after a schema-recovery wipe, then clears the flag.
+  /// Call from MoodProvider after loading moods to show a one-time warning.
+  static Future<bool> checkAndClearRecoveryFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    final wasRecovered = prefs.getBool(_recoveryFlagKey) ?? false;
+    if (wasRecovered) await prefs.remove(_recoveryFlagKey);
+    return wasRecovered;
+  }
+
+  Future<void> _backupBoxFiles() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final source = File('${appDir.path}/$_boxName.hive');
+      if (!await source.exists()) return;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      await source.copy('${appDir.path}/${_boxName}_backup_$timestamp.hive');
+      await _pruneOldBackups(appDir);
+    } catch (e) {
+      debugPrint('mood_entries backup failed (non-fatal): $e');
+    }
+  }
+
+  Future<void> _pruneOldBackups(Directory appDir) async {
+    try {
+      final backups = appDir
+          .listSync()
+          .whereType<File>()
+          .where((f) =>
+              f.path.contains('${_boxName}_backup_') &&
+              f.path.endsWith('.hive'))
+          .toList()
+        ..sort((a, b) => b.path.compareTo(a.path));
+      for (final file in backups.skip(3)) {
+        await file.delete();
+      }
+    } catch (_) {}
   }
 
   /// Get mood entry for a specific date
