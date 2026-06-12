@@ -115,21 +115,13 @@ class _GratitudePageState extends State<GratitudePage> {
               const SizedBox(height: 16),
               _EntryTypeSelector(
                 selectedType: _selectedEntryType,
-                onChanged: (type) {
-                  FocusScope.of(context).unfocus();
-                  setState(() {
-                    _selectedEntryType = type;
-                    _boundEntrySignature = null;
-                  });
-                },
+                onChanged: (type) => _selectEntryType(provider, type),
               ),
-              const SizedBox(height: 22),
-              _WritingSectionHeader(onRefresh: provider.refreshPrompt),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _GratitudeInputCard(
                 icon: LucideIcons.heart,
                 label: 'Someone',
-                hint: provider.currentPrompt.content,
+                hint: 'Who made today lighter?',
                 controller: _controllers[0],
                 focusNode: _focusNodes[0],
                 textInputAction: TextInputAction.next,
@@ -207,6 +199,32 @@ class _GratitudePageState extends State<GratitudePage> {
         : provider.todayEveningEntry;
   }
 
+  void _selectEntryType(GratitudeProvider provider, EntryType type) {
+    if (type == _selectedEntryType) return;
+    FocusScope.of(context).unfocus();
+    HapticFeedback.selectionClick();
+    final entry = _entryForType(provider, type);
+    setState(() {
+      _selectedEntryType = type;
+      _boundEntrySignature = null;
+    });
+    _hydrateControllers(entry);
+  }
+
+  void _hydrateControllers(GratitudeEntry? entry) {
+    for (var index = 0; index < _controllers.length; index++) {
+      final value = index < (entry?.items.length ?? 0)
+          ? entry!.items[index].content
+          : '';
+      if (_controllers[index].text != value) {
+        _controllers[index].value = TextEditingValue(
+          text: value,
+          selection: TextSelection.collapsed(offset: value.length),
+        );
+      }
+    }
+  }
+
   List<GratitudeDaySummary> _gardenFor(List<GratitudeEntry> entries) {
     final signature = Object.hashAll(
       entries.map(
@@ -232,14 +250,7 @@ class _GratitudePageState extends State<GratitudePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _boundEntrySignature != signature) return;
-      for (var index = 0; index < _controllers.length; index++) {
-        final value = index < (entry?.items.length ?? 0)
-            ? entry!.items[index].content
-            : '';
-        if (_controllers[index].text != value) {
-          _controllers[index].text = value;
-        }
-      }
+      _hydrateControllers(entry);
     });
   }
 
@@ -637,10 +648,14 @@ class _EntryTypeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     return Container(
+      height: 50,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.surfaceColor,
+        color: AppColors.routineTint.withValues(
+          alpha: theme.isDarkMode ? 0.12 : 0.82,
+        ),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.routine.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: [
@@ -687,16 +702,17 @@ class _TypeButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? theme.cardColor : Colors.transparent,
+          color: selected ? AppColors.routineDeep : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
           boxShadow: selected && !theme.isDarkMode
               ? [
                   BoxShadow(
-                    color: AppColors.textPrimary.withValues(alpha: 0.07),
+                    color: AppColors.routineDeep.withValues(alpha: 0.24),
                     blurRadius: 14,
-                    offset: const Offset(0, 5),
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
@@ -706,14 +722,14 @@ class _TypeButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: selected ? AppColors.routineDeep : theme.textSecondary,
-              size: 16,
+              color: selected ? Colors.white : theme.textSecondary,
+              size: 17,
             ),
             const SizedBox(width: 7),
             Text(
               label,
               style: TextStyle(
-                color: selected ? theme.textPrimary : theme.textSecondary,
+                color: selected ? Colors.white : theme.textSecondary,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w800,
               ),
@@ -721,54 +737,6 @@ class _TypeButton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _WritingSectionHeader extends StatelessWidget {
-  final VoidCallback onRefresh;
-
-  const _WritingSectionHeader({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>();
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "What's good today?",
-                style: TextStyle(
-                  color: theme.textPrimary,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                'Short and honest is enough.',
-                style: TextStyle(
-                  color: theme.textSecondary,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          tooltip: 'New prompt',
-          onPressed: onRefresh,
-          icon: Icon(
-            LucideIcons.refreshCw,
-            color: theme.textSecondary,
-            size: 18,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -796,104 +764,125 @@ class _GratitudeInputCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final filled = controller.text.trim().isNotEmpty;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.fromLTRB(14, 12, 12, 11),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(21),
-        border: Border.all(
-          color: filled
-              ? AppColors.routine.withValues(alpha: 0.65)
-              : theme.borderColor.withValues(alpha: 0.34),
-          width: filled ? 1.3 : 1,
-        ),
-        boxShadow: !theme.isDarkMode
-            ? [
+    return ListenableBuilder(
+      listenable: focusNode,
+      builder: (context, child) {
+        final focused = focusNode.hasFocus;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: focused
+                  ? AppColors.routine
+                  : filled
+                  ? AppColors.routine.withValues(alpha: 0.52)
+                  : theme.borderColor.withValues(alpha: 0.28),
+              width: focused ? 1.5 : 1,
+            ),
+            boxShadow: [
+              if (focused)
                 BoxShadow(
-                  color: AppColors.textPrimary.withValues(alpha: 0.045),
+                  color: AppColors.routine.withValues(alpha: 0.13),
+                  blurRadius: 0,
+                  spreadRadius: 3,
+                )
+              else if (!theme.isDarkMode)
+                BoxShadow(
+                  color: AppColors.textPrimary.withValues(alpha: 0.04),
                   blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
-              ]
-            : null,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: filled
-                  ? AppColors.routineDeep
-                  : AppColors.routineTint.withValues(
-                      alpha: theme.isDarkMode ? 0.12 : 1,
-                    ),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
-              child: Icon(
-                filled ? LucideIcons.check : icon,
-                key: ValueKey(filled),
-                color: filled ? Colors.white : AppColors.routineDeep,
-                size: 20,
+            ],
+          ),
+          child: Row(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: filled
+                      ? AppColors.routine
+                      : AppColors.routineTint.withValues(
+                          alpha: theme.isDarkMode ? 0.12 : 1,
+                        ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
+                  child: Icon(
+                    filled ? LucideIcons.check : icon,
+                    key: ValueKey(filled),
+                    color: filled ? Colors.white : AppColors.routineDeep,
+                    size: 17,
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label.toUpperCase(),
-                  style: const TextStyle(
-                    color: AppColors.routineDeep,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.05,
-                  ),
-                ),
-                TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  textInputAction: textInputAction,
-                  textCapitalization: TextCapitalization.sentences,
-                  minLines: 1,
-                  maxLines: 3,
-                  maxLength: 180,
-                  onSubmitted: onSubmitted,
-                  style: TextStyle(
-                    color: theme.textPrimary,
-                    fontSize: 14,
-                    height: 1.35,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintMaxLines: 2,
-                    counterText: '',
-                    isDense: true,
-                    contentPadding: const EdgeInsets.only(top: 5, bottom: 2),
-                    border: InputBorder.none,
-                    hintStyle: TextStyle(
-                      color: theme.textTertiary,
-                      fontSize: 13,
-                      height: 1.3,
-                      fontWeight: FontWeight.w600,
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label.toUpperCase(),
+                      style: const TextStyle(
+                        color: AppColors.routineDeep,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      textInputAction: textInputAction,
+                      textCapitalization: TextCapitalization.sentences,
+                      maxLines: 1,
+                      inputFormatters: [LengthLimitingTextInputFormatter(180)],
+                      onSubmitted: onSubmitted,
+                      style: TextStyle(
+                        color: theme.textPrimary,
+                        fontSize: 13.5,
+                        height: 1.2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: hint,
+                        hintMaxLines: 1,
+                        filled: false,
+                        isCollapsed: true,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintStyle: TextStyle(
+                          color: theme.textTertiary,
+                          fontSize: 13,
+                          height: 1.2,
+                          fontWeight: FontWeight.w500,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -962,57 +951,52 @@ class _GardenSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your garden',
-                    style: TextStyle(
-                      color: theme.textPrimary,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'The last 14 days of noticing.',
-                    style: TextStyle(
-                      color: theme.textSecondary,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+            Text(
+              'Your garden',
+              style: TextStyle(
+                color: theme.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const Icon(
-              LucideIcons.leaf,
-              color: AppColors.routineDeep,
-              size: 21,
+            const Spacer(),
+            const Text(
+              'Last 14 days',
+              style: TextStyle(
+                color: AppColors.routineDeep,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 13),
-        ElevatedCard(
-          padding: const EdgeInsets.all(13),
-          borderRadius: 23,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 7,
-              mainAxisSpacing: 7,
-            ),
-            itemCount: garden.length,
-            itemBuilder: (context, index) {
-              final day = garden[index];
-              return _GardenDay(
-                summary: day,
-                onTap: day.progressCount > 0 ? () => onDayTap(day) : null,
-              );
-            },
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 5.0;
+            final cellSize = (constraints.maxWidth - (gap * 13)) / 14;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: garden.map((day) {
+                return SizedBox.square(
+                  dimension: cellSize,
+                  child: _GardenDay(
+                    summary: day,
+                    onTap: day.progressCount > 0 ? () => onDayTap(day) : null,
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'A leaf grows for every full day · tap a day to look back.',
+          style: TextStyle(
+            color: theme.textTertiary,
+            fontSize: 10.5,
+            height: 1.3,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -1035,9 +1019,13 @@ class _GardenDay extends StatelessWidget {
         summary.date.month == today.month &&
         summary.date.day == today.day;
     final color = summary.isComplete
-        ? AppColors.routineDeep
+        ? AppColors.routine
         : summary.progressCount > 0
-        ? AppColors.routine.withValues(alpha: 0.62)
+        ? Color.lerp(
+            theme.cardColor,
+            AppColors.routine,
+            summary.progressCount == 1 ? 0.30 : 0.60,
+          )!
         : theme.surfaceColor;
 
     return Semantics(
@@ -1048,34 +1036,31 @@ class _GardenDay extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(11),
+          borderRadius: BorderRadius.circular(7),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 220),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(7),
               border: Border.all(
                 color: isToday
                     ? AppColors.routineDeep
-                    : theme.borderColor.withValues(alpha: 0.25),
-                width: isToday ? 1.5 : 1,
+                    : summary.progressCount > 0
+                    ? Colors.transparent
+                    : theme.borderColor.withValues(alpha: 0.22),
+                width: isToday ? 2 : 1,
               ),
+              boxShadow: isToday
+                  ? [
+                      BoxShadow(color: theme.backgroundColor, spreadRadius: 2),
+                      BoxShadow(color: AppColors.routineDeep, spreadRadius: 3),
+                    ]
+                  : null,
             ),
             child: Center(
               child: summary.isComplete
-                  ? const Icon(LucideIcons.leaf, color: Colors.white, size: 15)
-                  : Text(
-                      summary.progressCount > 0
-                          ? '${summary.progressCount}'
-                          : '${summary.date.day}',
-                      style: TextStyle(
-                        color: summary.progressCount > 0
-                            ? Colors.white
-                            : theme.textTertiary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                  ? const Icon(LucideIcons.leaf, color: Colors.white, size: 11)
+                  : null,
             ),
           ),
         ),
