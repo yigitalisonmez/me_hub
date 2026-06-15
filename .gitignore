@@ -56,3 +56,6 @@ docs/.obsidian/
 android/key.properties
 android/*.jks
 android/*.keystore
+
+# Large design/asset archives — keep out of git
+*.zip

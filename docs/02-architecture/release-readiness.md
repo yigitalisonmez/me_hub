@@ -1,51 +1,64 @@
 # Release Readiness
 
-Last audited: 2026-06-01.
+Last audited: 2026-06-15.
 
-> **Do not publish to Play Store until all items in "Remaining Work" are complete.**
+> **Code side is release-ready for Android. Remaining gap is Play Console store
+> work (listing, privacy policy hosting, data safety form), not code.**
 
 ## Current Status
 
-Release build verified. The Android APK is built and signed. The app is
-local-only and passes static analysis and the current test suite. Remaining
-work before a public launch is documented below.
+Android release App Bundle (`.aab`) is built and signed. The app is local-only,
+passes static analysis, and passes the full test suite. The notification
+timezone bug is fixed. First release target is **Android-only**; iOS is deferred.
 
-## Verification Baseline
+## Verification Baseline (2026-06-15)
 
 ```text
 flutter analyze
-Result: passes with no issues.
+Result: passes — no issues.
 ```
 
 ```text
 flutter test
-Result: passes — 46 tests.
+Result: passes — 114 tests (entity, provider, and widget tests).
 ```
-
-Important: all 46 tests are entity-level unit tests. There are no provider,
-repository, or widget integration tests. This is not meaningful release
-coverage.
 
 ```text
-flutter build apk --release
-Result: succeeds (verified 2026-05-30).
-APK: build/app/outputs/flutter-apk/app-release.apk — 204.5 MB
-Signing: kora-release.jks, SHA-256 26aaae075f5d9b195808518f35817becaac16ad371fc1da188efcd152aaff21f
+flutter build appbundle --release
+Result: succeeds.
+AAB: build/app/outputs/bundle/release/app-release.aab — 99.8 MB
+Signing: kora-release.jks release signing config applied.
 ```
+
+Size history: initial bundle was 183.5 MB. Removed 35 unused images
+(~80 MB, including 17 dead 4K `profile_bg*.png` files) on 2026-06-15, dropping
+the bundle to 99.8 MB. Remaining weight is mostly TFLite/audio/just_audio native
+libs across ABIs; Play dynamic delivery splits these per-device, so the actual
+user download is smaller than the bundle. Optional further wins: convert the 18
+remaining in-use images (~11 MB) to WebP.
 
 ## Remaining Work Before Public Launch
 
-1. **Notification timezone** — timezone was hardcoded to `Europe/Istanbul`.
-   Fix in progress: reading device timezone via `flutter_timezone` at startup.
-2. **Test coverage** — 46 entity-level unit tests exist. Provider, repository,
-   and widget integration tests are needed before a public release is safe.
-3. **Affirmation Hive repository** — the data-layer Hive repository for
-   affirmations (typeId 12) is registered but never called by the active
-   provider flow. Decide: keep, migrate, or remove.
-4. **iOS signing** — not configured. If iOS v1 is in scope, Xcode signing
-   and App Store provisioning must be set up first.
-5. **Voice command stubs** — several parsed command types return a silent no-op
+### Play Console (not code — required to publish)
+
+1. **Privacy policy URL** — draft written at `docs/PRIVACY-POLICY.md`. Must be
+   hosted at a public URL and linked in the Play Console listing. Required
+   because the app uses microphone, notifications, and internet.
+2. **Play Console setup** — developer account, app entry, enable Play App
+   Signing (upload key = `kora-release.jks`).
+3. **Store listing assets** — 512×512 icon, 1024×500 feature graphic, phone
+   screenshots, short/long description.
+4. **Data Safety form + content rating** — declare microphone/internet usage
+   honestly (no analytics, no data collection server-side).
+
+### Code (deferred — ship via updates, not blocking)
+
+1. **Affirmation Hive repository** — data-layer Hive repository (typeId 12) is
+   registered but never called by the active provider flow. Decide: keep,
+   migrate, or remove.
+2. **Voice command stubs** — several parsed command types return a silent no-op
    instead of surfacing an "unsupported" message to the user.
+3. **iOS signing** — not configured. Out of scope for Android-first v1.
 
 ## P1 Risks
 
