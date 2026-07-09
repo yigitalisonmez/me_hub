@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -124,26 +125,20 @@ class _StreakHero extends StatelessWidget {
               children: [
                 Text.rich(
                   TextSpan(
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                      letterSpacing: -0.6,
+                    ),
                     children: [
                       TextSpan(
                         text: '$streak ',
-                        style: const TextStyle(
-                          color: AppColors.primaryDeep,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                          letterSpacing: -0.6,
-                        ),
+                        style: const TextStyle(color: AppColors.primaryDeep),
                       ),
                       TextSpan(
                         text: 'day streak',
-                        style: TextStyle(
-                          color: theme.textPrimary,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                          letterSpacing: -0.6,
-                        ),
+                        style: TextStyle(color: theme.textPrimary),
                       ),
                     ],
                   ),
@@ -321,10 +316,7 @@ class _HeatmapCard extends StatelessWidget {
         border: isSelected
             ? Border.all(color: theme.textPrimary, width: 1.6)
             : day.level == 0 && !isFuture
-            ? Border.all(
-                color: theme.textTertiary.withValues(alpha: 0.25),
-                width: 0.8,
-              )
+            ? Border.all(color: _hairline(theme))
             : null,
       ),
     );
@@ -335,14 +327,21 @@ class _HeatmapCard extends StatelessWidget {
     );
   }
 
-  /// Design spec: levels 1-3 mix terracotta into the surface at 22/46/72%,
-  /// level 4 is solid terracotta-deep.
+  /// Design spec: empty cells are surface-2 (a step darker than the card),
+  /// levels 1-3 mix terracotta into the surface at 22/46/72%, and level 4 is
+  /// solid terracotta-deep.
   static Color _levelColor(ThemeProvider theme, int level) {
-    if (level == 0) return theme.surfaceColor;
+    if (level == 0) {
+      return theme.isDarkMode ? AppColors.darkSurface : AppColors.surfaceAlt;
+    }
     if (level == 4) return AppColors.primaryDeep;
     final t = [0.0, 0.22, 0.46, 0.72][level];
     return Color.lerp(theme.cardColor, AppColors.primary, t)!;
   }
+
+  /// Design hairline token: ink at 8%.
+  static Color _hairline(ThemeProvider theme) =>
+      theme.textPrimary.withValues(alpha: 0.08);
 
   Widget _legend(ThemeProvider theme) {
     Widget swatch(int level) => Container(
@@ -352,9 +351,7 @@ class _HeatmapCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _levelColor(theme, level),
         borderRadius: BorderRadius.circular(3),
-        border: level == 0
-            ? Border.all(color: theme.textTertiary.withValues(alpha: 0.3))
-            : null,
+        border: level == 0 ? Border.all(color: _hairline(theme)) : null,
       ),
     );
     final labelStyle = TextStyle(
@@ -397,16 +394,21 @@ class _DayDetail extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
-              color: AppColors.terraTint,
-              borderRadius: BorderRadius.circular(14),
+              color: theme.isDarkMode
+                  ? Color.alphaBlend(
+                      AppColors.primary.withValues(alpha: 0.14),
+                      AppColors.darkCard,
+                    )
+                  : AppColors.terraTint,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
               child: Text(
                 '${day.date.day}',
-                style: const TextStyle(
+                style: GoogleFonts.bricolageGrotesque(
                   color: AppColors.primaryDeep,
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
@@ -421,10 +423,10 @@ class _DayDetail extends StatelessWidget {
               children: [
                 Text(
                   _titles[day.level],
-                  style: TextStyle(
+                  style: GoogleFonts.bricolageGrotesque(
                     color: theme.textPrimary,
                     fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -434,8 +436,8 @@ class _DayDetail extends StatelessWidget {
                       : '${day.habitsCompleted} of 5 habits completed',
                   style: TextStyle(
                     color: theme.textSecondary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -443,7 +445,7 @@ class _DayDetail extends StatelessWidget {
           ),
           Text(
             '$percent%',
-            style: const TextStyle(
+            style: GoogleFonts.bricolageGrotesque(
               color: AppColors.primaryDeep,
               fontSize: 19,
               fontWeight: FontWeight.w800,
@@ -472,7 +474,7 @@ class _StatsRow extends StatelessWidget {
           children: [
             Text(
               value,
-              style: TextStyle(
+              style: GoogleFonts.bricolageGrotesque(
                 color: theme.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
