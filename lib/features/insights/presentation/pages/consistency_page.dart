@@ -100,25 +100,21 @@ class _StreakHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
     final streak = summary.currentStreak;
     final isRecord = streak > 0 && streak >= summary.bestStreak;
+    final tint = theme.isDarkMode
+        ? Color.alphaBlend(
+            AppColors.primary.withValues(alpha: 0.14),
+            AppColors.darkCard,
+          )
+        : AppColors.terraTint;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDeep],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryDeep.withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-            spreadRadius: -10,
-          ),
-        ],
+        color: tint,
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Row(
         children: [
@@ -132,18 +128,21 @@ class _StreakHero extends StatelessWidget {
                       TextSpan(
                         text: '$streak ',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.primaryDeep,
                           fontSize: 30,
                           fontWeight: FontWeight.w800,
-                          height: 1.05,
+                          height: 1,
+                          letterSpacing: -0.6,
                         ),
                       ),
                       TextSpan(
-                        text: streak == 1 ? 'day streak' : 'day streak',
+                        text: 'day streak',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.92),
-                          fontSize: 21,
+                          color: theme.textPrimary,
+                          fontSize: 30,
                           fontWeight: FontWeight.w800,
+                          height: 1,
+                          letterSpacing: -0.6,
                         ),
                       ),
                     ],
@@ -157,7 +156,7 @@ class _StreakHero extends StatelessWidget {
                       ? 'Your longest yet. Keep the rhythm.'
                       : 'Best so far: ${summary.bestStreak} days.',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: theme.textSecondary,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -165,14 +164,19 @@ class _StreakHero extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 12),
           Container(
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: AppColors.primary.withValues(alpha: 0.18),
               shape: BoxShape.circle,
             ),
-            child: const Icon(LucideIcons.flame, color: Colors.white, size: 26),
+            child: const Icon(
+              LucideIcons.flame,
+              color: AppColors.primaryDeep,
+              size: 26,
+            ),
           ),
         ],
       ),
@@ -309,31 +313,35 @@ class _HeatmapCard extends StatelessWidget {
     final day = summary.days[index];
     final isFuture = day.date.isAfter(todayDate);
     final isSelected = index == selectedIndex;
+    final cell = Container(
+      margin: const EdgeInsets.all(1.5),
+      decoration: BoxDecoration(
+        color: isFuture ? Colors.transparent : _levelColor(theme, day.level),
+        borderRadius: BorderRadius.circular(4),
+        border: isSelected
+            ? Border.all(color: theme.textPrimary, width: 1.6)
+            : day.level == 0 && !isFuture
+            ? Border.all(
+                color: theme.textTertiary.withValues(alpha: 0.25),
+                width: 0.8,
+              )
+            : null,
+      ),
+    );
     return GestureDetector(
       onTap: isFuture ? null : () => onSelect(index),
-      child: Container(
-        margin: const EdgeInsets.all(1.5),
-        decoration: BoxDecoration(
-          color: isFuture ? Colors.transparent : _levelColor(theme, day.level),
-          borderRadius: BorderRadius.circular(4),
-          border: isSelected
-              ? Border.all(color: theme.textPrimary, width: 1.6)
-              : day.level == 0 && !isFuture
-              ? Border.all(
-                  color: theme.textTertiary.withValues(alpha: 0.25),
-                  width: 0.8,
-                )
-              : null,
-        ),
-      ),
+      // Design spec: the selected cell scales up 1.25x above its neighbors.
+      child: isSelected ? Transform.scale(scale: 1.25, child: cell) : cell,
     );
   }
 
+  /// Design spec: levels 1-3 mix terracotta into the surface at 22/46/72%,
+  /// level 4 is solid terracotta-deep.
   static Color _levelColor(ThemeProvider theme, int level) {
     if (level == 0) return theme.surfaceColor;
     if (level == 4) return AppColors.primaryDeep;
     final t = [0.0, 0.22, 0.46, 0.72][level];
-    return Color.lerp(theme.cardColor, AppColors.primaryDeep, t)!;
+    return Color.lerp(theme.cardColor, AppColors.primary, t)!;
   }
 
   Widget _legend(ThemeProvider theme) {
@@ -437,7 +445,7 @@ class _DayDetail extends StatelessWidget {
             '$percent%',
             style: const TextStyle(
               color: AppColors.primaryDeep,
-              fontSize: 17,
+              fontSize: 19,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -458,14 +466,15 @@ class _StatsRow extends StatelessWidget {
 
     Widget stat(String value, String label) => Expanded(
       child: ElevatedCard(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               value,
               style: TextStyle(
                 color: theme.textPrimary,
-                fontSize: 19,
+                fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -473,10 +482,12 @@ class _StatsRow extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: theme.textTertiary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+                color: theme.textSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
