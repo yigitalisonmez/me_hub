@@ -26,6 +26,7 @@ import '../../../water/presentation/pages/water_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
 import '../../../calendar/presentation/providers/calendar_provider.dart';
 import '../../../insights/presentation/pages/consistency_page.dart';
+import '../../../insights/presentation/pages/weekly_wrapped_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -123,6 +124,11 @@ class _HomePageState extends State<HomePage> {
             _buildRhythmStrip(themeProvider),
             const SizedBox(height: 14),
 
+            if (DateTime.now().weekday == DateTime.sunday) ...[
+              _buildWrappedBanner(themeProvider),
+              const SizedBox(height: 14),
+            ],
+
             _buildHeroCard(themeProvider),
             const SizedBox(height: 22),
 
@@ -174,6 +180,10 @@ class _HomePageState extends State<HomePage> {
               onConsistencyTap: () => Navigator.push(
                 context,
                 AppRoute(page: const ConsistencyPage()),
+              ),
+              onWrappedTap: () => Navigator.push(
+                context,
+                AppRoute(page: const WeeklyWrappedPage()),
               ),
             ),
             const SizedBox(height: 24),
@@ -370,6 +380,86 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Sunday-only banner announcing the weekly wrapped story.
+  Widget _buildWrappedBanner(ThemeProvider themeProvider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () =>
+            Navigator.push(context, AppRoute(page: const WeeklyWrappedPage())),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [AppColors.mindful, AppColors.mindfulDeep],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.mindfulDeep.withValues(alpha: 0.32),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.sparkles,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SUNDAY',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    const Text(
+                      'Your weekly wrapped is ready',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                LucideIcons.chevronRight,
+                color: Colors.white,
+                size: 17,
+              ),
+            ],
+          ),
         ),
       ),
     );

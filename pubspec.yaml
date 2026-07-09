@@ -110,6 +110,7 @@ dependencies:
 
   # Rolling metric values
   animated_digit: ^3.3.3
+  share_plus: ^12.0.2
 
 dev_dependencies:
   flutter_test:
