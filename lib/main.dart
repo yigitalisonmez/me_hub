@@ -12,6 +12,7 @@ import 'core/theme/theme_extensions.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/theme_provider.dart';
 import 'features/home/presentation/pages/home_page.dart';
+import 'features/home/presentation/widgets/quick_log_sheet.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/repositories/todo_repository_impl.dart';
 import 'features/todo/domain/usecases/get_today_todos.dart';
@@ -576,9 +577,68 @@ class _MainScreenState extends State<MainScreen> {
               bottom: 0,
               child: _buildBottomNavigationBar(),
             ),
+            _buildQuickLogButton(),
           ],
         ),
         // FAB removed - mic is now in navbar
+      ),
+    );
+  }
+
+  /// Floating "+ Quick log" pill above the navbar, Home tab only.
+  Widget _buildQuickLogButton() {
+    final themeProvider = context.watch<ThemeProvider>();
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    return Positioned(
+      right: 18,
+      bottom: bottomPadding + 12 + 74 + 12,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+        offset: _currentIndex == 0 ? Offset.zero : const Offset(0, 0.4),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 240),
+          opacity: _currentIndex == 0 ? 1 : 0,
+          child: IgnorePointer(
+            ignoring: _currentIndex != 0,
+            child: GestureDetector(
+              onTap: () => showQuickLogSheet(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: themeProvider.primaryColor,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeProvider.primaryColor.withValues(alpha: 0.4),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                      spreadRadius: -6,
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, color: Colors.white, size: 19),
+                    SizedBox(width: 5),
+                    Text(
+                      'Quick log',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
