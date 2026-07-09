@@ -88,7 +88,7 @@ class BreathingTechnique {
       holdAfterInhaleSeconds: 7,
       exhaleSeconds: 8,
       holdAfterExhaleSeconds: 0,
-      primaryColor: Color(0xFF7E57C2), // Purple for sleep
+      primaryColor: Color(0xFF7C70AC), // Kora mindful deep for sleep
       icon: LucideIcons.moon,
     ),
 
@@ -104,7 +104,7 @@ class BreathingTechnique {
       holdAfterInhaleSeconds: 4,
       exhaleSeconds: 4,
       holdAfterExhaleSeconds: 4,
-      primaryColor: Color(0xFF42A5F5), // Blue for focus
+      primaryColor: Color(0xFF4E84AA), // Kora water deep for focus
       icon: LucideIcons.square,
     ),
 
@@ -120,7 +120,7 @@ class BreathingTechnique {
       holdAfterInhaleSeconds: 0,
       exhaleSeconds: 6,
       holdAfterExhaleSeconds: 0,
-      primaryColor: Color(0xFF26A69A), // Teal for balance
+      primaryColor: Color(0xFF6E895B), // Kora routine deep for balance
       icon: LucideIcons.waves,
     ),
 
@@ -136,7 +136,7 @@ class BreathingTechnique {
       holdAfterInhaleSeconds: 0,
       exhaleSeconds: 2,
       holdAfterExhaleSeconds: 0,
-      primaryColor: Color(0xFFFF7043), // Orange for energy
+      primaryColor: Color(0xFFC9714F), // Kora terracotta deep for energy
       icon: LucideIcons.zap,
     ),
 
@@ -152,7 +152,7 @@ class BreathingTechnique {
       holdAfterInhaleSeconds: 2,
       exhaleSeconds: 6,
       holdAfterExhaleSeconds: 0,
-      primaryColor: Color(0xFF4DB6AC), // Light teal for calm
+      primaryColor: Color(0xFF8FA87C), // Kora routine sage for calm
       icon: LucideIcons.heart,
     ),
   ];

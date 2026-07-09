@@ -37,8 +37,8 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _todayIndex = (now.year * 365 + now.month * 31 + now.day) %
-        _affirmations.length;
+    _todayIndex =
+        (now.year * 365 + now.month * 31 + now.day) % _affirmations.length;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AffirmationProvider>().init();
     });
@@ -58,10 +58,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mindfulTint,
-              themeProvider.backgroundColor,
-            ],
+            colors: [AppColors.mindfulTint, themeProvider.backgroundColor],
             stops: const [0.0, 0.45],
           ),
         ),
@@ -83,12 +80,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _buildAffirmationCard(
-                  context,
-                  themeProvider,
-                  quote,
-                  category,
-                ),
+                _buildAffirmationCard(context, themeProvider, quote, category),
                 const SizedBox(height: 14),
                 _buildStreak(themeProvider, streak),
                 const SizedBox(height: 18),
@@ -156,9 +148,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
           colors: [AppColors.mindfulTint, Color(0xFFFDFBF7)],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.mindful.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: AppColors.mindful.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -229,11 +219,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            LucideIcons.flame,
-            size: 14,
-            color: AppColors.moodDeep,
-          ),
+          const Icon(LucideIcons.flame, size: 14, color: AppColors.moodDeep),
           const SizedBox(width: 6),
           Text(
             sessions > 0
@@ -252,9 +238,9 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
 
   Widget _buildSleepCta(BuildContext context, ThemeProvider tp) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        AppRoute(page: const _SleepAffirmationsFlowPage()),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(AppRoute(page: const _SleepAffirmationsFlowPage())),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -279,11 +265,7 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
                 color: Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(
-                LucideIcons.mic,
-                size: 22,
-                color: Colors.white,
-              ),
+              child: const Icon(LucideIcons.mic, size: 22, color: Colors.white),
             ),
             const SizedBox(width: 13),
             const Expanded(
@@ -329,10 +311,12 @@ class _AffirmationsPageState extends State<AffirmationsPage> {
     return Column(
       children: saved
           .take(3)
-          .map((r) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _SavedRow(text: r.name, tp: tp),
-              ))
+          .map(
+            (r) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _SavedRow(text: r.name, tp: tp),
+            ),
+          )
           .toList(),
     );
   }
@@ -392,12 +376,15 @@ class _ActionButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: filled ? (color ?? AppColors.mindful) : (themeProvider?.cardColor ?? Colors.white),
+          color: filled
+              ? (color ?? AppColors.mindful)
+              : (themeProvider?.cardColor ?? Colors.white),
           shape: BoxShape.circle,
           border: filled
               ? null
               : Border.all(
-                  color: themeProvider?.textSecondary.withValues(alpha: 0.16) ??
+                  color:
+                      themeProvider?.textSecondary.withValues(alpha: 0.16) ??
                       AppColors.textSecondary.withValues(alpha: 0.16),
                 ),
           boxShadow: [
@@ -432,17 +419,11 @@ class _SavedRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: tp.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: tp.textSecondary.withValues(alpha: 0.10),
-        ),
+        border: Border.all(color: tp.textSecondary.withValues(alpha: 0.10)),
       ),
       child: Row(
         children: [
-          const Icon(
-            LucideIcons.heart,
-            size: 14,
-            color: AppColors.mindful,
-          ),
+          const Icon(LucideIcons.heart, size: 14, color: AppColors.mindful),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -525,12 +506,19 @@ class _SleepAffirmationsFlowPageState
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Row(
           children: [
-            const Icon(LucideIcons.triangleAlert, color: AppColors.moodDeep, size: 22),
+            const Icon(
+              LucideIcons.triangleAlert,
+              color: AppColors.moodDeep,
+              size: 22,
+            ),
             const SizedBox(width: 10),
-            Text('End session?',
-                style: TextStyle(
-                    color: themeProvider.textPrimary,
-                    fontWeight: FontWeight.w800)),
+            Text(
+              'End session?',
+              style: TextStyle(
+                color: themeProvider.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
         content: Text(
@@ -540,13 +528,16 @@ class _SleepAffirmationsFlowPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Stay',
-                style: TextStyle(color: themeProvider.textSecondary)),
+            child: Text(
+              'Stay',
+              style: TextStyle(color: themeProvider.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mindfulDeep),
+              backgroundColor: AppColors.mindfulDeep,
+            ),
             child: const Text('Leave', style: TextStyle(color: Colors.white)),
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/breathing_provider.dart';
 import '../widgets/breathing_polygon_animation.dart';
 import '../widgets/mood_check_widget.dart';
@@ -110,7 +111,7 @@ class _BreathingSessionPageState extends State<BreathingSessionPage>
                 phase: provider.currentPhase,
                 techniqueColor:
                     provider.selectedTechnique?.primaryColor ??
-                    const Color(0xFF4DB6AC),
+                    AppColors.mindful,
               ),
 
               // Main content
@@ -226,7 +227,7 @@ class _BreathingSessionPageState extends State<BreathingSessionPage>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(LucideIcons.triangleAlert, color: Colors.amber, size: 24),
+            Icon(LucideIcons.triangleAlert, color: AppColors.warning, size: 24),
             const SizedBox(width: 12),
             Text(
               'End Session?',
@@ -252,7 +253,7 @@ class _BreathingSessionPageState extends State<BreathingSessionPage>
               provider.stopSession();
               Navigator.of(context).pop();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Exit', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -347,7 +348,7 @@ class _PreparingViewState extends State<_PreparingView>
                   shape: BoxShape.circle,
                   color:
                       (provider.selectedTechnique?.primaryColor ??
-                              const Color(0xFF4DB6AC))
+                              AppColors.mindful)
                           .withValues(alpha: 0.2),
                 ),
                 child: Center(
@@ -429,7 +430,7 @@ class _BreathingView extends StatelessWidget {
                   backgroundColor: themeProvider.cardColor,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     provider.selectedTechnique?.primaryColor ??
-                        const Color(0xFF4DB6AC),
+                        AppColors.mindful,
                   ),
                   minHeight: 4,
                 ),

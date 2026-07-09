@@ -230,7 +230,11 @@ class _FlowSteps extends StatelessWidget {
   Widget build(BuildContext context) {
     const steps = [
       (LucideIcons.mic, 'Record', 'Up to 3 affirmations in your own voice.'),
-      (LucideIcons.wind, 'Set the mood', 'Layer in rain, pads or summer night.'),
+      (
+        LucideIcons.wind,
+        'Set the mood',
+        'Layer in rain, pads or summer night.',
+      ),
       (LucideIcons.moon, 'Drift off', 'Listen on a gentle loop as you sleep.'),
     ];
 
@@ -272,9 +276,7 @@ class _StepCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: tp.cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: tp.textSecondary.withValues(alpha: 0.10),
-        ),
+        border: Border.all(color: tp.textSecondary.withValues(alpha: 0.10)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -369,49 +371,51 @@ class _SessionHistory extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        ...provider.sessionHistory.take(3).map(
-          (log) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: tp.cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: tp.textSecondary.withValues(alpha: 0.10),
+        ...provider.sessionHistory
+            .take(3)
+            .map(
+              (log) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: tp.cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: tp.textSecondary.withValues(alpha: 0.10),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.moon,
+                        color: AppColors.mindfulDeep,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Text(
+                          log.formattedDate,
+                          style: TextStyle(
+                            color: tp.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${log.durationMinutes} min',
+                        style: TextStyle(
+                          color: tp.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.moon,
-                    color: AppColors.mindfulDeep,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Text(
-                      log.formattedDate,
-                      style: TextStyle(
-                        color: tp.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${log.durationMinutes} min',
-                    style: TextStyle(
-                      color: tp.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
-        ),
       ],
     );
   }

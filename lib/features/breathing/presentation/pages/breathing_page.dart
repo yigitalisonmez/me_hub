@@ -143,9 +143,7 @@ class _BreathingPageState extends State<BreathingPage> {
     final provider = context.read<BreathingProvider>();
     provider.selectTechnique(technique);
 
-    Navigator.of(
-      context,
-    ).push(AppRoute(page: const BreathingSessionPage()));
+    Navigator.of(context).push(AppRoute(page: const BreathingSessionPage()));
   }
 
   void _showStatsSheet(BuildContext context) {
@@ -375,51 +373,55 @@ class _BreathingStage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-        _BreathingOrb(color: technique.primaryColor),
-        const SizedBox(height: 14),
-        Text(
-          'Breathe in',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: AppColors.mindfulDeep,
-            fontWeight: FontWeight.w800,
+          _BreathingOrb(color: technique.primaryColor),
+          const SizedBox(height: 14),
+          Text(
+            'Breathe in',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppColors.mindfulDeep,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 6,
-          runSpacing: 6,
-          children: technique.phases.map((phase) {
-            final isFirst = phase == technique.phases.first;
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-              decoration: BoxDecoration(
-                color: isFirst
-                    ? AppColors.mindfulTint
-                    : context.watch<ThemeProvider>().cardColor,
-                borderRadius: BorderRadius.circular(99),
-                border: Border.all(
-                  color: isFirst
-                      ? AppColors.mindful
-                      : context.watch<ThemeProvider>().textTertiary.withValues(
-                          alpha: 0.16,
-                        ),
+          const SizedBox(height: 10),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: technique.phases.map((phase) {
+              final isFirst = phase == technique.phases.first;
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 6,
                 ),
-              ),
-              child: Text(
-                '${_shortPhase(phase.label)} · ${phase.duration}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                decoration: BoxDecoration(
                   color: isFirst
-                      ? AppColors.mindfulDeep
-                      : context.watch<ThemeProvider>().textTertiary,
-                  fontWeight: FontWeight.w800,
+                      ? AppColors.mindfulTint
+                      : context.watch<ThemeProvider>().cardColor,
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(
+                    color: isFirst
+                        ? AppColors.mindful
+                        : context
+                              .watch<ThemeProvider>()
+                              .textTertiary
+                              .withValues(alpha: 0.16),
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    ),
+                child: Text(
+                  '${_shortPhase(phase.label)} · ${phase.duration}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: isFirst
+                        ? AppColors.mindfulDeep
+                        : context.watch<ThemeProvider>().textTertiary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -445,10 +447,7 @@ class _BreathingOrbState extends State<_BreathingOrb>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
-    _breathAnim = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
+    _breathAnim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
 
   @override
@@ -478,7 +477,9 @@ class _BreathingOrbState extends State<_BreathingOrb>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.mindful.withValues(alpha: 0.32 + t * 0.15),
+                      color: AppColors.mindful.withValues(
+                        alpha: 0.32 + t * 0.15,
+                      ),
                       width: 1.5,
                     ),
                   ),
@@ -492,7 +493,9 @@ class _BreathingOrbState extends State<_BreathingOrb>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.mindful.withValues(alpha: 0.20 + t * 0.14),
+                      color: AppColors.mindful.withValues(
+                        alpha: 0.20 + t * 0.14,
+                      ),
                       width: 1.5,
                     ),
                   ),
@@ -512,10 +515,7 @@ class _BreathingOrbState extends State<_BreathingOrb>
               Positioned(
                 top: 30,
                 left: 34,
-                child: _Spark(
-                  size: 8,
-                  opacity: 0.50 + t * 0.40,
-                ),
+                child: _Spark(size: 8, opacity: 0.50 + t * 0.40),
               ),
               Positioned(
                 top: 54,
@@ -525,10 +525,7 @@ class _BreathingOrbState extends State<_BreathingOrb>
               Positioned(
                 bottom: 42,
                 left: 54,
-                child: _Spark(
-                  size: 5,
-                  opacity: 0.25 + t * 0.40,
-                ),
+                child: _Spark(size: 5, opacity: 0.25 + t * 0.40),
               ),
               Transform.translate(
                 offset: Offset(0, -4 - (t * 14)),

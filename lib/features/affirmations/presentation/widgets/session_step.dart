@@ -73,7 +73,18 @@ class SessionStep extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 38),
+                  const SizedBox(
+                    width: 38,
+                    child: Text(
+                      '3/3',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.mindfulDeep,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
