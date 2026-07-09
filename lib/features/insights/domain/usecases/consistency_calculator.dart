@@ -24,7 +24,10 @@ class ConsistencyCalculator {
     for (var i = 0; i < weeks * 7; i++) {
       final date = windowStart.add(Duration(days: i));
       days.add(
-        DayConsistency(date: date, habitsCompleted: _habitsOn(date, categoryActivity)),
+        DayConsistency(
+          date: date,
+          habitsCompleted: _habitsOn(date, categoryActivity),
+        ),
       );
     }
 

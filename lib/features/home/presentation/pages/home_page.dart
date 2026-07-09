@@ -25,6 +25,7 @@ import '../../../challenges/presentation/pages/challenges_page.dart';
 import '../../../water/presentation/pages/water_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
 import '../../../calendar/presentation/providers/calendar_provider.dart';
+import '../../../insights/presentation/pages/consistency_page.dart';
 
 // Use existing dashboard widgets from todo feature
 import '../../../todo/presentation/widgets/dashboard_widgets.dart';
@@ -169,6 +170,10 @@ class _HomePageState extends State<HomePage> {
               onGratitudeTap: () => Navigator.push(
                 context,
                 AppRoute(page: const GratitudePage()),
+              ),
+              onConsistencyTap: () => Navigator.push(
+                context,
+                AppRoute(page: const ConsistencyPage()),
               ),
             ),
             const SizedBox(height: 24),

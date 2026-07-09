@@ -336,6 +336,8 @@ class ExploreSection extends StatelessWidget {
   final VoidCallback? onAffirmationsTap;
   final VoidCallback? onBreathingTap;
   final VoidCallback? onGratitudeTap;
+  final VoidCallback? onConsistencyTap;
+  final VoidCallback? onWrappedTap;
 
   const ExploreSection({
     super.key,
@@ -349,6 +351,8 @@ class ExploreSection extends StatelessWidget {
     this.onAffirmationsTap,
     this.onBreathingTap,
     this.onGratitudeTap,
+    this.onConsistencyTap,
+    this.onWrappedTap,
   });
 
   @override
@@ -392,8 +396,49 @@ class ExploreSection extends StatelessWidget {
             onBreathingTap: onBreathingTap,
             onGratitudeTap: onGratitudeTap,
           ),
+          const SizedBox(height: 20),
+          InsightsSection(
+            onConsistencyTap: onConsistencyTap,
+            onWrappedTap: onWrappedTap,
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Insights category: consistency heatmap and weekly wrapped entries.
+class InsightsSection extends StatelessWidget {
+  final VoidCallback? onConsistencyTap;
+  final VoidCallback? onWrappedTap;
+
+  const InsightsSection({super.key, this.onConsistencyTap, this.onWrappedTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    return _CategorySection(
+      title: 'Insights',
+      titleColor: themeProvider.primaryColor,
+      cards: [
+        _CategoryCard(
+          imagePath: 'assets/images/analytics.png',
+          icon: LucideIcons.flame,
+          label: 'Consistency',
+          color: themeProvider.primaryColor,
+          status: 'Your habit heatmap',
+          isFeatured: true,
+          onTap: onConsistencyTap,
+        ),
+        if (onWrappedTap != null)
+          _CategoryCard(
+            icon: LucideIcons.sparkles,
+            label: 'Weekly wrapped',
+            color: AppColors.mindful,
+            status: 'Your week in a story',
+            onTap: onWrappedTap,
+          ),
+      ],
     );
   }
 }

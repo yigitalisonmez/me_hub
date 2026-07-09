@@ -17,16 +17,19 @@ void main() {
     Set<DateTime>? mindful,
   }) => [tasks ?? {}, water ?? {}, mood ?? {}, gratitude ?? {}, mindful ?? {}];
 
-  test('window is weeks * 7 days, Monday-first, ending in the current week', () {
-    final summary = calculator.calculate(
-      categoryActivity: activity(),
-      today: today,
-      weeks: 16,
-    );
-    expect(summary.days.length, 16 * 7);
-    expect(summary.days.first.date.weekday, DateTime.monday);
-    expect(summary.days.last.date, DateTime(2026, 7, 12)); // this Sunday
-  });
+  test(
+    'window is weeks * 7 days, Monday-first, ending in the current week',
+    () {
+      final summary = calculator.calculate(
+        categoryActivity: activity(),
+        today: today,
+        weeks: 16,
+      );
+      expect(summary.days.length, 16 * 7);
+      expect(summary.days.first.date.weekday, DateTime.monday);
+      expect(summary.days.last.date, DateTime(2026, 7, 12)); // this Sunday
+    },
+  );
 
   test('habit counts map to levels with 4+ capped at 4', () {
     final target = day(1);

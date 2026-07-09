@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_route.dart';
 import '../../../../core/widgets/animated_metric_text.dart';
 import '../../../../core/widgets/elevated_card.dart';
+import '../../../insights/presentation/pages/consistency_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../water/data/services/daily_goal_service.dart';
 import '../../../water/presentation/pages/water_settings_page.dart';
@@ -298,6 +299,10 @@ class _ProfileRedesign extends StatelessWidget {
                       color: AppColors.mood,
                       tint: AppColors.moodTint,
                       themeProvider: themeProvider,
+                      onTap: () => Navigator.push(
+                        context,
+                        AppRoute(page: const ConsistencyPage()),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -553,6 +558,7 @@ class _ProfileStatCard extends StatelessWidget {
   final Color color;
   final Color tint;
   final ThemeProvider themeProvider;
+  final VoidCallback? onTap;
 
   const _ProfileStatCard({
     required this.icon,
@@ -563,6 +569,7 @@ class _ProfileStatCard extends StatelessWidget {
     required this.color,
     required this.tint,
     required this.themeProvider,
+    this.onTap,
   });
 
   @override
@@ -574,6 +581,7 @@ class _ProfileStatCard extends StatelessWidget {
     return ElevatedCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
       borderRadius: 22,
+      onTap: onTap,
       child: Column(
         children: [
           Container(

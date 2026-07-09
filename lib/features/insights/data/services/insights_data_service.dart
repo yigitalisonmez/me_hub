@@ -112,8 +112,9 @@ class InsightsDataService {
     }
 
     final gratitudeDates = <DateTime>{};
-    for (final entry
-        in (await _openBox<GratitudeEntry>('gratitude_entries')).values) {
+    for (final entry in (await _openBox<GratitudeEntry>(
+      'gratitude_entries',
+    )).values) {
       gratitudeDates.add(
         _dateOnly(DateTime.fromMillisecondsSinceEpoch(entry.dateTimestamp)),
       );
