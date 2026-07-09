@@ -49,6 +49,7 @@ import 'features/analytics/domain/usecases/compute_weekly_insight.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 import 'features/timer/presentation/providers/timer_provider.dart';
+import 'features/timer/presentation/pages/timer_page.dart';
 
 import 'features/profile/presentation/pages/profile_page.dart';
 import 'core/widgets/voice_command_sheet.dart';
@@ -297,6 +298,8 @@ void main() async {
       challengesDataSource: challengesDataSource,
       calendarDataSource: calendarDataSource,
       reminderCoordinator: reminderCoordinator,
+      notificationService: notificationService,
+      preferences: prefs,
       showOnboarding: showOnboarding,
     ),
   );
@@ -319,6 +322,8 @@ class KoraApp extends StatelessWidget {
   final ChallengesLocalDataSource challengesDataSource;
   final CalendarLocalDatasource calendarDataSource;
   final ReminderCoordinator reminderCoordinator;
+  final NotificationService notificationService;
+  final SharedPreferences preferences;
   final bool showOnboarding;
 
   const KoraApp({
@@ -331,6 +336,8 @@ class KoraApp extends StatelessWidget {
     required this.challengesDataSource,
     required this.calendarDataSource,
     required this.reminderCoordinator,
+    required this.notificationService,
+    required this.preferences,
     required this.showOnboarding,
   });
 
@@ -464,7 +471,13 @@ class KoraApp extends StatelessWidget {
           create: (_) => ReminderSettingsProvider(reminderCoordinator),
         ),
         // Timer Provider
-        ChangeNotifierProvider<TimerProvider>(create: (_) => TimerProvider()),
+        ChangeNotifierProvider<TimerProvider>(
+          lazy: false,
+          create: (_) => TimerProvider(
+            notifications: notificationService,
+            preferences: preferences,
+          ),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -692,6 +705,8 @@ void _openNotificationPayload(String payload) {
     page = const AffirmationsPage();
   } else if (payload == 'kora://challenges') {
     page = const ChallengesPage(initialTab: 1);
+  } else if (payload == 'kora://timer') {
+    page = const TimerPage();
   } else if (payload.startsWith('kora://routine/')) {
     final id = payload.substring('kora://routine/'.length);
     final routine = context.read<RoutinesProvider>().getRoutineById(id);

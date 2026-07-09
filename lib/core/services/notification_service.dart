@@ -10,11 +10,13 @@ import '../reminders/services/reminder_notification_gateway.dart';
 import '../../features/routines/domain/entities/routine.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import '../../features/calendar/domain/entities/calendar_event.dart';
+import 'timer_notification_gateway.dart';
 
 export '../reminders/services/reminder_notification_gateway.dart'
     show NotificationPermissionState;
 
-class NotificationService implements ReminderNotificationGateway {
+class NotificationService
+    implements ReminderNotificationGateway, TimerNotificationGateway {
   static final NotificationService _instance = NotificationService._withPlugin(
     FlutterLocalNotificationsPlugin(),
   );
@@ -35,6 +37,7 @@ class NotificationService implements ReminderNotificationGateway {
   final StreamController<String> _payloadController =
       StreamController<String>.broadcast();
   String? _pendingPayload;
+  bool _requestedExactAlarmPermission = false;
 
   Stream<String> get payloads => _payloadController.stream;
 
@@ -124,6 +127,18 @@ class NotificationService implements ReminderNotificationGateway {
           'Kora Reminders',
           description: 'Reminders for Kora features',
           importance: Importance.defaultImportance,
+          playSound: true,
+          enableVibration: true,
+          showBadge: false,
+        ),
+      );
+
+      await androidImplementation.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'kora_timer',
+          'Timer Alerts',
+          description: 'Focus timer and countdown completion alerts',
+          importance: Importance.max,
           playSound: true,
           enableVibration: true,
           showBadge: false,
@@ -288,6 +303,90 @@ class NotificationService implements ReminderNotificationGateway {
       payload: request.payload,
       matchDateTimeComponents: matchComponents,
     );
+  }
+
+  static const int _timerNotificationId = 9100;
+
+  @override
+  Future<void> scheduleTimerCompletion({
+    required DateTime scheduledAt,
+    required String title,
+    required String body,
+  }) async {
+    if (!_initialized) await initialize();
+
+    var permission = await getPermissionState();
+    if (permission != NotificationPermissionState.granted) {
+      permission = await requestPermission();
+    }
+    if (permission != NotificationPermissionState.granted) return;
+
+    final android = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    var canScheduleExact =
+        await android?.canScheduleExactNotifications() ?? false;
+    if (android != null &&
+        !canScheduleExact &&
+        !_requestedExactAlarmPermission) {
+      _requestedExactAlarmPermission = true;
+      try {
+        canScheduleExact =
+            await android.requestExactAlarmsPermission() ?? false;
+      } on PlatformException {
+        canScheduleExact = false;
+      }
+    }
+
+    await _notifications.cancel(_timerNotificationId);
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'kora_timer',
+        'Timer Alerts',
+        channelDescription: 'Focus timer and countdown completion alerts',
+        importance: Importance.max,
+        priority: Priority.max,
+        showWhen: true,
+        enableVibration: true,
+        playSound: true,
+        autoCancel: true,
+        category: AndroidNotificationCategory.alarm,
+        visibility: NotificationVisibility.public,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+      ),
+    );
+
+    final location = _localLocation ?? tz.local;
+    final target = scheduledAt.isAfter(DateTime.now())
+        ? scheduledAt
+        : DateTime.now().add(const Duration(seconds: 1));
+
+    await _notifications.zonedSchedule(
+      _timerNotificationId,
+      title,
+      body,
+      tz.TZDateTime.from(target, location),
+      details,
+      androidScheduleMode: canScheduleExact
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'kora://timer',
+    );
+  }
+
+  @override
+  Future<void> cancelTimerCompletion() async {
+    if (!_initialized) await initialize();
+    await _notifications.cancel(_timerNotificationId);
   }
 
   Future<void> rescheduleAllRoutineNotifications(List<Routine> routines) async {

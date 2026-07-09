@@ -88,7 +88,6 @@ dependencies:
   flutter_timezone: ^3.0.0
   flutter_staggered_animations: ^1.1.1
   flutter_native_splash: ^2.3.10
-  introduction_screen: ^4.0.0
   glass_kit: ^4.0.2
 
   # TensorFlow Lite for on-device ML

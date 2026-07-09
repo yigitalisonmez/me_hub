@@ -17,38 +17,35 @@ class TimerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return ChangeNotifierProvider(
-      create: (_) => TimerProvider(),
-      child: Scaffold(
-        backgroundColor: themeProvider.backgroundColor,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                const PageHeader(
-                  title: 'Focus Timer',
-                  subtitle: 'Pomodoro focus',
-                  showBackButton: true,
-                  actionIcon: LucideIcons.settings,
-                ),
-                const SizedBox(height: 22),
-                const _ModeSelector(),
-                const SizedBox(height: 14),
-                const _TaskPill(),
-                const SizedBox(height: 16),
-                const _TimerStage(),
-                const SizedBox(height: 16),
-                const _RoundsIndicator(),
-                const SizedBox(height: 18),
-                const _Controls(),
-                const SizedBox(height: 18),
-                const _TimerConfig(),
-                const _CountdownDurations(),
-                SizedBox(height: LayoutConstants.getNavbarClearance(context)),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: themeProvider.backgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              const PageHeader(
+                title: 'Focus Timer',
+                subtitle: 'Pomodoro focus',
+                showBackButton: true,
+                actionIcon: LucideIcons.settings,
+              ),
+              const SizedBox(height: 22),
+              const _ModeSelector(),
+              const SizedBox(height: 14),
+              const _TaskPill(),
+              const SizedBox(height: 16),
+              const _TimerStage(),
+              const SizedBox(height: 16),
+              const _RoundsIndicator(),
+              const SizedBox(height: 18),
+              const _Controls(),
+              const SizedBox(height: 18),
+              const _TimerConfig(),
+              const _CountdownDurations(),
+              SizedBox(height: LayoutConstants.getNavbarClearance(context)),
+            ],
           ),
         ),
       ),
