@@ -21,3 +21,7 @@ audio, session history, and custom techniques.
 - Provider is large. Prefer small, focused edits.
 - Always check timer/audio disposal when changing session lifecycle.
 - UI fully redesigned as part of Kora Redesign (2026-05-31).
+- Technique preset colors use the Kora palette (mindful/water/routine/
+  terracotta deeps) since 2026-07-09; preset lists are duplicated in both
+  `data/models` and `domain/entities` versions of `breathing_technique.dart` —
+  keep them in sync.

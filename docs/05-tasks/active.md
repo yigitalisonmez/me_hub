@@ -5,13 +5,17 @@ using `_templates/task.md` and link it here.
 
 ## Current
 
-_No active tasks. P0 release tasks, Kora Redesign, and post-redesign fixes are complete._
+_No active tasks. The Kora Redesign board (sections 1–8) is now fully
+implemented, including the section-6 Insights screens (see
+`03-features/insights.md`) added 2026-07-09._
 
 ## Known remaining visual polish (not blocking)
 
-- Affirmations `WelcomeStep` / `RecordStep` / `SessionStep` top bars: currently rely on the parent for header — consider adding per-step top bars matching the design spec (Sleep Affirmations header, Record + 2/3 indicator, Session).
-- Breathing `BreathingSessionPage` (active session screen): not yet audited against redesign.
-- Mood: `_TodayMoodCard` uses `Icon(level.icon)` — already replaced with `_MoodFaceWidget` in the entry card but verify the today card shows SVG face correctly.
+_None. The three items previously listed here were verified resolved on
+2026-07-09: affirmation per-step top bars already existed (a 3/3 marker was
+added to Session), `BreathingSessionPage` was audited and its technique
+palette aligned to Kora colors, and `_TodayMoodCard` already renders
+`_MoodFaceWidget`._
 
 ## Task Format
 

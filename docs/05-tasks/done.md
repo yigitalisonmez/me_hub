@@ -1,5 +1,30 @@
 # Done
 
+## 2026-07-09 (Kora Redesign — Insights section + polish)
+
+- Implemented the last unbuilt parts of the Kora Redesign board (section 6,
+  Insights & quick log) plus remaining visual polish:
+  - New `lib/features/insights/` module: pure `ConsistencyCalculator`,
+    read-only `InsightsDataService` aggregating todos/water/mood/gratitude/
+    session histories.
+  - `ConsistencyPage`: streak hero, 16-week heatmap with tappable day detail,
+    legend, and stats. Entries: Explore → Insights and the Profile day-streak
+    card.
+  - `WeeklyWrappedPage`: five-slide auto-advancing story (hydration bars,
+    productivity, mood trend, streak) with tap/swipe navigation and
+    `share_plus` text sharing. Entries: Sunday-only Home banner and Explore.
+  - Quick-log bottom sheet (water stepper, five-bucket mood picker, first
+    three tasks) opened from a floating "Quick log" pill on the Home tab.
+  - Added the 3/3 marker to the affirmation Session top bar; audited
+    `BreathingSessionPage` and aligned breathing technique colors to the Kora
+    palette (mindful/water/routine/terracotta deeps).
+- Also committed pre-existing working-tree work as-is (timer notification
+  gateway + wall-clock timer provider, onboarding rework, store-listing docs).
+- **Validation**:
+  - `dart format`: applied to all touched files.
+  - `flutter analyze`: no issues.
+  - `flutter test`: all 121 tests passed (7 new calculator tests).
+
 ## 2026-06-07 (Animated Water Metric)
 
 - Added the `animated_digit` package and a reusable, reduced-motion-aware

@@ -27,6 +27,11 @@ and summary UI.
 - Settings has a full-page shell with separate Appearance and Voice sections.
 - Dark mode is managed only from Settings.
 - Keep dashboard navigation consistent with `MainScreen` and `GlassNavBar`.
+- Home shows a Sunday-only Weekly Wrapped banner and hosts the floating
+  "Quick log" pill (`MainScreen`, Home tab only); the Explore section has an
+  Insights category linking Consistency and Weekly Wrapped. See
+  `03-features/insights.md` (added 2026-07-09).
+- Profile's Day streak stat card opens the Consistency heatmap.
 
 ## Live Audit Notes
 
