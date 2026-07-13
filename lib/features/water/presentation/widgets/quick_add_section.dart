@@ -31,14 +31,14 @@ class QuickAddSection extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final quickAddAmount = visibleAmounts[index];
-        final selected = index == 0;
 
+        // Design spec: all quick-add tiles share the same light style; no
+        // tile is pre-highlighted.
         return WaterAmountButton(
           amount: quickAddAmount.amountMl,
           label: quickAddAmount.label,
           theme: Theme.of(context),
           themeProvider: themeProvider,
-          isSelected: selected,
           onTap: () async {
             await onAddWater(quickAddAmount.amountMl);
           },

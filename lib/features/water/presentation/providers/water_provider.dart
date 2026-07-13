@@ -11,6 +11,7 @@ class WaterProvider with ChangeNotifier {
   final AddWater _addWater;
   final RemoveLastLog _removeLastLog;
   final UpdateWaterIntake _updateWaterIntake;
+  final GetAllWaterIntakes? _getAllWaterIntakes;
   final ReminderCoordinator? _reminders;
 
   WaterProvider({
@@ -18,11 +19,13 @@ class WaterProvider with ChangeNotifier {
     required AddWater addWater,
     required RemoveLastLog removeLastLog,
     required UpdateWaterIntake updateWaterIntake,
+    GetAllWaterIntakes? getAllWaterIntakes,
     ReminderCoordinator? reminders,
   }) : _getTodayWaterIntake = getTodayWaterIntake,
        _addWater = addWater,
        _removeLastLog = removeLastLog,
        _updateWaterIntake = updateWaterIntake,
+       _getAllWaterIntakes = getAllWaterIntakes,
        _reminders = reminders;
 
   WaterIntake? _todayIntake;
@@ -30,6 +33,16 @@ class WaterProvider with ChangeNotifier {
   String? _error;
   bool _justReachedGoal = false;
   int _dailyGoalMl = 2000; // Default goal
+
+  int _streakDays = 0;
+  List<int> _weekMl = List.filled(7, 0);
+
+  /// Consecutive days with any water logged, ending today (an empty today
+  /// does not break the streak until the day is over).
+  int get streakDays => _streakDays;
+
+  /// Milliliters per weekday Mon..Sun of the current week.
+  List<int> get weekMl => _weekMl;
 
   WaterIntake? get todayIntake => _todayIntake;
   bool get isLoading => _isLoading;
@@ -92,7 +105,51 @@ class WaterProvider with ChangeNotifier {
           waterGoal: _dailyGoalMl,
         );
       }
+      await _refreshHydrationStats();
       await _reconcileReminders();
+    }
+  }
+
+  /// Recompute the hydration streak and this week's daily totals. Runs after
+  /// every reload so add/undo/delete all keep the stats current.
+  Future<void> _refreshHydrationStats() async {
+    final getAll = _getAllWaterIntakes;
+    if (getAll == null) return;
+    try {
+      final all = await getAll();
+      final activeDates = <DateTime>{
+        for (final intake in all)
+          if (intake.amountMl > 0)
+            DateTime(intake.date.year, intake.date.month, intake.date.day),
+      };
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      var cursor = activeDates.contains(today)
+          ? today
+          : today.subtract(const Duration(days: 1));
+      var streak = 0;
+      while (activeDates.contains(cursor)) {
+        streak++;
+        cursor = cursor.subtract(const Duration(days: 1));
+      }
+      _streakDays = streak;
+
+      final monday = today.subtract(Duration(days: today.weekday - 1));
+      final week = List<int>.filled(7, 0);
+      for (final intake in all) {
+        final date = DateTime(
+          intake.date.year,
+          intake.date.month,
+          intake.date.day,
+        );
+        final index = date.difference(monday).inDays;
+        if (index >= 0 && index < 7) week[index] += intake.amountMl;
+      }
+      _weekMl = week;
+      notifyListeners();
+    } catch (_) {
+      // Stats are decorative; never surface an error for them.
     }
   }
 

@@ -34,3 +34,11 @@ class UpdateWaterIntake {
   Future<void> call(WaterIntake waterIntake) =>
       repository.updateWaterIntake(waterIntake);
 }
+
+class GetAllWaterIntakes {
+  final WaterRepository repository;
+
+  GetAllWaterIntakes(this.repository);
+
+  Future<List<WaterIntake>> call() => repository.getAllWaterIntakes();
+}

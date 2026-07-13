@@ -26,3 +26,9 @@ updates.
 - UI fully redesigned as part of Kora Redesign (2026-05-31).
 - The main consumed-liter value rolls on initial display and when water logs
   change, using the shared animated metric widget.
+- Handoff alignment (2026-07-09): quick-add tiles all share the light style
+  (no pre-highlighted first tile), the meta row under the circle pairs the
+  flame with a hydration streak (`WaterProvider.streakDays`, computed from a
+  new `GetAllWaterIntakes` usecase) plus "ml to go"/"Goal complete", and a
+  "This week" Mon–Sun bar section (`WeekBarsSection`,
+  `WaterProvider.weekMl`) closes the page as in the design's WaterLive.

@@ -400,6 +400,9 @@ class KoraApp extends StatelessWidget {
             updateWaterIntake: water_usecases.UpdateWaterIntake(
               context.read<WaterRepositoryImpl>(),
             ),
+            getAllWaterIntakes: water_usecases.GetAllWaterIntakes(
+              context.read<WaterRepositoryImpl>(),
+            ),
             reminders: reminderCoordinator,
           ),
         ),

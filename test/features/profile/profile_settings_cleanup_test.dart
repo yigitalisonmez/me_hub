@@ -124,4 +124,7 @@ class _FakeWaterRepository implements WaterRepository {
 
   @override
   Future<void> updateWaterIntake(WaterIntake waterIntake) async {}
+
+  @override
+  Future<List<WaterIntake>> getAllWaterIntakes() async => const [];
 }

@@ -12,4 +12,7 @@ abstract class WaterRepository {
 
   /// Update water intake
   Future<void> updateWaterIntake(WaterIntake waterIntake);
+
+  /// Get all recorded water intakes (for streak / weekly stats)
+  Future<List<WaterIntake>> getAllWaterIntakes();
 }

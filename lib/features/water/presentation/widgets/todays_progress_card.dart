@@ -36,40 +36,38 @@ class TodaysProgressCard extends StatelessWidget {
           showGoalCheer: showGoalCheer,
         ),
         const SizedBox(height: 12),
-        if (provider.isGoalReached)
-          _HydroPill(
-            icon: LucideIcons.check,
-            label:
-                'Complete · ${provider.todayIntake?.logs.length ?? 0} entries',
-            color: AppColors.waterDeep,
-          )
-        else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _HydroPill(
-                icon: LucideIcons.flame,
-                label: '${provider.todayIntake?.logs.length ?? 0} entries',
-                color: AppColors.moodDeep,
+        // Design spec: flame pairs with the hydration streak, the right side
+        // shows what's left (or goal completion).
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _HydroPill(
+              icon: LucideIcons.flame,
+              label: provider.streakDays == 1
+                  ? '1-day streak'
+                  : '${provider.streakDays}-day streak',
+              color: AppColors.moodDeep,
+            ),
+            Container(
+              width: 4,
+              height: 4,
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: context.watch<ThemeProvider>().textTertiary,
+                shape: BoxShape.circle,
               ),
-              Container(
-                width: 4,
-                height: 4,
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: context.watch<ThemeProvider>().textTertiary,
-                  shape: BoxShape.circle,
-                ),
+            ),
+            Text(
+              provider.isGoalReached ? 'Goal complete' : '$remaining ml to go',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: provider.isGoalReached
+                    ? AppColors.waterDeep
+                    : context.watch<ThemeProvider>().textSecondary,
+                fontWeight: FontWeight.w700,
               ),
-              Text(
-                '$remaining ml to go',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: context.watch<ThemeProvider>().textSecondary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         QuickAddSection(
           quickAddAmounts: quickAddAmounts,

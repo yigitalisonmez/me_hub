@@ -76,4 +76,9 @@ class WaterRepositoryImpl implements WaterRepository {
   Future<void> updateWaterIntake(WaterIntake waterIntake) async {
     await localDataSource.saveWaterIntake(waterIntake);
   }
+
+  @override
+  Future<List<WaterIntake>> getAllWaterIntakes() async {
+    return localDataSource.getAllWaterIntakes();
+  }
 }

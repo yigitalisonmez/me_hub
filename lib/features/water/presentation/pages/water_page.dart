@@ -26,6 +26,7 @@ import 'water_settings_page.dart';
 
 part '../widgets/todays_progress_card.dart';
 part '../widgets/todays_log_section.dart';
+part '../widgets/week_bars_section.dart';
 part '../widgets/water_log_item.dart';
 part '../widgets/quick_add_section.dart';
 part '../widgets/water_amount_button.dart';
@@ -116,6 +117,8 @@ class _WaterPageState extends State<WaterPage>
                       ),
                       const SizedBox(height: 22),
                       TodaysLogSection(provider: provider),
+                      const SizedBox(height: 22),
+                      WeekBarsSection(provider: provider),
                       SizedBox(
                         height: LayoutConstants.getNavbarClearance(context),
                       ),
