@@ -1,5 +1,16 @@
 # Done
 
+## 2026-07-15 (New app logo)
+
+- Adopted the new K-mark logo from `assets/svg/logo_new.svg` (terracotta +
+  sage): rasterized it to `assets/images/app_logo.png` via a gated tooling
+  test (`RENDER_LOGO=1 flutter test test/tooling/render_app_logo_test.dart`,
+  needed because flutter_svg ignores CSS `<style>` classes and no system SVG
+  rasterizer is available), then regenerated all launcher icons and native
+  splash assets plus the Play Store `docs/store-assets/icon-512.png`.
+- **Validation**: `flutter analyze` clean; full suite passes (generator test
+  skips without the env var).
+
 ## 2026-07-09 (Kora Redesign — Insights section + polish)
 
 - Implemented the last unbuilt parts of the Kora Redesign board (section 6,
