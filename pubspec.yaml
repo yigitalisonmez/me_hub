@@ -211,23 +211,27 @@ flutter_native_splash:
   ios_content_mode: center
 
 # App Icon Configuration
+# Icon PNGs are generated from assets/svg/logo_new.svg by
+# test/tooling/render_app_logo_test.dart: app_icon.png is an opaque tile
+# with built-in margins, app_icon_foreground.png is the padded adaptive
+# foreground.
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/app_logo.png"
+  image_path: "assets/images/app_icon.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   # Adaptive icon for Android (supports dark/light mode)
   adaptive_icon_background: "#F0EBE5" # Light mode background
-  adaptive_icon_foreground: "assets/images/app_logo.png"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
   web:
     generate: true
-    image_path: "assets/images/app_logo.png"
+    image_path: "assets/images/app_icon.png"
     background_color: "#F0EBE5"
     theme_color: "#E08E6D"
   windows:
     generate: true
-    image_path: "assets/images/app_logo.png"
+    image_path: "assets/images/app_icon.png"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/images/app_logo.png"
+    image_path: "assets/images/app_icon.png"

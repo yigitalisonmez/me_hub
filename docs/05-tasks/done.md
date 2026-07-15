@@ -8,6 +8,12 @@
   needed because flutter_svg ignores CSS `<style>` classes and no system SVG
   rasterizer is available), then regenerated all launcher icons and native
   splash assets plus the Play Store `docs/store-assets/icon-512.png`.
+- Follow-up sizing pass: the generator now emits purpose-specific PNGs —
+  `app_icon.png` (opaque cream tile, mark at 58%) for legacy/iOS/web/desktop
+  icons, `app_icon_foreground.png` (mark at 50%, inside the 61% adaptive safe
+  zone) for the Android adaptive foreground, and `app_logo.png` (transparent,
+  66%) for splash only. The dark-mode adaptive background moved from #000000
+  to the Kora dark canvas #1C1916. Verified margins on the SM-S908E launcher.
 - **Validation**: `flutter analyze` clean; full suite passes (generator test
   skips without the env var).
 
